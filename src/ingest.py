@@ -306,12 +306,15 @@ def is_leadin(u: str) -> bool:
 
 
 def chunk_blocks(blocks: list[str]) -> list[str]:
-    """Greedy-pack blocks into <= MAX_TOKENS chunks, carrying ~OVERLAP_TOKENS of tail into the next."""
+    """Greedy-pack blocks into <= MAX_TOKENS chunks, carrying ~OVERLAP_TOKENS of tail into the next.
+    A short lead-in stays with the block after it; a short tail is appended to the previous chunk,
+    so no chunk is emitted under MIN_TOKENS (unless the whole section is that small)."""
     units = [u for b in blocks for u in split_long(b, MAX_TOKENS)]
     chunks, cur, cur_tok = [], [], 0
+    fresh = []  # units added since the last flush (excludes carried overlap)
     for u in units:
         t = ntok(u)
-        if cur and cur_tok + t > MAX_TOKENS:
+        if cur and cur_tok + t > MAX_TOKENS and cur_tok >= MIN_TOKENS:
             held = []  # don't strand a caption/lead-in at the end of a chunk
             while len(cur) > 1 and is_leadin(cur[-1]):
                 held.insert(0, cur.pop())
@@ -325,10 +328,15 @@ def chunk_blocks(blocks: list[str]) -> list[str]:
                 carry_tok += pt
             cur = carry + held
             cur_tok = sum(ntok(x) for x in cur)
+            fresh = list(held)
         cur.append(u)
         cur_tok += t
+        fresh.append(u)
     if cur:
-        chunks.append("\n\n".join(cur))
+        if chunks and cur_tok < MIN_TOKENS:
+            chunks[-1] += "\n\n" + "\n\n".join(fresh)  # fresh only, so overlap isn't duplicated
+        else:
+            chunks.append("\n\n".join(cur))
     return chunks
 
 SKIP_SECTIONS = {"see also", "author", "authors"}  # pure cross-references / credits: skipped on purpose, and counted
@@ -402,20 +410,23 @@ def chunk_all() -> None:
             idx = 0
             for sec in sections:
                 n_merged += len(sec["covers"]) - 1
-                for text in chunk_blocks(sec["blocks"]):
+                for ci, text in enumerate(chunk_blocks(sec["blocks"])):
                     n = ntok(text)
                     if n < MIN_TOKENS:
                         dropped += 1
                         fd.write(json.dumps({"page": path.stem, "section_path": sec["path"],
                                              "n_tokens": n, "text": text}, ensure_ascii=False) + "\n")
                         continue
+                    a0, p0 = sec["covers"][0] if ci == 0 else (sec["anchor"], sec["path"])
+                    a0 = a0 or sec["anchor"]
+                    p0 = p0 or sec["path"]
                     rec = {
                         "chunk_id": f"{path.stem}:{idx:04d}",
-                        "url": url + (f"#{sec['anchor']}" if sec["anchor"] else ""),
+                        "url": url + (f"#{a0}" if a0 else ""),
                         "page_title": page_title,
                         "section_path": sec["path"],
                         "covers": [{"anchor": a, "section_path": p} for a, p in sec["covers"]],
-                        "context": " > ".join(dict.fromkeys([page_title, *sec["path"]])),
+                        "context": " > ".join(dict.fromkeys([page_title, *p0])),
                         "text": text,
                         "n_tokens": n,
                     }
@@ -423,7 +434,7 @@ def chunk_all() -> None:
                     sizes.append(n)
                     idx += 1
 
-    print(f"Pages parsed:        {len(files)}")
+    print(f"Pages parsed:        {len(files)}") 
     print(f"Chunks written:      {len(sizes)}  -> {OUT_PATH}")
     print(f"Small sections merged into a neighbour: {n_merged}")
     print(f"Skipped on purpose (See Also / Author): {n_skipped}  -> {skipped_path}")
