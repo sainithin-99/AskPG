@@ -1,0 +1,461 @@
+
+====================================================================================================
+fact-01 (factual): is the COMMENT command part of the SQL standard?
+  gold: sql-comment / Compatibility
+  distinctive terms used (1): ['comment']
+  too few distinctive terms (< 2); nothing to sweep for this question.
+
+====================================================================================================
+fact-02 (factual): what is the syntax of ROLLBACK?
+  gold: sql-rollback / Synopsis
+  distinctive terms used (2): ['rollback', 'chain']
+  best gold chunk: sql-rollback:0000 matches 2/2 terms
+
+  [1] plpgsql-transactions:0000  score 9.4  2/2 terms: ['rollback', 'chain']
+      41.8. Transaction Management
+      label if it answers: {"page": "plpgsql-transactions", "heading": '41.8. Transaction Management'}
+      ... command), it is possible to end transactions using the commands COMMIT and ROLLBACK. A new transaction is started automatically after a transaction is ended using these commands, so there is no separate START TRANSACTION command....
+
+  [2] spi-spi-rollback:0000  score 9.4  2/2 terms: ['rollback', 'chain']
+      SPI_rollback
+      label if it answers: {"page": "spi-spi-rollback", "heading": 'Description'}
+      SPI_rollback, SPI_rollback_and_chain — abort the current transaction  Synopsis void SPI_rollback(void) void SPI_rollback_and_chain(void)  SPI_rollback rolls back the current transaction. It is approximately equivalent to running t...
+
+  [3] sql-abort:0000  score 9.4  2/2 terms: ['rollback', 'chain']
+      ABORT
+      label if it answers: {"page": "sql-abort", "heading": 'Description'}
+      ...the current transaction  Synopsis ABORT [ WORK | TRANSACTION ] [ AND [ NO ] CHAIN ]  ABORT rolls back the current transaction and causes all the updates made by the transaction to be discarded. This command is identical in behavio...
+
+  [4] sql-commit:0002  score 9.4  2/2 terms: ['rollback', 'chain']
+      COMMIT > Notes
+      label if it answers: {"page": "sql-commit", "heading": 'Notes'}
+      Use ROLLBACK to abort a transaction.  Issuing COMMIT when not inside a transaction does no harm, but it will provoke a warning message. COMMIT AND CHAIN when not inside a transaction is an error.  Examples To commit the current tr...
+
+  [5] sql-rollback-to:0003  score 9.4  2/2 terms: ['rollback', 'chain']
+      ROLLBACK TO SAVEPOINT > Compatibility
+      label if it answers: {"page": "sql-rollback-to", "heading": 'Compatibility'}
+      ...to be omitted. SQL allows only WORK, not TRANSACTION, as a noise word after ROLLBACK. Also, SQL has an optional clause AND [ NO ] CHAIN which is not currently supported by PostgreSQL. Otherwise, this command conforms to the SQL st...
+
+====================================================================================================
+fact-03 (factual): what does work_mem control?
+  gold: runtime-config-resource / 19.4.1. Memory
+  distinctive terms used (0): []
+  too few distinctive terms (< 2); nothing to sweep for this question.
+
+====================================================================================================
+fact-04 (factual): ALTER TABLE SET LOGGED
+  gold: sql-altertable / Description
+  distinctive terms used (4): ['logged', 'unlogged', 'vice', 'versa']
+  best gold chunk: sql-altertable:0016 matches 4/4 terms
+
+  [1] sql-altersequence:0003  score 21.0  4/4 terms: ['logged', 'unlogged', 'vice', 'versa']
+      ALTER SEQUENCE > Parameters
+      label if it answers: {"page": "sql-altersequence", "heading": 'Parameters'}
+      ...r NO CYCLE are specified, the old cycle behavior will be maintained.  SET { LOGGED | UNLOGGED } This form changes the sequence from unlogged to logged or vice-versa (see CREATE SEQUENCE). It cannot be applied to a temporary sequen...
+
+  [2] auth-username-maps:0001  score 11.2  2/4 terms: ['vice', 'versa']
+      20.2. User Name Maps
+      label if it answers: {"page": "auth-username-maps", "heading": '20.2. User Name Maps'}
+      ...ow many database users a given operating system user can correspond to, nor vice versa. Thus, entries in a map should be thought of as meaning “this operating system user is allowed to connect as this database user”, rather than i...
+
+  [3] bug-reporting:0006  score 11.2  2/4 terms: ['vice', 'versa']
+      5. Bug Reporting Guidelines > 5.2. What to Report
+      label if it answers: {"page": "bug-reporting", "heading": '5.2. What to Report'}
+      ... “the server crashed” when you mean a single backend process went down, nor vice versa. Also, client programs such as the interactive frontend “psql” are completely separate from the backend. Please try to be specific about whethe...
+
+  [4] cube:0001  score 11.2  2/4 terms: ['vice', 'versa']
+      F.10. cube — a multi-dimensional cube data type > F.10.1. Syntax
+      label if it answers: {"page": "cube", "heading": 'F.10.1. Syntax'}
+      ...e ( x ),( y ) | A one-dimensional interval starting at x and ending at y or vice versa; the order does not matter [( x ),( y )] | Same as above ( x1 ,..., xn ),( y1 ,..., yn ) | An n-dimensional cube represented by a pair of its d...
+
+  [5] datatype-xml:0003  score 11.2  2/4 terms: ['vice', 'versa']
+      8.13. XML Type > 8.13.2. Encoding Handling
+      label if it answers: {"page": "datatype-xml", "heading": '8.13.2. Encoding Handling'}
+      ...QL converts all character data passed between the client and the server and vice versa to the character encoding of the respective end; see Section 23.3. This includes string representations of XML values, such as in the above exa...
+
+====================================================================================================
+fact-05 (factual): What does VACUUM FULL do differently from a plain VACUUM?
+  gold: sql-vacuum / Parameters
+  distinctive terms used (5): ['rewrites', 'reclaim', 'plain', 'slower', 'exclusive']
+  no gold chunk matches 2+ of the terms: the reference answer is worded unlike the gold text, so read the candidates with extra care
+
+  [1] sql-vacuum:0001  score 20.5  4/5 terms: ['rewrites', 'plain', 'slower', 'exclusive']
+      VACUUM > Description
+      label if it answers: {"page": "sql-vacuum", "heading": 'Description'}
+      ...ne maintenance scripts. See ANALYZE for more details about its processing.  Plain VACUUM (without FULL) simply reclaims space and makes it available for re-use. This form of the command can operate in parallel with normal reading ...
+
+  [2] routine-vacuuming:0004  score 15.4  3/5 terms: ['reclaim', 'plain', 'exclusive']
+      24.1. Routine Vacuuming > 24.1.2. Recovering Disk Space
+      label if it answers: {"page": "routine-vacuuming", "heading": '24.1.2. Recovering Disk Space'}
+      ...n't forget to VACUUM each one; the program vacuumdb might be helpful.  Tip: Plain VACUUM may not be satisfactory when a table contains large numbers of dead row versions as a result of massive update or delete activity. If you hav...
+
+  [3] routine-vacuuming:0001  score 11.3  2/5 terms: ['reclaim', 'exclusive']
+      24.1. Routine Vacuuming > 24.1.1. Vacuuming Basics
+      label if it answers: {"page": "routine-vacuuming", "heading": '24.1.1. Vacuuming Basics'}
+      ...re two variants of VACUUM: standard VACUUM and VACUUM FULL. VACUUM FULL can reclaim more disk space but runs much more slowly. Also, the standard form of VACUUM can run in parallel with production database operations. (Commands su...
+
+  [4] sql-altertable:0027  score 11.3  2/5 terms: ['rewrites', 'exclusive']
+      ALTER TABLE > Notes
+      label if it answers: {"page": "sql-altertable", "heading": 'Notes'}
+      ...fy multiple changes in a single ALTER TABLE is that multiple table scans or rewrites can thereby be combined into a single pass over the table.  Scanning a large table to verify a new foreign key or check constraint can take a lon...
+
+  [5] ddl-partitioning:0023  score 9.4  2/5 terms: ['slower', 'exclusive']
+      5.12. Table Partitioning > 5.12.3. Partitioning Using Inheritance > 5.12.3.3. Caveats
+      label if it answers: {"page": "ddl-partitioning", "heading": '5.12.3.3. Caveats'}
+      ...s no automatic way to verify that all of the CHECK constraints are mutually exclusive. It is safer to create code that generates child tables and creates and/or modifies associated objects than to write each by hand.  - Indexes an...
+
+====================================================================================================
+fact-06 (factual): What is the default value of max_connections?
+  gold: runtime-config-connection / 19.3.1. Connection Settings
+  distinctive terms used (1): ['kernel']
+  too few distinctive terms (< 2); nothing to sweep for this question.
+
+====================================================================================================
+fact-07 (factual): What does the autovacuum daemon do?
+  gold: routine-vacuuming / 24.1.6. The Autovacuum Daemon
+  distinctive terms used (3): ['automates', 'checking', 'deleted']
+  no gold chunk matches 2+ of the terms: the reference answer is worded unlike the gold text, so read the candidates with extra care
+
+  [1] index-functions:0004  score 8.6  2/3 terms: ['checking', 'deleted']
+      62.2. Index Access Method Functions
+      label if it answers: {"page": "index-functions", "heading": '62.2. Index Access Method Functions'}
+      ...peration that is intended to be implemented by scanning the whole index and checking each entry to see if it should be deleted. The passed-in callback function must be called, in the style callback(TID, callback_state) returns boo...
+
+  [2] pltcl-dbaccess:0001  score 8.6  2/3 terms: ['checking', 'deleted']
+      42.5. Database Access from PL/Tcl
+      label if it answers: {"page": "pltcl-dbaccess", "heading": '42.5. Database Access from PL/Tcl'}
+      ...f spi_exec is the number of rows processed (selected, inserted, updated, or deleted) by the command, or zero if the command is a utility statement. In addition, if the command is a SELECT statement, the values of the selected colu...
+
+  [3] sql-createtable:0024  score 8.6  2/3 terms: ['checking', 'deleted']
+      CREATE TABLE > Parameters
+      label if it answers: {"page": "sql-createtable", "heading": 'Parameters'}
+      ...t that the check is not deferrable. CASCADE Delete any rows referencing the deleted row, or update the values of the referencing column(s) to the new values of the referenced columns, respectively. SET NULL [ ( column_name [, ... ...
+
+====================================================================================================
+fact-08 (factual): Which index types does PostgreSQL support?
+  gold: indexes-types / 11.2. Index Types
+  distinctive terms used (2): ['gin', 'brin']
+  best gold chunk: indexes-types:0000 matches 2/2 terms
+
+  [1] btree:0010  score 9.3  2/2 terms: ['gin', 'brin']
+      64.1. B-Tree Indexes > 64.1.3. B-Tree Support Functions
+      label if it answers: {"page": "btree", "heading": '64.1.3. B-Tree Support Functions'}
+      ...n. B-tree doesn't allow flexible representation of keys like GiST, SP-GiST, GIN and BRIN do. So, options probably doesn't have much application in the current B-tree index access method. Nevertheless, this support function was add...
+
+  [2] functions-admin:0035  score 9.3  2/2 terms: ['gin', 'brin']
+      9.28. System Administration Functions > 9.28.8. Index Maintenance Functions
+      label if it answers: {"page": "functions-admin", "heading": '9.28.8. Index Maintenance Functions'}
+      Table 9.104. Index Maintenance Functions  Function Description brin_summarize_new_values ( index regclass ) → integer Scans the specified BRIN index to find page ranges in the base table that are not currently summarized by the in...
+
+  [3] indexes-multicolumn:0000  score 9.3  2/2 terms: ['gin', 'brin']
+      11.3. Multicolumn Indexes
+      label if it answers: {"page": "indexes-multicolumn", "heading": '11.3. Multicolumn Indexes'}
+      ...EX test2_mm_idx ON test2 (major, minor);  Currently, only the B-tree, GiST, GIN, and BRIN index types support multiple-key-column indexes. Whether there can be multiple key columns is independent of whether INCLUDE columns can be ...
+
+  [4] indexes-types:0006  score 9.3  2/2 terms: ['gin', 'brin']
+      11.2. Index Types > 11.2.6. BRIN
+      label if it answers: {"page": "indexes-types", "heading": '11.2.6. BRIN'}
+      BRIN indexes (a shorthand for Block Range INdexes) store summaries about the values stored in consecutive physical block ranges of a table. Thus, they are most effective for columns whose values are well-correlated with the physic...
+
+  [5] runtime-config-developer:0007  score 9.3  2/2 terms: ['gin', 'brin']
+      19.17. Developer Options
+      label if it answers: {"page": "runtime-config-developer", "heading": '19.17. Developer Options'}
+      ... or to a comma-separated list of resource managers to check only records originating from those resource managers. Currently, the supported resource managers are heap, heap2, btree, hash, gin, gist, sequence, spgist, brin, and gen...
+
+====================================================================================================
+fact-09 (factual): What does EXPLAIN ANALYZE do compared to plain EXPLAIN?
+  gold: using-explain / 14.1.2. EXPLAIN ANALYZE
+  distinctive terms used (5): ['executes', 'reports', 'real', 'counts', 'estimates']
+  best gold chunk: using-explain:0026 matches 4/5 terms
+
+  [1] using-explain:0041  score 14.2  3/5 terms: ['real', 'counts', 'estimates']
+      14.1. Using EXPLAIN > 14.1.3. Caveats
+      label if it answers: {"page": "using-explain", "heading": '14.1.3. Caveats'}
+      ...r the Index Scan node are shown as though it were run to completion. But in reality the Limit node stopped requesting rows after it got two, so the actual row count is only 2 and the run time is less than the cost estimate would s...
+
+  [2] planner-stats:0009  score 10.1  2/5 terms: ['counts', 'estimates']
+      14.2. Statistics Used by the Planner > 14.2.2. Extended Statistics > 14.2.2.2. Multivariate N-Distinct Counts
+      label if it answers: {"page": "planner-stats", "heading": '14.2.2.2. Multivariate N-Distinct Counts'}
+      ...ingle-column statistics store the number of distinct values in each column. Estimates of the number of distinct values when combining more than one column (for example, for GROUP BY a, b) are frequently wrong when the planner only...
+
+  [3] indexes-examine:0001  score 9.3  2/5 terms: ['real', 'estimates']
+      11.12. Examining Index Usage
+      label if it answers: {"page": "indexes-examine", "heading": '11.12. Examining Index Usage'}
+      ...ed in sorted order will skew the statistics away from the distribution that real data would have.  - When indexes are not used, it can be useful for testing to force their use. There are run-time parameters that can turn off vario...
+
+  [4] pgtestfsync:0000  score 9.1  2/5 terms: ['reports', 'real']
+      pg_test_fsync
+      label if it answers: {"page": "pgtestfsync", "heading": 'Description'}
+      ...erences shown by pg_test_fsync might not make any significant difference in real database throughput, especially since many database servers are not speed-limited by their write-ahead logs. pg_test_fsync reports average file sync ...
+
+====================================================================================================
+fact-10 (factual): How do I make PostgreSQL abort statements that run too long?
+  gold: runtime-config-client / 19.11.1. Statement Behavior
+  distinctive terms used (3): ['statement_timeout', 'aborted', 'disables']
+  best gold chunk: runtime-config-client:0008 matches 2/3 terms
+
+  [1] runtime-config-connection:0008  score 9.2  2/3 terms: ['aborted', 'disables']
+      19.3. Connections and Authentication > 19.3.2. TCP Settings
+      label if it answers: {"page": "runtime-config-connection", "heading": '19.3.2. TCP Settings'}
+      ...k is performed by polling the socket, and allows long running queries to be aborted sooner if the kernel reports that the connection is closed. This option relies on kernel events exposed by Linux, macOS, illumos and the BSD famil...
+
+====================================================================================================
+fact-11 (factual): What does the pg_hba.conf file control?
+  gold: auth-pg-hba-conf / 20.1. The pg_hba.conf File
+  distinctive terms used (1): ['address']
+  too few distinctive terms (< 2); nothing to sweep for this question.
+
+====================================================================================================
+fact-12 (factual): Which function returns the start time of the current transaction?
+  gold: functions-datetime / 9.9.5. Current Date/Time
+  distinctive terms used (2): ['transaction_timestamp', 'current_timestamp']
+  best gold chunk: functions-datetime:0031 matches 2/2 terms
+  no non-gold section shares enough terms.
+
+====================================================================================================
+multi-01 (multi_hop): How do READ COMMITTED and REPEATABLE READ differ in what a transaction sees from concurrent changes?
+  gold: transaction-iso / 13.2.1. Read Committed Isolation Level; transaction-iso / 13.2.2. Repeatable Read Isolation Level
+  distinctive terms used (5): ['committed', 'sees', 'snapshot', 'repeatable', 'serialization']
+  best gold chunk: transaction-iso:0007 matches 5/5 terms
+
+  [1] transaction-iso:0011  score 18.7  4/5 terms: ['committed', 'snapshot', 'repeatable', 'serialization']
+      13.2. Transaction Isolation > 13.2.3. Serializable Isolation Level
+      label if it answers: {"page": "transaction-iso", "heading": '13.2.3. Serializable Isolation Level'}
+      ...ot be considered valid until the transaction which read it has successfully committed. This is true even for read-only transactions, except that data read within a deferrable read-only transaction is known to be valid as soon as i...
+
+  [2] runtime-config-client:0005  score 14.3  3/5 terms: ['committed', 'repeatable', 'serialization']
+      19.11. Client Connection Defaults > 19.11.1. Statement Behavior
+      label if it answers: {"page": "runtime-config-client", "heading": '19.11.1. Statement Behavior'}
+      ...m) Each SQL transaction has an isolation level, which can be either “read uncommitted”, “read committed”, “repeatable read”, or “serializable”. This parameter controls the default isolation level of each new transaction. The defau...
+
+  [3] sql-select:0038  score 14.3  3/5 terms: ['committed', 'repeatable', 'serialization']
+      SELECT > Parameters > The Locking Clause
+      label if it answers: {"page": "sql-select", "heading": 'The Locking Clause'}
+      ...ease 9.3.  Caution: It is possible for a SELECT command running at the READ COMMITTED transaction isolation level and using ORDER BY and a locking clause to return rows out of order. This is because ORDER BY is applied first. The ...
+
+  [4] transaction-iso:0001  score 14.3  3/5 terms: ['committed', 'repeatable', 'serialization']
+      13.2. Transaction Isolation
+      label if it answers: {"page": "transaction-iso", "heading": '13.2. Transaction Isolation'}
+      serialization anomaly The result of successfully committing a group of transactions is inconsistent with all possible orderings of running those transactions one at a time.  The SQL standard and PostgreSQL-implemented transaction ...
+
+  [5] applevel-consistency:0000  score 13.6  3/5 terms: ['committed', 'snapshot', 'repeatable']
+      13.4. Data Consistency Checks at the Application Level
+      label if it answers: {"page": "applevel-consistency", "heading": '13.4. Data Consistency Checks at the Application Level'}
+      ...ery difficult to enforce business rules regarding data integrity using Read Committed transactions because the view of the data is shifting with each statement, and even a single statement may not restrict itself to the statement'...
+
+====================================================================================================
+multi-02 (multi_hop): How do I set up logical replication, and which wal_level does it need?
+  gold: logical-replication-quick-setup / 29.12. Quick Setup; runtime-config-wal / 19.5.1. Settings
+  distinctive terms used (5): ['wal_level', 'publisher', 'publication', 'subscription', 'subscriber']
+  best gold chunk: logical-replication-quick-setup:0000 matches 5/5 terms
+
+  [1] pgupgrade:0007  score 19.6  4/5 terms: ['wal_level', 'publisher', 'subscription', 'subscriber']
+      pg_upgrade > Usage
+      label if it answers: {"page": "pgupgrade", "heading": 'Usage'}
+      ...elps avoid the need for manually defining the same logical slots on the new publisher. Migration of logical slots is only supported when the old cluster is version 17.0 or later. Logical slots on clusters before version 17.0 will ...
+
+  [2] logical-replication-architecture:0000  score 18.4  4/5 terms: ['publisher', 'publication', 'subscription', 'subscriber']
+      29.8. Architecture
+      label if it answers: {"page": "logical-replication-architecture", "heading": '29.8. Architecture'}
+      Logical replication starts by copying a snapshot of the data on the publisher database. Once that is done, changes on the publisher are sent to the subscriber as they occur in real time. The subscriber applies data in the order in...
+
+  [3] logical-replication-col-lists:0003  score 18.4  4/5 terms: ['publisher', 'publication', 'subscription', 'subscriber']
+      29.5. Column Lists > 29.5.1. Examples
+      label if it answers: {"page": "logical-replication-col-lists", "heading": '29.5.1. Examples'}
+      ...    |           |          | Indexes:     "t1_pkey" PRIMARY KEY, btree (id) Publications:     "p1" (id, a, b, d)  On the subscriber node, create a table t1 which now only needs a subset of the columns that were on the publisher ta...
+
+  [4] logical-replication-restrictions:0001  score 18.4  4/5 terms: ['publisher', 'publication', 'subscription', 'subscriber']
+      29.7. Restrictions
+      label if it answers: {"page": "logical-replication-restrictions", "heading": '29.7. Restrictions'}
+      ...f tables connected by foreign keys. When replicating a truncate action, the subscriber will truncate the same group of tables that was truncated on the publisher, either explicitly specified or implicitly collected via CASCADE, mi...
+
+  [5] logical-replication-row-filter:0011  score 18.4  4/5 terms: ['publisher', 'publication', 'subscription', 'subscriber']
+      29.4. Row Filters > 29.4.7. Examples
+      label if it answers: {"page": "logical-replication-row-filter", "heading": '29.4.7. Examples'}
+      ...eger |           |          | Indexes:     "t3_pkey" PRIMARY KEY, btree (g) Publications:     "p3" WHERE (g = 10)  On the subscriber node, create a table t1 with the same definition as the one on the publisher, and also create the...
+
+====================================================================================================
+multi-03 (multi_hop): How do I create a partitioned table, and what limits apply to unique constraints on it?
+  gold: ddl-partitioning / 5.12.2.1. Example; ddl-partitioning / 5.12.2.3. Limitations
+  distinctive terms used (1): ['partitions']
+  too few distinctive terms (< 2); nothing to sweep for this question.
+
+====================================================================================================
+multi-04 (multi_hop): How does an SQL dump differ from continuous archiving as a backup method?
+  gold: backup-dump / 25.1. SQL Dump; continuous-archiving / 25.3. Continuous Archiving and Point-in-Time Recovery (PITR)
+  distinctive terms used (6): ['dump', 'pg_dump', 'continuous', 'archiving', 'combines', 'archived']
+  best gold chunk: continuous-archiving:0001 matches 4/6 terms
+
+  [1] continuous-archiving:0010  score 18.7  4/6 terms: ['dump', 'continuous', 'archiving', 'archived']
+      25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.2. Making a Base Backup
+      label if it answers: {"page": "continuous-archiving", "heading": '25.3.2. Making a Base Backup'}
+      ...AL segments of the backup. If you used the label to identify the associated dump file, then the archived history file is enough to tell you which dump file to restore.  Since you have to keep around all the archived WAL files back...
+
+  [2] backup-file:0002  score 17.9  4/6 terms: ['dump', 'pg_dump', 'continuous', 'archiving']
+      25.2. File System Level Backup
+      label if it answers: {"page": "backup-file", "heading": '25.2. File System Level Backup'}
+      ...nough to establish all the frozen snapshots. Another option is to perform a continuous archiving base backup (Section 25.3.2) because such backups are immune to file system changes during the backup. This requires enabling continu...
+
+  [3] archive-modules:0000  score 14.4  3/6 terms: ['continuous', 'archiving', 'archived']
+      Chapter 49. Archive Modules
+      label if it answers: {"page": "archive-modules", "heading": 'Chapter 49. Archive Modules'}
+      PostgreSQL provides infrastructure to create custom modules for continuous archiving (see Section 25.3). While archiving via a shell command (i.e., archive_command) is much simpler, a custom archive module will often be considerab...
+
+  [4] continuous-archiving:0003  score 14.4  3/6 terms: ['continuous', 'archiving', 'archived']
+      25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.1. Setting Up WAL Archiving
+      label if it answers: {"page": "continuous-archiving", "heading": '25.3.1. Setting Up WAL Archiving'}
+      To enable WAL archiving, set the wal_level configuration parameter to replica or higher, archive_mode to on, specify the shell command to use in the archive_command configuration parameter or specify the library to use in the arch...
+
+  [5] continuous-archiving:0016  score 14.4  3/6 terms: ['continuous', 'archiving', 'archived']
+      25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.4. Making a Base Backup Using the Low Level API
+      label if it answers: {"page": "continuous-archiving", "heading": '25.3.4. Making a Base Backup Using the Low Level API'}
+      5. Once the WAL segment files active during the backup are archived, you are done. The file identified by pg_backup_stop's first return value is the last segment that is required to form a complete set of backup files. On a primar...
+
+====================================================================================================
+multi-05 (multi_hop): How do I enable SSL connections and require them for particular clients?
+  gold: ssl-tcp / 18.9.1. Basic Setup; auth-pg-hba-conf / 20.1. The pg_hba.conf File
+  distinctive terms used (5): ['enable', 'ssl', 'certificate', 'hostssl', 'pg_hba']
+  best gold chunk: auth-pg-hba-conf:0011 matches 4/5 terms
+
+  [1] ssl-tcp:0004  score 21.0  4/5 terms: ['ssl', 'certificate', 'hostssl', 'pg_hba']
+      18.9. Secure TCP/IP Connections with SSL > 18.9.3. Using Client Certificates
+      label if it answers: {"page": "ssl-tcp", "heading": '18.9.3. Using Client Certificates'}
+      To require the client to supply a trusted certificate, place certificates of the root certificate authorities (CAs) you trust in a file in the data directory, set the parameter ssl_ca_file in postgresql.conf to the new file name, ...
+
+  [2] preventing-server-spoofing:0001  score 16.2  3/5 terms: ['ssl', 'certificate', 'hostssl']
+      18.7. Preventing Server Spoofing
+      label if it answers: {"page": "preventing-server-spoofing", "heading": '18.7. Preventing Server Spoofing'}
+      To prevent spoofing on TCP connections, either use SSL certificates and make sure that clients check the server's certificate, or use GSSAPI encryption (or both, if they're on separate connections).  To prevent spoofing with SSL, ...
+
+  [3] encryption-options:0002  score 15.9  3/5 terms: ['ssl', 'hostssl', 'pg_hba']
+      18.8. Encryption Options
+      label if it answers: {"page": "encryption-options", "heading": '18.8. Encryption Options'}
+      Encrypting Data Across A Network SSL connections encrypt all data sent across the network: the password, the queries, and the data returned. The pg_hba.conf file allows administrators to specify which hosts can use non-encrypted c...
+
+  [4] auth-password:0000  score 14.2  3/5 terms: ['ssl', 'certificate', 'pg_hba']
+      20.5. Password Authentication
+      label if it answers: {"page": "auth-password", "heading": '20.5. Password Authentication'}
+      ...he md5 method to the newer SCRAM method, if md5 is specified as a method in pg_hba.conf but the user's password on the server is encrypted for SCRAM (see below), then SCRAM-based authentication will automatically be chosen instead...
+
+  [5] auth-cert:0000  score 9.4  2/5 terms: ['ssl', 'certificate']
+      20.12. Certificate Authentication
+      label if it answers: {"page": "auth-cert", "heading": '20.12. Certificate Authentication'}
+      This authentication method uses SSL client certificates to perform authentication. It is therefore only available for SSL connections; see Section 18.9.2 for SSL configuration instructions. When using this authentication method, t...
+
+====================================================================================================
+amb-01 (ambiguous): How do I speed up queries on a large table?
+  gold: indexes-intro / 11.1. Introduction; using-explain / 14.1. Using EXPLAIN; ddl-partitioning / 5.12. Table Partitioning
+  distinctive terms used (4): ['suitable', 'inspect', 'plans', 'partitioning']
+  no gold chunk matches 2+ of the terms: the reference answer is worded unlike the gold text, so read the candidates with extra care
+
+  [1] sql-analyze:0007  score 9.1  2/4 terms: ['plans', 'partitioning']
+      ANALYZE > Notes
+      label if it answers: {"page": "sql-analyze", "heading": 'Notes'}
+      ...e largest possible statistics target. If this inaccuracy leads to bad query plans, a more accurate value can be determined manually and then installed with ALTER TABLE ... ALTER COLUMN ... SET (n_distinct = ...).  If the table bei...
+
+  [2] ddl-partitioning:0011  score 8.9  2/4 terms: ['suitable', 'partitioning']
+      5.12. Table Partitioning > 5.12.2. Declarative Partitioning > 5.12.2.2. Partition Maintenance
+      label if it answers: {"page": "ddl-partitioning", "heading": '5.12.2.2. Partition Maintenance'}
+      ...of its sub-partitions will be recursively locked and scanned until either a suitable CHECK constraint is encountered or the leaf partitions are reached.  Similarly, if the partitioned table has a DEFAULT partition, it is recommend...
+
+  [3] ddl-partitioning:0015  score 8.9  2/4 terms: ['suitable', 'partitioning']
+      5.12. Table Partitioning > 5.12.3. Partitioning Using Inheritance
+      label if it answers: {"page": "ddl-partitioning", "heading": '5.12.3. Partitioning Using Inheritance'}
+      While the built-in declarative partitioning is suitable for most common use cases, there are some circumstances where a more flexible approach may be useful. Partitioning can be implemented using table inheritance, which allows fo...
+
+  [4] ddl-partitioning:0018  score 8.9  2/4 terms: ['suitable', 'partitioning']
+      5.12. Table Partitioning > 5.12.3. Partitioning Using Inheritance > 5.12.3.1. Example
+      label if it answers: {"page": "ddl-partitioning", "heading": '5.12.3.1. Example'}
+      ...rected into the appropriate child table. We can arrange that by attaching a suitable trigger function to the root table. If data will be added only to the latest child, we can use a very simple trigger function:  CREATE OR REPLACE...
+
+  [5] ddl-partitioning:0023  score 8.9  2/4 terms: ['suitable', 'partitioning']
+      5.12. Table Partitioning > 5.12.3. Partitioning Using Inheritance > 5.12.3.3. Caveats
+      label if it answers: {"page": "ddl-partitioning", "heading": '5.12.3.3. Caveats'}
+      The following caveats apply to partitioning implemented using inheritance:  - There is no automatic way to verify that all of the CHECK constraints are mutually exclusive. It is safer to create code that generates child tables and...
+
+====================================================================================================
+amb-02 (ambiguous): How do I back up a database?
+  gold: backup-dump / 25.1. SQL Dump; backup-file / 25.2. File System Level Backup; continuous-archiving / 25.3. Continuous Archiving and Point-in-Time Recovery (PITR)
+  distinctive terms used (4): ['pg_dump', 'dump', 'continuous', 'archiving']
+  best gold chunk: backup-dump:0001 matches 4/4 terms
+
+  [1] continuous-archiving:0015  score 13.7  3/4 terms: ['pg_dump', 'continuous', 'archiving']
+      25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.4. Making a Base Backup Using the Low Level API
+      label if it answers: {"page": "continuous-archiving", "heading": '25.3.4. Making a Base Backup Using the Low Level API'}
+      ...ckup, using any convenient file-system-backup tool such as tar or cpio (not pg_dump or pg_dumpall). It is neither necessary nor desirable to stop normal operation of the database while you do this. See Section 25.3.4.1 for things ...
+
+  [2] continuous-archiving:0027  score 13.7  3/4 terms: ['pg_dump', 'continuous', 'archiving']
+      25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.7. Tips and Examples
+      label if it answers: {"page": "continuous-archiving", "heading": '25.3.7.1. Standalone Hot Backups'}
+      25.3.7. Tips and Examples Some tips for configuring continuous archiving are given here.  It is possible to use PostgreSQL's backup facilities to produce standalone hot backups. These are backups that cannot be used for point-in-t...
+
+  [3] backup:0000  score 13.6  3/4 terms: ['dump', 'continuous', 'archiving']
+      Chapter 25. Backup and Restore
+      label if it answers: {"page": "backup", "heading": 'Chapter 25. Backup and Restore'}
+      ...ee fundamentally different approaches to backing up PostgreSQL data:  - SQL dump  - File system level backup  - Continuous archiving  Each has its own strengths and weaknesses; each is discussed in turn in the following sections.
+
+  [4] continuous-archiving:0010  score 13.6  3/4 terms: ['dump', 'continuous', 'archiving']
+      25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.2. Making a Base Backup
+      label if it answers: {"page": "continuous-archiving", "heading": '25.3.2. Making a Base Backup'}
+      ...AL segments of the backup. If you used the label to identify the associated dump file, then the archived history file is enough to tell you which dump file to restore.  Since you have to keep around all the archived WAL files back...
+
+  [5] continuous-archiving:0019  score 13.6  3/4 terms: ['dump', 'continuous', 'archiving']
+      25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.4. Making a Base Backup Using the Low Level API > 25.3.4.1. Backing Up the Data Directory
+      label if it answers: {"page": "continuous-archiving", "heading": '25.3.4.1. Backing Up the Data Directory'}
+      ...to look inside a backup file and determine exactly which backup session the dump file came from. The tablespace map file includes the symbolic link names as they exist in the directory pg_tblspc/ and the full path of each symbolic...
+
+====================================================================================================
+amb-03 (ambiguous): How do I find slow queries?
+  gold: runtime-config-logging / 19.8.2. When to Log; using-explain / 14.1. Using EXPLAIN; auto-explain / AUTO-EXPLAIN; pgstatstatements / PGSTATSTATEMENTS
+  distinctive terms used (4): ['slow', 'log_min_duration_statement', 'analyse', 'plans']
+  best gold chunk: auto-explain:0000 matches 2/4 terms
+
+  [1] auto-explain:0001  score 9.2  2/4 terms: ['slow', 'plans']
+      F.3. auto_explain — log execution plans of slow queries > F.3.1. Configuration Parameters
+      label if it answers: {"page": "auto-explain", "heading": 'F.3.1. Configuration Parameters'}
+      ...at will cause the statement's plan to be logged. Setting this to 0 logs all plans. -1 (the default) disables logging of plans. For example, if you set it to 250ms then all statements that run 250ms or longer will be logged. Only s...
+
+  [2] auto-explain:0005  score 9.2  2/4 terms: ['slow', 'plans']
+      F.3. auto_explain — log execution plans of slow queries > F.3.2. Example
+      label if it answers: {"page": "auto-explain", "heading": 'F.3.2. Example'}
+      postgres=# LOAD 'auto_explain'; postgres=# SET auto_explain.log_min_duration = 0; postgres=# SET auto_explain.log_analyze = true; postgres=# SELECT count(*)            FROM pg_class, pg_index            WHERE oid = indrelid AND in...
+
+  [3] planner-stats:0005  score 9.2  2/4 terms: ['slow', 'plans']
+      14.2. Statistics Used by the Planner > 14.2.2. Extended Statistics
+      label if it answers: {"page": "planner-stats", "heading": '14.2.2. Extended Statistics'}
+      It is common to see slow queries running bad execution plans because multiple columns used in the query clauses are correlated. The planner normally assumes that multiple conditions are independent of each other, an assumption tha...
+
+====================================================================================================
+amb-04 (ambiguous): How do I restrict who can access my data?
+  gold: ddl-priv / 5.8. Privileges; auth-pg-hba-conf / 20.1. The pg_hba.conf File; ddl-rowsecurity / 5.9. Row Security Policies
+  distinctive terms used (4): ['grant', 'revoke', 'pg_hba', 'policies']
+  best gold chunk: ddl-priv:0009 matches 2/4 terms
+
+  [1] extend-extensions:0001  score 13.8  3/4 terms: ['grant', 'revoke', 'policies']
+      36.17. Packaging Related Objects into an Extension
+      label if it answers: {"page": "extend-extensions", "heading": '36.17. Packaging Related Objects into an Extension'}
+      ... script may set privileges on objects that are part of the extension, using GRANT and REVOKE statements. The final set of privileges for each object (if any are set) will be stored in the pg_init_privs system catalog. When pg_dump...
+
+  [2] logical-replication-security:0000  score 9.8  2/4 terms: ['pg_hba', 'policies']
+      29.10. Security
+      label if it answers: {"page": "logical-replication-security", "heading": '29.10. Security'}
+      ...peruser). If the role lacks SUPERUSER and BYPASSRLS, publisher row security policies can execute. If the role does not trust all table owners, include options=-crow_security=off in the connection string; if a table owner then adds...
+
+  [3] ddl-inherit:0004  score 9.0  2/4 terms: ['grant', 'policies']
+      5.11. Inheritance
+      label if it answers: {"page": "ddl-inherit", "heading": '5.11. Inheritance'}
+      ...rform access permission checks on the parent table only. Thus, for example, granting UPDATE permission on the cities table implies permission to update rows in the capitals table as well, when they are accessed through cities. Thi...
+
+  [4] sql-createpolicy:0003  score 9.0  2/4 terms: ['grant', 'policies']
+      CREATE POLICY > Parameters
+      label if it answers: {"page": "sql-createpolicy", "heading": 'Parameters'}
+      ...ify that the policy is to be created as a permissive policy. All permissive policies which are applicable to a given query will be combined together using the Boolean “OR” operator. By creating permissive policies, administrators ...
+
+  [5] app-pg-dumpall:0002  score 8.7  2/4 terms: ['grant', 'revoke']
+      pg_dumpall > Options
+      label if it answers: {"page": "app-pg-dumpall", "heading": 'Options'}
+      ...nd exit.  -x --no-privileges --no-acl Prevent dumping of access privileges (grant/revoke commands).
+
+====================================================================================================
+Read each candidate. Add a section as gold only if a sentence in it states the answer.
+Note the label heading above is the HOST section of the best chunk; if that chunk merged small sections, check its `covers` before labelling.

@@ -1,0 +1,54 @@
+
+====================================================================================================
+fact-09 (factual): What does EXPLAIN ANALYZE do compared to plain EXPLAIN?
+  gold: using-explain / 14.1.2. EXPLAIN ANALYZE
+  distinctive terms used (5): ['executes', 'reports', 'real', 'counts', 'estimates']
+  best gold chunk: using-explain:0026 matches 4/5 terms
+
+  [1] using-explain:0041  score 14.2  3/5 terms: ['real', 'counts', 'estimates']
+      14.1. Using EXPLAIN > 14.1.3. Caveats
+      label if it answers: {"page": "using-explain", "heading": '14.1.3. Caveats'}
+      ...r the Index Scan node are shown as though it were run to completion. But in reality the Limit node stopped requesting rows after it got two, so the actual row count is only 2 and the run time is less than the cost estimate would s...
+
+  [2] planner-stats:0009  score 10.1  2/5 terms: ['counts', 'estimates']
+      14.2. Statistics Used by the Planner > 14.2.2. Extended Statistics > 14.2.2.2. Multivariate N-Distinct Counts
+      label if it answers: {"page": "planner-stats", "heading": '14.2.2.2. Multivariate N-Distinct Counts'}
+      ...ingle-column statistics store the number of distinct values in each column. Estimates of the number of distinct values when combining more than one column (for example, for GROUP BY a, b) are frequently wrong when the planner only...
+
+  [3] indexes-examine:0001  score 9.3  2/5 terms: ['real', 'estimates']
+      11.12. Examining Index Usage
+      label if it answers: {"page": "indexes-examine", "heading": '11.12. Examining Index Usage'}
+      ...ed in sorted order will skew the statistics away from the distribution that real data would have.  - When indexes are not used, it can be useful for testing to force their use. There are run-time parameters that can turn off vario...
+
+  [4] pgtestfsync:0000  score 9.1  2/5 terms: ['reports', 'real']
+      pg_test_fsync
+      label if it answers: {"page": "pgtestfsync", "heading": 'Description'}
+      ...erences shown by pg_test_fsync might not make any significant difference in real database throughput, especially since many database servers are not speed-limited by their write-ahead logs. pg_test_fsync reports average file sync ...
+
+====================================================================================================
+fact-10 (factual): How do I make PostgreSQL abort statements that run too long?
+  gold: runtime-config-client / 19.11.1. Statement Behavior
+  distinctive terms used (3): ['statement_timeout', 'aborted', 'disables']
+  best gold chunk: runtime-config-client:0008 matches 2/3 terms
+
+  [1] runtime-config-connection:0008  score 9.2  2/3 terms: ['aborted', 'disables']
+      19.3. Connections and Authentication > 19.3.2. TCP Settings
+      label if it answers: {"page": "runtime-config-connection", "heading": '19.3.2. TCP Settings'}
+      ...k is performed by polling the socket, and allows long running queries to be aborted sooner if the kernel reports that the connection is closed. This option relies on kernel events exposed by Linux, macOS, illumos and the BSD famil...
+
+====================================================================================================
+fact-11 (factual): What does the pg_hba.conf file control?
+  gold: auth-pg-hba-conf / 20.1. The pg_hba.conf File
+  distinctive terms used (1): ['address']
+  too few distinctive terms (< 2); nothing to sweep for this question.
+
+====================================================================================================
+fact-12 (factual): Which function returns the start time of the current transaction?
+  gold: functions-datetime / 9.9.5. Current Date/Time
+  distinctive terms used (2): ['transaction_timestamp', 'current_timestamp']
+  best gold chunk: functions-datetime:0031 matches 2/2 terms
+  no non-gold section shares enough terms.
+
+====================================================================================================
+Read each candidate. Add a section as gold only if a sentence in it states the answer.
+Note the label heading above is the HOST section of the best chunk; if that chunk merged small sections, check its `covers` before labelling.

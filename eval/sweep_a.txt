@@ -1,0 +1,78 @@
+
+====================================================================================================
+fact-01 (factual): is the COMMENT command part of the SQL standard?
+  gold: sql-comment / Compatibility
+  distinctive terms used (1): ['comment']
+  too few distinctive terms (< 2); nothing to sweep for this question.
+
+====================================================================================================
+fact-02 (factual): what is the syntax of ROLLBACK?
+  gold: sql-rollback / Synopsis
+  distinctive terms used (2): ['rollback', 'chain']
+  best gold chunk: sql-rollback:0000 matches 2/2 terms
+
+  [1] plpgsql-transactions:0000  score 9.4  2/2 terms: ['rollback', 'chain']
+      41.8. Transaction Management
+      label if it answers: {"page": "plpgsql-transactions", "heading": '41.8. Transaction Management'}
+      ... command), it is possible to end transactions using the commands COMMIT and ROLLBACK. A new transaction is started automatically after a transaction is ended using these commands, so there is no separate START TRANSACTION command....
+
+  [2] spi-spi-rollback:0000  score 9.4  2/2 terms: ['rollback', 'chain']
+      SPI_rollback
+      label if it answers: {"page": "spi-spi-rollback", "heading": 'Description'}
+      SPI_rollback, SPI_rollback_and_chain — abort the current transaction  Synopsis void SPI_rollback(void) void SPI_rollback_and_chain(void)  SPI_rollback rolls back the current transaction. It is approximately equivalent to running t...
+
+  [3] sql-abort:0000  score 9.4  2/2 terms: ['rollback', 'chain']
+      ABORT
+      label if it answers: {"page": "sql-abort", "heading": 'Description'}
+      ...the current transaction  Synopsis ABORT [ WORK | TRANSACTION ] [ AND [ NO ] CHAIN ]  ABORT rolls back the current transaction and causes all the updates made by the transaction to be discarded. This command is identical in behavio...
+
+  [4] sql-commit:0002  score 9.4  2/2 terms: ['rollback', 'chain']
+      COMMIT > Notes
+      label if it answers: {"page": "sql-commit", "heading": 'Notes'}
+      Use ROLLBACK to abort a transaction.  Issuing COMMIT when not inside a transaction does no harm, but it will provoke a warning message. COMMIT AND CHAIN when not inside a transaction is an error.  Examples To commit the current tr...
+
+  [5] sql-rollback-to:0003  score 9.4  2/2 terms: ['rollback', 'chain']
+      ROLLBACK TO SAVEPOINT > Compatibility
+      label if it answers: {"page": "sql-rollback-to", "heading": 'Compatibility'}
+      ...to be omitted. SQL allows only WORK, not TRANSACTION, as a noise word after ROLLBACK. Also, SQL has an optional clause AND [ NO ] CHAIN which is not currently supported by PostgreSQL. Otherwise, this command conforms to the SQL st...
+
+====================================================================================================
+fact-03 (factual): what does work_mem control?
+  gold: runtime-config-resource / 19.4.1. Memory
+  distinctive terms used (0): []
+  too few distinctive terms (< 2); nothing to sweep for this question.
+
+====================================================================================================
+fact-04 (factual): ALTER TABLE SET LOGGED
+  gold: sql-altertable / Description
+  distinctive terms used (4): ['logged', 'unlogged', 'vice', 'versa']
+  best gold chunk: sql-altertable:0016 matches 4/4 terms
+
+  [1] sql-altersequence:0003  score 21.0  4/4 terms: ['logged', 'unlogged', 'vice', 'versa']
+      ALTER SEQUENCE > Parameters
+      label if it answers: {"page": "sql-altersequence", "heading": 'Parameters'}
+      ...r NO CYCLE are specified, the old cycle behavior will be maintained.  SET { LOGGED | UNLOGGED } This form changes the sequence from unlogged to logged or vice-versa (see CREATE SEQUENCE). It cannot be applied to a temporary sequen...
+
+  [2] auth-username-maps:0001  score 11.2  2/4 terms: ['vice', 'versa']
+      20.2. User Name Maps
+      label if it answers: {"page": "auth-username-maps", "heading": '20.2. User Name Maps'}
+      ...ow many database users a given operating system user can correspond to, nor vice versa. Thus, entries in a map should be thought of as meaning “this operating system user is allowed to connect as this database user”, rather than i...
+
+  [3] bug-reporting:0006  score 11.2  2/4 terms: ['vice', 'versa']
+      5. Bug Reporting Guidelines > 5.2. What to Report
+      label if it answers: {"page": "bug-reporting", "heading": '5.2. What to Report'}
+      ... “the server crashed” when you mean a single backend process went down, nor vice versa. Also, client programs such as the interactive frontend “psql” are completely separate from the backend. Please try to be specific about whethe...
+
+  [4] cube:0001  score 11.2  2/4 terms: ['vice', 'versa']
+      F.10. cube — a multi-dimensional cube data type > F.10.1. Syntax
+      label if it answers: {"page": "cube", "heading": 'F.10.1. Syntax'}
+      ...e ( x ),( y ) | A one-dimensional interval starting at x and ending at y or vice versa; the order does not matter [( x ),( y )] | Same as above ( x1 ,..., xn ),( y1 ,..., yn ) | An n-dimensional cube represented by a pair of its d...
+
+  [5] datatype-xml:0003  score 11.2  2/4 terms: ['vice', 'versa']
+      8.13. XML Type > 8.13.2. Encoding Handling
+      label if it answers: {"page": "datatype-xml", "heading": '8.13.2. Encoding Handling'}
+      ...QL converts all character data passed between the client and the server and vice versa to the character encoding of the respective end; see Section 23.3. This includes string representations of XML values, such as in the above exa...
+
+====================================================================================================
+Read each candidate. Add a section as gold only if a sentence in it states the answer.
+Note the label heading above is the HOST section of the best chunk; if that chunk merged small sections, check its `covers` before labelling.

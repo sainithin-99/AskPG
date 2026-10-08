@@ -1,0 +1,134 @@
+
+====================================================================================================
+multi-01 (multi_hop): How do READ COMMITTED and REPEATABLE READ differ in what a transaction sees from concurrent changes?
+  gold: transaction-iso / 13.2.1. Read Committed Isolation Level; transaction-iso / 13.2.2. Repeatable Read Isolation Level
+  distinctive terms used (5): ['committed', 'sees', 'snapshot', 'repeatable', 'serialization']
+  best gold chunk: transaction-iso:0007 matches 5/5 terms
+
+  [1] transaction-iso:0011  score 18.7  4/5 terms: ['committed', 'snapshot', 'repeatable', 'serialization']
+      13.2. Transaction Isolation > 13.2.3. Serializable Isolation Level
+      label if it answers: {"page": "transaction-iso", "heading": '13.2.3. Serializable Isolation Level'}
+      ...ot be considered valid until the transaction which read it has successfully committed. This is true even for read-only transactions, except that data read within a deferrable read-only transaction is known to be valid as soon as i...
+
+  [2] runtime-config-client:0005  score 14.3  3/5 terms: ['committed', 'repeatable', 'serialization']
+      19.11. Client Connection Defaults > 19.11.1. Statement Behavior
+      label if it answers: {"page": "runtime-config-client", "heading": '19.11.1. Statement Behavior'}
+      ...m) Each SQL transaction has an isolation level, which can be either “read uncommitted”, “read committed”, “repeatable read”, or “serializable”. This parameter controls the default isolation level of each new transaction. The defau...
+
+  [3] sql-select:0038  score 14.3  3/5 terms: ['committed', 'repeatable', 'serialization']
+      SELECT > Parameters > The Locking Clause
+      label if it answers: {"page": "sql-select", "heading": 'The Locking Clause'}
+      ...ease 9.3.  Caution: It is possible for a SELECT command running at the READ COMMITTED transaction isolation level and using ORDER BY and a locking clause to return rows out of order. This is because ORDER BY is applied first. The ...
+
+  [4] transaction-iso:0001  score 14.3  3/5 terms: ['committed', 'repeatable', 'serialization']
+      13.2. Transaction Isolation
+      label if it answers: {"page": "transaction-iso", "heading": '13.2. Transaction Isolation'}
+      serialization anomaly The result of successfully committing a group of transactions is inconsistent with all possible orderings of running those transactions one at a time.  The SQL standard and PostgreSQL-implemented transaction ...
+
+  [5] applevel-consistency:0000  score 13.6  3/5 terms: ['committed', 'snapshot', 'repeatable']
+      13.4. Data Consistency Checks at the Application Level
+      label if it answers: {"page": "applevel-consistency", "heading": '13.4. Data Consistency Checks at the Application Level'}
+      ...ery difficult to enforce business rules regarding data integrity using Read Committed transactions because the view of the data is shifting with each statement, and even a single statement may not restrict itself to the statement'...
+
+====================================================================================================
+multi-02 (multi_hop): How do I set up logical replication, and which wal_level does it need?
+  gold: logical-replication-quick-setup / 29.12. Quick Setup; runtime-config-wal / 19.5.1. Settings
+  distinctive terms used (5): ['wal_level', 'publisher', 'publication', 'subscription', 'subscriber']
+  best gold chunk: logical-replication-quick-setup:0000 matches 5/5 terms
+
+  [1] pgupgrade:0007  score 19.6  4/5 terms: ['wal_level', 'publisher', 'subscription', 'subscriber']
+      pg_upgrade > Usage
+      label if it answers: {"page": "pgupgrade", "heading": 'Usage'}
+      ...elps avoid the need for manually defining the same logical slots on the new publisher. Migration of logical slots is only supported when the old cluster is version 17.0 or later. Logical slots on clusters before version 17.0 will ...
+
+  [2] logical-replication-architecture:0000  score 18.4  4/5 terms: ['publisher', 'publication', 'subscription', 'subscriber']
+      29.8. Architecture
+      label if it answers: {"page": "logical-replication-architecture", "heading": '29.8. Architecture'}
+      Logical replication starts by copying a snapshot of the data on the publisher database. Once that is done, changes on the publisher are sent to the subscriber as they occur in real time. The subscriber applies data in the order in...
+
+  [3] logical-replication-col-lists:0003  score 18.4  4/5 terms: ['publisher', 'publication', 'subscription', 'subscriber']
+      29.5. Column Lists > 29.5.1. Examples
+      label if it answers: {"page": "logical-replication-col-lists", "heading": '29.5.1. Examples'}
+      ...    |           |          | Indexes:     "t1_pkey" PRIMARY KEY, btree (id) Publications:     "p1" (id, a, b, d)  On the subscriber node, create a table t1 which now only needs a subset of the columns that were on the publisher ta...
+
+  [4] logical-replication-restrictions:0001  score 18.4  4/5 terms: ['publisher', 'publication', 'subscription', 'subscriber']
+      29.7. Restrictions
+      label if it answers: {"page": "logical-replication-restrictions", "heading": '29.7. Restrictions'}
+      ...f tables connected by foreign keys. When replicating a truncate action, the subscriber will truncate the same group of tables that was truncated on the publisher, either explicitly specified or implicitly collected via CASCADE, mi...
+
+  [5] logical-replication-row-filter:0011  score 18.4  4/5 terms: ['publisher', 'publication', 'subscription', 'subscriber']
+      29.4. Row Filters > 29.4.7. Examples
+      label if it answers: {"page": "logical-replication-row-filter", "heading": '29.4.7. Examples'}
+      ...eger |           |          | Indexes:     "t3_pkey" PRIMARY KEY, btree (g) Publications:     "p3" WHERE (g = 10)  On the subscriber node, create a table t1 with the same definition as the one on the publisher, and also create the...
+
+====================================================================================================
+multi-03 (multi_hop): How do I create a partitioned table, and what limits apply to unique constraints on it?
+  gold: ddl-partitioning / 5.12.2.1. Example; ddl-partitioning / 5.12.2.3. Limitations
+  distinctive terms used (1): ['partitions']
+  too few distinctive terms (< 2); nothing to sweep for this question.
+
+====================================================================================================
+multi-04 (multi_hop): How does an SQL dump differ from continuous archiving as a backup method?
+  gold: backup-dump / 25.1. SQL Dump; continuous-archiving / 25.3. Continuous Archiving and Point-in-Time Recovery (PITR)
+  distinctive terms used (6): ['dump', 'pg_dump', 'continuous', 'archiving', 'combines', 'archived']
+  best gold chunk: continuous-archiving:0001 matches 4/6 terms
+
+  [1] continuous-archiving:0010  score 18.7  4/6 terms: ['dump', 'continuous', 'archiving', 'archived']
+      25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.2. Making a Base Backup
+      label if it answers: {"page": "continuous-archiving", "heading": '25.3.2. Making a Base Backup'}
+      ...AL segments of the backup. If you used the label to identify the associated dump file, then the archived history file is enough to tell you which dump file to restore.  Since you have to keep around all the archived WAL files back...
+
+  [2] backup-file:0002  score 17.9  4/6 terms: ['dump', 'pg_dump', 'continuous', 'archiving']
+      25.2. File System Level Backup
+      label if it answers: {"page": "backup-file", "heading": '25.2. File System Level Backup'}
+      ...nough to establish all the frozen snapshots. Another option is to perform a continuous archiving base backup (Section 25.3.2) because such backups are immune to file system changes during the backup. This requires enabling continu...
+
+  [3] archive-modules:0000  score 14.4  3/6 terms: ['continuous', 'archiving', 'archived']
+      Chapter 49. Archive Modules
+      label if it answers: {"page": "archive-modules", "heading": 'Chapter 49. Archive Modules'}
+      PostgreSQL provides infrastructure to create custom modules for continuous archiving (see Section 25.3). While archiving via a shell command (i.e., archive_command) is much simpler, a custom archive module will often be considerab...
+
+  [4] continuous-archiving:0003  score 14.4  3/6 terms: ['continuous', 'archiving', 'archived']
+      25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.1. Setting Up WAL Archiving
+      label if it answers: {"page": "continuous-archiving", "heading": '25.3.1. Setting Up WAL Archiving'}
+      To enable WAL archiving, set the wal_level configuration parameter to replica or higher, archive_mode to on, specify the shell command to use in the archive_command configuration parameter or specify the library to use in the arch...
+
+  [5] continuous-archiving:0016  score 14.4  3/6 terms: ['continuous', 'archiving', 'archived']
+      25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.4. Making a Base Backup Using the Low Level API
+      label if it answers: {"page": "continuous-archiving", "heading": '25.3.4. Making a Base Backup Using the Low Level API'}
+      5. Once the WAL segment files active during the backup are archived, you are done. The file identified by pg_backup_stop's first return value is the last segment that is required to form a complete set of backup files. On a primar...
+
+====================================================================================================
+multi-05 (multi_hop): How do I enable SSL connections and require them for particular clients?
+  gold: ssl-tcp / 18.9.1. Basic Setup; auth-pg-hba-conf / 20.1. The pg_hba.conf File
+  distinctive terms used (5): ['enable', 'ssl', 'certificate', 'hostssl', 'pg_hba']
+  best gold chunk: auth-pg-hba-conf:0011 matches 4/5 terms
+
+  [1] ssl-tcp:0004  score 21.0  4/5 terms: ['ssl', 'certificate', 'hostssl', 'pg_hba']
+      18.9. Secure TCP/IP Connections with SSL > 18.9.3. Using Client Certificates
+      label if it answers: {"page": "ssl-tcp", "heading": '18.9.3. Using Client Certificates'}
+      To require the client to supply a trusted certificate, place certificates of the root certificate authorities (CAs) you trust in a file in the data directory, set the parameter ssl_ca_file in postgresql.conf to the new file name, ...
+
+  [2] preventing-server-spoofing:0001  score 16.2  3/5 terms: ['ssl', 'certificate', 'hostssl']
+      18.7. Preventing Server Spoofing
+      label if it answers: {"page": "preventing-server-spoofing", "heading": '18.7. Preventing Server Spoofing'}
+      To prevent spoofing on TCP connections, either use SSL certificates and make sure that clients check the server's certificate, or use GSSAPI encryption (or both, if they're on separate connections).  To prevent spoofing with SSL, ...
+
+  [3] encryption-options:0002  score 15.9  3/5 terms: ['ssl', 'hostssl', 'pg_hba']
+      18.8. Encryption Options
+      label if it answers: {"page": "encryption-options", "heading": '18.8. Encryption Options'}
+      Encrypting Data Across A Network SSL connections encrypt all data sent across the network: the password, the queries, and the data returned. The pg_hba.conf file allows administrators to specify which hosts can use non-encrypted c...
+
+  [4] auth-password:0000  score 14.2  3/5 terms: ['ssl', 'certificate', 'pg_hba']
+      20.5. Password Authentication
+      label if it answers: {"page": "auth-password", "heading": '20.5. Password Authentication'}
+      ...he md5 method to the newer SCRAM method, if md5 is specified as a method in pg_hba.conf but the user's password on the server is encrypted for SCRAM (see below), then SCRAM-based authentication will automatically be chosen instead...
+
+  [5] auth-cert:0000  score 9.4  2/5 terms: ['ssl', 'certificate']
+      20.12. Certificate Authentication
+      label if it answers: {"page": "auth-cert", "heading": '20.12. Certificate Authentication'}
+      This authentication method uses SSL client certificates to perform authentication. It is therefore only available for SSL connections; see Section 18.9.2 for SSL configuration instructions. When using this authentication method, t...
+
+====================================================================================================
+Read each candidate. Add a section as gold only if a sentence in it states the answer.
+Note the label heading above is the HOST section of the best chunk; if that chunk merged small sections, check its `covers` before labelling.

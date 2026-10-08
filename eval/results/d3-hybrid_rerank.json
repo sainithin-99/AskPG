@@ -1,0 +1,1047 @@
+{
+  "name": "d3-hybrid_rerank",
+  "retriever": "hybrid_rerank",
+  "time": "2026-10-07T20:37:58",
+  "n_chunks": 6489,
+  "overall": {
+    "n": 21,
+    "success@1": 0.6190476190476191,
+    "success@3": 0.7142857142857143,
+    "success@5": 0.8095238095238095,
+    "success@10": 0.9047619047619048,
+    "gold_recall@5": 0.7142857142857143,
+    "mrr": 0.6948979591836735,
+    "distinct_sections_top5": 4.238095238095238
+  },
+  "by_type": {
+    "factual": {
+      "n": 12,
+      "success@1": 0.9166666666666666,
+      "success@3": 0.9166666666666666,
+      "success@5": 0.9166666666666666,
+      "success@10": 0.9166666666666666,
+      "gold_recall@5": 0.8472222222222222,
+      "mrr": 0.9166666666666666,
+      "distinct_sections_top5": 4
+    },
+    "multi_hop": {
+      "n": 5,
+      "success@1": 0.0,
+      "success@3": 0.2,
+      "success@5": 0.4,
+      "success@10": 0.8,
+      "gold_recall@5": 0.7,
+      "mrr": 0.17857142857142858,
+      "distinct_sections_top5": 4.8
+    },
+    "ambiguous": {
+      "n": 4,
+      "success@1": 0.5,
+      "success@3": 0.75,
+      "success@5": 1.0,
+      "success@10": 1.0,
+      "gold_recall@5": 0.3333333333333333,
+      "mrr": 0.675,
+      "distinct_sections_top5": 4.25
+    }
+  },
+  "latency_ms": {
+    "embed_ms": {
+      "p50": 16.77319999998872,
+      "p95": 21.678699999995388
+    },
+    "vector_ms": {
+      "p50": 10.536699999988741,
+      "p95": 31.637799999998606
+    },
+    "bm25_ms": {
+      "p50": 0.365399999964211,
+      "p95": 0.8732000000009066
+    },
+    "fuse_ms": {
+      "p50": 0.07150000004685353,
+      "p95": 0.11230000001205553
+    },
+    "rerank_ms": {
+      "p50": 1180.7638000000225,
+      "p95": 1487.209899999982
+    },
+    "total_ms": {
+      "p50": 1214.6676000000411,
+      "p95": 1524.2225000000076
+    }
+  },
+  "per_question": [
+    {
+      "id": "fact-01",
+      "type": "factual",
+      "gold_ranks": [
+        null
+      ],
+      "first_rank": null,
+      "success_rank": null,
+      "distinct_sections_top5": 5,
+      "top1_score": 0.7052297592163086,
+      "top5": [
+        {
+          "chunk_id": "sql-comment:0002",
+          "context": "COMMENT > Description",
+          "url": "https://www.postgresql.org/docs/17/sql-comment.html#id-1.9.3.52.5",
+          "score": 0.7052
+        },
+        {
+          "chunk_id": "sql-droproutine:0002",
+          "context": "DROP ROUTINE > Notes",
+          "url": "https://www.postgresql.org/docs/17/sql-droproutine.html#SQL-DROPROUTINE-NOTES",
+          "score": 0.6804
+        },
+        {
+          "chunk_id": "sql-syntax-lexical:0019",
+          "context": "4.1. Lexical Structure > 4.1.5. Comments",
+          "url": "https://www.postgresql.org/docs/17/sql-syntax-lexical.html#SQL-SYNTAX-COMMENTS",
+          "score": 0.5535
+        },
+        {
+          "chunk_id": "functions-info:0030",
+          "context": "9.27. System Information Functions and Operators > 9.27.6. Comment Information Functions",
+          "url": "https://www.postgresql.org/docs/17/functions-info.html#FUNCTIONS-INFO-COMMENT",
+          "score": 0.4731
+        },
+        {
+          "chunk_id": "sql-dropprocedure:0003",
+          "context": "DROP PROCEDURE > Notes",
+          "url": "https://www.postgresql.org/docs/17/sql-dropprocedure.html#SQL-DROPPROCEDURE-NOTES",
+          "score": 0.4108
+        }
+      ]
+    },
+    {
+      "id": "fact-02",
+      "type": "factual",
+      "gold_ranks": [
+        1
+      ],
+      "first_rank": 1,
+      "success_rank": 1,
+      "distinct_sections_top5": 5,
+      "top1_score": 0.9069326519966125,
+      "top5": [
+        {
+          "chunk_id": "sql-rollback:0000",
+          "context": "ROLLBACK",
+          "url": "https://www.postgresql.org/docs/17/sql-rollback.html#SQL-ROLLBACK",
+          "score": 0.9069
+        },
+        {
+          "chunk_id": "sql-rollback-to:0000",
+          "context": "ROLLBACK TO SAVEPOINT",
+          "url": "https://www.postgresql.org/docs/17/sql-rollback-to.html#SQL-ROLLBACK-TO",
+          "score": 0.8187
+        },
+        {
+          "chunk_id": "glossary:0013",
+          "context": "Appendix M. Glossary",
+          "url": "https://www.postgresql.org/docs/17/glossary.html#GLOSSARY",
+          "score": 0.6066
+        },
+        {
+          "chunk_id": "sql-rollback:0002",
+          "context": "ROLLBACK > Examples",
+          "url": "https://www.postgresql.org/docs/17/sql-rollback.html#id-1.9.3.167.8",
+          "score": 0.5498
+        },
+        {
+          "chunk_id": "spi-spi-rollback:0000",
+          "context": "SPI_rollback",
+          "url": "https://www.postgresql.org/docs/17/spi-spi-rollback.html#SPI-SPI-ROLLBACK",
+          "score": 0.4686
+        }
+      ]
+    },
+    {
+      "id": "fact-03",
+      "type": "factual",
+      "gold_ranks": [
+        1
+      ],
+      "first_rank": 1,
+      "success_rank": 1,
+      "distinct_sections_top5": 4,
+      "top1_score": 0.9782136082649231,
+      "top5": [
+        {
+          "chunk_id": "runtime-config-resource:0006",
+          "context": "19.4. Resource Consumption > 19.4.1. Memory",
+          "url": "https://www.postgresql.org/docs/17/runtime-config-resource.html#RUNTIME-CONFIG-RESOURCE-MEMORY",
+          "score": 0.9782
+        },
+        {
+          "chunk_id": "app-postgres:0006",
+          "context": "postgres > Options > General Purpose",
+          "url": "https://www.postgresql.org/docs/17/app-postgres.html#id-1.9.5.16.6.3",
+          "score": 0.969
+        },
+        {
+          "chunk_id": "sql-createindex:0017",
+          "context": "CREATE INDEX > Notes",
+          "url": "https://www.postgresql.org/docs/17/sql-createindex.html#id-1.9.3.69.7",
+          "score": 0.9688
+        },
+        {
+          "chunk_id": "populate:0005",
+          "context": "14.4. Populating a Database > 14.4.5. Increase maintenance_work_mem",
+          "url": "https://www.postgresql.org/docs/17/populate.html#POPULATE-WORK-MEM",
+          "score": 0.9606
+        },
+        {
+          "chunk_id": "runtime-config-resource:0005",
+          "context": "19.4. Resource Consumption > 19.4.1. Memory",
+          "url": "https://www.postgresql.org/docs/17/runtime-config-resource.html#RUNTIME-CONFIG-RESOURCE-MEMORY",
+          "score": 0.9578
+        }
+      ]
+    },
+    {
+      "id": "fact-04",
+      "type": "factual",
+      "gold_ranks": [
+        1
+      ],
+      "first_rank": 1,
+      "success_rank": 1,
+      "distinct_sections_top5": 3,
+      "top1_score": 0.9955278038978577,
+      "top5": [
+        {
+          "chunk_id": "sql-altertable:0016",
+          "context": "ALTER TABLE > Description",
+          "url": "https://www.postgresql.org/docs/17/sql-altertable.html#id-1.9.3.35.5",
+          "score": 0.9955
+        },
+        {
+          "chunk_id": "sql-altertable:0001",
+          "context": "ALTER TABLE > Synopsis",
+          "url": "https://www.postgresql.org/docs/17/sql-altertable.html#SQL-ALTERTABLE",
+          "score": 0.9786
+        },
+        {
+          "chunk_id": "sql-altertable:0017",
+          "context": "ALTER TABLE > Description",
+          "url": "https://www.postgresql.org/docs/17/sql-altertable.html#id-1.9.3.35.5",
+          "score": 0.9463
+        },
+        {
+          "chunk_id": "sql-altertable:0019",
+          "context": "ALTER TABLE > Description",
+          "url": "https://www.postgresql.org/docs/17/sql-altertable.html#id-1.9.3.35.5",
+          "score": 0.9223
+        },
+        {
+          "chunk_id": "sql-altersequence:0004",
+          "context": "ALTER SEQUENCE > Parameters",
+          "url": "https://www.postgresql.org/docs/17/sql-altersequence.html#id-1.9.3.30.6",
+          "score": 0.9022
+        }
+      ]
+    },
+    {
+      "id": "fact-05",
+      "type": "factual",
+      "gold_ranks": [
+        6,
+        1,
+        7,
+        3
+      ],
+      "first_rank": 1,
+      "success_rank": 1,
+      "distinct_sections_top5": 3,
+      "top1_score": 0.9952803254127502,
+      "top5": [
+        {
+          "chunk_id": "sql-vacuum:0001",
+          "context": "VACUUM > Description",
+          "url": "https://www.postgresql.org/docs/17/sql-vacuum.html#id-1.9.3.184.5",
+          "score": 0.9953
+        },
+        {
+          "chunk_id": "sql-vacuum:0010",
+          "context": "VACUUM > Notes",
+          "url": "https://www.postgresql.org/docs/17/sql-vacuum.html#id-1.9.3.184.8",
+          "score": 0.9921
+        },
+        {
+          "chunk_id": "routine-vacuuming:0004",
+          "context": "24.1. Routine Vacuuming > 24.1.2. Recovering Disk Space",
+          "url": "https://www.postgresql.org/docs/17/routine-vacuuming.html#VACUUM-FOR-SPACE-RECOVERY",
+          "score": 0.8088
+        },
+        {
+          "chunk_id": "routine-vacuuming:0002",
+          "context": "24.1. Routine Vacuuming > 24.1.2. Recovering Disk Space",
+          "url": "https://www.postgresql.org/docs/17/routine-vacuuming.html#VACUUM-FOR-SPACE-RECOVERY",
+          "score": 0.7671
+        },
+        {
+          "chunk_id": "routine-vacuuming:0003",
+          "context": "24.1. Routine Vacuuming > 24.1.2. Recovering Disk Space",
+          "url": "https://www.postgresql.org/docs/17/routine-vacuuming.html#VACUUM-FOR-SPACE-RECOVERY",
+          "score": 0.7133
+        }
+      ]
+    },
+    {
+      "id": "fact-06",
+      "type": "factual",
+      "gold_ranks": [
+        1
+      ],
+      "first_rank": 1,
+      "success_rank": 1,
+      "distinct_sections_top5": 4,
+      "top1_score": 0.993606686592102,
+      "top5": [
+        {
+          "chunk_id": "runtime-config-connection:0001",
+          "context": "19.3. Connections and Authentication > 19.3.1. Connection Settings",
+          "url": "https://www.postgresql.org/docs/17/runtime-config-connection.html#RUNTIME-CONFIG-CONNECTION-SETTINGS",
+          "score": 0.9936
+        },
+        {
+          "chunk_id": "runtime-config-connection:0002",
+          "context": "19.3. Connections and Authentication > 19.3.1. Connection Settings",
+          "url": "https://www.postgresql.org/docs/17/runtime-config-connection.html#RUNTIME-CONFIG-CONNECTION-SETTINGS",
+          "score": 0.9846
+        },
+        {
+          "chunk_id": "app-postgres:0005",
+          "context": "postgres > Options > General Purpose",
+          "url": "https://www.postgresql.org/docs/17/app-postgres.html#id-1.9.5.16.6.3",
+          "score": 0.9158
+        },
+        {
+          "chunk_id": "hot-standby:0011",
+          "context": "26.4. Hot Standby > 26.4.3. Administrator's Overview",
+          "url": "https://www.postgresql.org/docs/17/hot-standby.html#HOT-STANDBY-ADMIN",
+          "score": 0.8262
+        },
+        {
+          "chunk_id": "runtime-config-resource:0004",
+          "context": "19.4. Resource Consumption > 19.4.1. Memory",
+          "url": "https://www.postgresql.org/docs/17/runtime-config-resource.html#RUNTIME-CONFIG-RESOURCE-MEMORY",
+          "score": 0.7934
+        }
+      ]
+    },
+    {
+      "id": "fact-07",
+      "type": "factual",
+      "gold_ranks": [
+        1
+      ],
+      "first_rank": 1,
+      "success_rank": 1,
+      "distinct_sections_top5": 4,
+      "top1_score": 0.9924052357673645,
+      "top5": [
+        {
+          "chunk_id": "routine-vacuuming:0022",
+          "context": "24.1. Routine Vacuuming > 24.1.6. The Autovacuum Daemon",
+          "url": "https://www.postgresql.org/docs/17/routine-vacuuming.html#AUTOVACUUM",
+          "score": 0.9924
+        },
+        {
+          "chunk_id": "routine-vacuuming:0005",
+          "context": "24.1. Routine Vacuuming > 24.1.3. Updating Planner Statistics",
+          "url": "https://www.postgresql.org/docs/17/routine-vacuuming.html#VACUUM-FOR-STATISTICS",
+          "score": 0.9659
+        },
+        {
+          "chunk_id": "sql-analyze:0008",
+          "context": "ANALYZE > Notes",
+          "url": "https://www.postgresql.org/docs/17/sql-analyze.html#id-1.9.3.46.8",
+          "score": 0.9633
+        },
+        {
+          "chunk_id": "sql-analyze:0005",
+          "context": "ANALYZE > Notes",
+          "url": "https://www.postgresql.org/docs/17/sql-analyze.html#id-1.9.3.46.8",
+          "score": 0.9592
+        },
+        {
+          "chunk_id": "sql-createtable:0029",
+          "context": "CREATE TABLE > Parameters > Storage Parameters",
+          "url": "https://www.postgresql.org/docs/17/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS",
+          "score": 0.9502
+        }
+      ]
+    },
+    {
+      "id": "fact-08",
+      "type": "factual",
+      "gold_ranks": [
+        1
+      ],
+      "first_rank": 1,
+      "success_rank": 1,
+      "distinct_sections_top5": 5,
+      "top1_score": 0.9966272711753845,
+      "top5": [
+        {
+          "chunk_id": "indexes-types:0000",
+          "context": "11.2. Index Types",
+          "url": "https://www.postgresql.org/docs/17/indexes-types.html#INDEXES-TYPES",
+          "score": 0.9966
+        },
+        {
+          "chunk_id": "indexes-index-only-scans:0000",
+          "context": "11.9. Index-Only Scans and Covering Indexes",
+          "url": "https://www.postgresql.org/docs/17/indexes-index-only-scans.html#INDEXES-INDEX-ONLY-SCANS",
+          "score": 0.9751
+        },
+        {
+          "chunk_id": "indexes-multicolumn:0000",
+          "context": "11.3. Multicolumn Indexes",
+          "url": "https://www.postgresql.org/docs/17/indexes-multicolumn.html#INDEXES-MULTICOLUMN",
+          "score": 0.9714
+        },
+        {
+          "chunk_id": "indexes-partial:0003",
+          "context": "11.8. Partial Indexes",
+          "url": "https://www.postgresql.org/docs/17/indexes-partial.html#INDEXES-PARTIAL",
+          "score": 0.9645
+        },
+        {
+          "chunk_id": "sql-createindex:0014",
+          "context": "CREATE INDEX > Notes",
+          "url": "https://www.postgresql.org/docs/17/sql-createindex.html#id-1.9.3.69.7",
+          "score": 0.9415
+        }
+      ]
+    },
+    {
+      "id": "fact-09",
+      "type": "factual",
+      "gold_ranks": [
+        1,
+        4,
+        null
+      ],
+      "first_rank": 1,
+      "success_rank": 1,
+      "distinct_sections_top5": 4,
+      "top1_score": 0.9926282167434692,
+      "top5": [
+        {
+          "chunk_id": "using-explain:0024",
+          "context": "14.1. Using EXPLAIN > 14.1.2. EXPLAIN ANALYZE",
+          "url": "https://www.postgresql.org/docs/17/using-explain.html#USING-EXPLAIN-ANALYZE",
+          "score": 0.9926
+        },
+        {
+          "chunk_id": "pgtesttiming:0003",
+          "context": "pg_test_timing > Usage > Measuring Executor Timing Overhead",
+          "url": "https://www.postgresql.org/docs/17/pgtesttiming.html#id-1.9.5.12.7.3",
+          "score": 0.8733
+        },
+        {
+          "chunk_id": "sql-explain:0008",
+          "context": "EXPLAIN > Notes",
+          "url": "https://www.postgresql.org/docs/17/sql-explain.html#id-1.9.3.148.10",
+          "score": 0.8231
+        },
+        {
+          "chunk_id": "sql-explain:0002",
+          "context": "EXPLAIN > Description",
+          "url": "https://www.postgresql.org/docs/17/sql-explain.html#id-1.9.3.148.7",
+          "score": 0.7889
+        },
+        {
+          "chunk_id": "using-explain:0038",
+          "context": "14.1. Using EXPLAIN > 14.1.2. EXPLAIN ANALYZE",
+          "url": "https://www.postgresql.org/docs/17/using-explain.html#USING-EXPLAIN-ANALYZE",
+          "score": 0.6651
+        }
+      ]
+    },
+    {
+      "id": "fact-10",
+      "type": "factual",
+      "gold_ranks": [
+        1
+      ],
+      "first_rank": 1,
+      "success_rank": 1,
+      "distinct_sections_top5": 4,
+      "top1_score": 0.5845414400100708,
+      "top5": [
+        {
+          "chunk_id": "runtime-config-client:0009",
+          "context": "19.11. Client Connection Defaults > 19.11.1. Statement Behavior",
+          "url": "https://www.postgresql.org/docs/17/runtime-config-client.html#RUNTIME-CONFIG-CLIENT-STATEMENT",
+          "score": 0.5845
+        },
+        {
+          "chunk_id": "runtime-config-client:0008",
+          "context": "19.11. Client Connection Defaults > 19.11.1. Statement Behavior",
+          "url": "https://www.postgresql.org/docs/17/runtime-config-client.html#RUNTIME-CONFIG-CLIENT-STATEMENT",
+          "score": 0.492
+        },
+        {
+          "chunk_id": "installation-platform-notes:0011",
+          "context": "17.7. Platform-Specific Notes > 17.7.4. Solaris > 17.7.4.4. Using DTrace for Tracing PostgreSQL",
+          "url": "https://www.postgresql.org/docs/17/installation-platform-notes.html#INSTALLATION-NOTES-SOLARIS-USING-DTRACE",
+          "score": 0.4255
+        },
+        {
+          "chunk_id": "sql-end:0002",
+          "context": "END > Notes",
+          "url": "https://www.postgresql.org/docs/17/sql-end.html#id-1.9.3.146.7",
+          "score": 0.2324
+        },
+        {
+          "chunk_id": "sql-abort:0002",
+          "context": "ABORT > Notes",
+          "url": "https://www.postgresql.org/docs/17/sql-abort.html#id-1.9.3.3.7",
+          "score": 0.1634
+        }
+      ]
+    },
+    {
+      "id": "fact-11",
+      "type": "factual",
+      "gold_ranks": [
+        1
+      ],
+      "first_rank": 1,
+      "success_rank": 1,
+      "distinct_sections_top5": 3,
+      "top1_score": 0.9891253709793091,
+      "top5": [
+        {
+          "chunk_id": "auth-pg-hba-conf:0000",
+          "context": "20.1. The pg_hba.conf File",
+          "url": "https://www.postgresql.org/docs/17/auth-pg-hba-conf.html#AUTH-PG-HBA-CONF",
+          "score": 0.9891
+        },
+        {
+          "chunk_id": "encryption-options:0002",
+          "context": "18.8. Encryption Options",
+          "url": "https://www.postgresql.org/docs/17/encryption-options.html#ENCRYPTION-OPTIONS",
+          "score": 0.9532
+        },
+        {
+          "chunk_id": "auth-pg-hba-conf:0013",
+          "context": "20.1. The pg_hba.conf File",
+          "url": "https://www.postgresql.org/docs/17/auth-pg-hba-conf.html#AUTH-PG-HBA-CONF",
+          "score": 0.8782
+        },
+        {
+          "chunk_id": "auth-pg-hba-conf:0001",
+          "context": "20.1. The pg_hba.conf File",
+          "url": "https://www.postgresql.org/docs/17/auth-pg-hba-conf.html#AUTH-PG-HBA-CONF",
+          "score": 0.8586
+        },
+        {
+          "chunk_id": "runtime-config-file-locations:0000",
+          "context": "19.2. File Locations",
+          "url": "https://www.postgresql.org/docs/17/runtime-config-file-locations.html#RUNTIME-CONFIG-FILE-LOCATIONS",
+          "score": 0.8451
+        }
+      ]
+    },
+    {
+      "id": "fact-12",
+      "type": "factual",
+      "gold_ranks": [
+        1
+      ],
+      "first_rank": 1,
+      "success_rank": 1,
+      "distinct_sections_top5": 4,
+      "top1_score": 0.9995450377464294,
+      "top5": [
+        {
+          "chunk_id": "functions-datetime:0030",
+          "context": "9.9. Date/Time Functions and Operators > 9.9.5. Current Date/Time",
+          "url": "https://www.postgresql.org/docs/17/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT",
+          "score": 0.9995
+        },
+        {
+          "chunk_id": "functions-datetime:0031",
+          "context": "9.9. Date/Time Functions and Operators > 9.9.5. Current Date/Time",
+          "url": "https://www.postgresql.org/docs/17/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT",
+          "score": 0.9986
+        },
+        {
+          "chunk_id": "monitoring-stats:0077",
+          "context": "27.2. The Cumulative Statistics System > 27.2.26. Statistics Functions",
+          "url": "https://www.postgresql.org/docs/17/monitoring-stats.html#MONITORING-STATS-FUNCTIONS",
+          "score": 0.9736
+        },
+        {
+          "chunk_id": "functions-info:0004",
+          "context": "9.27. System Information Functions and Operators > 9.27.1. Session Information Functions",
+          "url": "https://www.postgresql.org/docs/17/functions-info.html#FUNCTIONS-INFO-SESSION",
+          "score": 0.8946
+        },
+        {
+          "chunk_id": "functions-admin:0014",
+          "context": "9.28. System Administration Functions > 9.28.4. Recovery Control Functions",
+          "url": "https://www.postgresql.org/docs/17/functions-admin.html#FUNCTIONS-RECOVERY-CONTROL",
+          "score": 0.8461
+        }
+      ]
+    },
+    {
+      "id": "multi-01",
+      "type": "multi_hop",
+      "gold_ranks": [
+        7,
+        1
+      ],
+      "first_rank": 1,
+      "success_rank": 7,
+      "distinct_sections_top5": 5,
+      "top1_score": 0.9976571798324585,
+      "top5": [
+        {
+          "chunk_id": "transaction-iso:0007",
+          "context": "13.2. Transaction Isolation > 13.2.2. Repeatable Read Isolation Level",
+          "url": "https://www.postgresql.org/docs/17/transaction-iso.html#XACT-REPEATABLE-READ",
+          "score": 0.9977
+        },
+        {
+          "chunk_id": "sql-set-transaction:0001",
+          "context": "SET TRANSACTION > Description",
+          "url": "https://www.postgresql.org/docs/17/sql-set-transaction.html#id-1.9.3.178.8",
+          "score": 0.9959
+        },
+        {
+          "chunk_id": "applevel-consistency:0000",
+          "context": "13.4. Data Consistency Checks at the Application Level",
+          "url": "https://www.postgresql.org/docs/17/applevel-consistency.html#APPLEVEL-CONSISTENCY",
+          "score": 0.9935
+        },
+        {
+          "chunk_id": "transaction-iso:0011",
+          "context": "13.2. Transaction Isolation > 13.2.3. Serializable Isolation Level",
+          "url": "https://www.postgresql.org/docs/17/transaction-iso.html#XACT-SERIALIZABLE",
+          "score": 0.9896
+        },
+        {
+          "chunk_id": "applevel-consistency:0004",
+          "context": "13.4. Data Consistency Checks at the Application Level > 13.4.2. Enforcing Consistency with Explicit Blocking Locks",
+          "url": "https://www.postgresql.org/docs/17/applevel-consistency.html#NON-SERIALIZABLE-CONSISTENCY",
+          "score": 0.9756
+        }
+      ]
+    },
+    {
+      "id": "multi-02",
+      "type": "multi_hop",
+      "gold_ranks": [
+        2,
+        3
+      ],
+      "first_rank": 2,
+      "success_rank": 3,
+      "distinct_sections_top5": 5,
+      "top1_score": 0.9947801828384399,
+      "top5": [
+        {
+          "chunk_id": "logical-replication-config:0001",
+          "context": "29.11. Configuration Settings > 29.11.1. Publishers",
+          "url": "https://www.postgresql.org/docs/17/logical-replication-config.html#LOGICAL-REPLICATION-CONFIG-PUBLISHER",
+          "score": 0.9948
+        },
+        {
+          "chunk_id": "logical-replication-quick-setup:0000",
+          "context": "29.12. Quick Setup",
+          "url": "https://www.postgresql.org/docs/17/logical-replication-quick-setup.html#LOGICAL-REPLICATION-QUICK-SETUP",
+          "score": 0.9938
+        },
+        {
+          "chunk_id": "runtime-config-wal:0000",
+          "context": "19.5. Write Ahead Log",
+          "url": "https://www.postgresql.org/docs/17/runtime-config-wal.html#RUNTIME-CONFIG-WAL",
+          "score": 0.9846
+        },
+        {
+          "chunk_id": "logicaldecoding-example:0001",
+          "context": "47.1. Logical Decoding Examples",
+          "url": "https://www.postgresql.org/docs/17/logicaldecoding-example.html#LOGICALDECODING-EXAMPLE",
+          "score": 0.9825
+        },
+        {
+          "chunk_id": "runtime-config-replication:0005",
+          "context": "19.6. Replication > 19.6.2. Primary Server",
+          "url": "https://www.postgresql.org/docs/17/runtime-config-replication.html#RUNTIME-CONFIG-REPLICATION-PRIMARY",
+          "score": 0.9788
+        }
+      ]
+    },
+    {
+      "id": "multi-03",
+      "type": "multi_hop",
+      "gold_ranks": [
+        4,
+        1
+      ],
+      "first_rank": 1,
+      "success_rank": 4,
+      "distinct_sections_top5": 4,
+      "top1_score": 0.9992382526397705,
+      "top5": [
+        {
+          "chunk_id": "ddl-partitioning:0013",
+          "context": "5.12. Table Partitioning > 5.12.2. Declarative Partitioning > 5.12.2.3. Limitations",
+          "url": "https://www.postgresql.org/docs/17/ddl-partitioning.html#DDL-PARTITIONING-DECLARATIVE-LIMITATIONS",
+          "score": 0.9992
+        },
+        {
+          "chunk_id": "ddl-partitioning:0014",
+          "context": "5.12. Table Partitioning > 5.12.2. Declarative Partitioning > 5.12.2.3. Limitations",
+          "url": "https://www.postgresql.org/docs/17/ddl-partitioning.html#DDL-PARTITIONING-DECLARATIVE-LIMITATIONS",
+          "score": 0.9797
+        },
+        {
+          "chunk_id": "ddl-partitioning:0003",
+          "context": "5.12. Table Partitioning > 5.12.2. Declarative Partitioning",
+          "url": "https://www.postgresql.org/docs/17/ddl-partitioning.html#DDL-PARTITIONING-DECLARATIVE",
+          "score": 0.9616
+        },
+        {
+          "chunk_id": "ddl-partitioning:0007",
+          "context": "5.12. Table Partitioning > 5.12.2. Declarative Partitioning > 5.12.2.1. Example",
+          "url": "https://www.postgresql.org/docs/17/ddl-partitioning.html#DDL-PARTITIONING-DECLARATIVE-EXAMPLE",
+          "score": 0.9598
+        },
+        {
+          "chunk_id": "sql-createtable:0019",
+          "context": "CREATE TABLE > Parameters",
+          "url": "https://www.postgresql.org/docs/17/sql-createtable.html#id-1.9.3.85.6",
+          "score": 0.9574
+        }
+      ]
+    },
+    {
+      "id": "multi-04",
+      "type": "multi_hop",
+      "gold_ranks": [
+        2,
+        6
+      ],
+      "first_rank": 2,
+      "success_rank": 6,
+      "distinct_sections_top5": 5,
+      "top1_score": 0.8598307967185974,
+      "top5": [
+        {
+          "chunk_id": "backup:0000",
+          "context": "Chapter 25. Backup and Restore",
+          "url": "https://www.postgresql.org/docs/17/backup.html#BACKUP",
+          "score": 0.8598
+        },
+        {
+          "chunk_id": "backup-dump:0001",
+          "context": "25.1. SQL Dump",
+          "url": "https://www.postgresql.org/docs/17/backup-dump.html#BACKUP-DUMP",
+          "score": 0.8203
+        },
+        {
+          "chunk_id": "backup-file:0002",
+          "context": "25.2. File System Level Backup",
+          "url": "https://www.postgresql.org/docs/17/backup-file.html#BACKUP-FILE",
+          "score": 0.6706
+        },
+        {
+          "chunk_id": "continuous-archiving:0027",
+          "context": "25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.7. Tips and Examples",
+          "url": "https://www.postgresql.org/docs/17/continuous-archiving.html#BACKUP-TIPS",
+          "score": 0.5268
+        },
+        {
+          "chunk_id": "continuous-archiving:0019",
+          "context": "25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.4. Making a Base Backup Using the Low Level API > 25.3.4.1. Backing Up the Data Directory",
+          "url": "https://www.postgresql.org/docs/17/continuous-archiving.html#BACKUP-LOWLEVEL-BASE-BACKUP-DATA",
+          "score": 0.2167
+        }
+      ]
+    },
+    {
+      "id": "multi-05",
+      "type": "multi_hop",
+      "gold_ranks": [
+        4,
+        null
+      ],
+      "first_rank": 4,
+      "success_rank": null,
+      "distinct_sections_top5": 5,
+      "top1_score": 0.8196788430213928,
+      "top5": [
+        {
+          "chunk_id": "runtime-config-connection:0012",
+          "context": "19.3. Connections and Authentication > 19.3.4. SSL",
+          "url": "https://www.postgresql.org/docs/17/runtime-config-connection.html#RUNTIME-CONFIG-CONNECTION-SSL",
+          "score": 0.8197
+        },
+        {
+          "chunk_id": "install-requirements:0005",
+          "context": "17.1. Requirements",
+          "url": "https://www.postgresql.org/docs/17/install-requirements.html#INSTALL-REQUIREMENTS",
+          "score": 0.7052
+        },
+        {
+          "chunk_id": "ssl-tcp:0004",
+          "context": "18.9. Secure TCP/IP Connections with SSL > 18.9.3. Using Client Certificates",
+          "url": "https://www.postgresql.org/docs/17/ssl-tcp.html#SSL-CLIENT-CERTIFICATES",
+          "score": 0.4882
+        },
+        {
+          "chunk_id": "ssl-tcp:0001",
+          "context": "18.9. Secure TCP/IP Connections with SSL > 18.9.1. Basic Setup",
+          "url": "https://www.postgresql.org/docs/17/ssl-tcp.html#SSL-SETUP",
+          "score": 0.4552
+        },
+        {
+          "chunk_id": "encryption-options:0002",
+          "context": "18.8. Encryption Options",
+          "url": "https://www.postgresql.org/docs/17/encryption-options.html#ENCRYPTION-OPTIONS",
+          "score": 0.4505
+        }
+      ]
+    },
+    {
+      "id": "amb-01",
+      "type": "ambiguous",
+      "gold_ranks": [
+        5,
+        null,
+        null,
+        null
+      ],
+      "first_rank": 5,
+      "success_rank": 5,
+      "distinct_sections_top5": 5,
+      "top1_score": 0.5623147487640381,
+      "top5": [
+        {
+          "chunk_id": "indexes-index-only-scans:0003",
+          "context": "11.9. Index-Only Scans and Covering Indexes",
+          "url": "https://www.postgresql.org/docs/17/indexes-index-only-scans.html#INDEXES-INDEX-ONLY-SCANS",
+          "score": 0.5623
+        },
+        {
+          "chunk_id": "populate:0005",
+          "context": "14.4. Populating a Database > 14.4.5. Increase maintenance_work_mem",
+          "url": "https://www.postgresql.org/docs/17/populate.html#POPULATE-WORK-MEM",
+          "score": 0.5252
+        },
+        {
+          "chunk_id": "backup-dump:0006",
+          "context": "25.1. SQL Dump > 25.1.3. Handling Large Databases",
+          "url": "https://www.postgresql.org/docs/17/backup-dump.html#BACKUP-DUMP-LARGE",
+          "score": 0.5026
+        },
+        {
+          "chunk_id": "indexes-partial:0000",
+          "context": "11.8. Partial Indexes",
+          "url": "https://www.postgresql.org/docs/17/indexes-partial.html#INDEXES-PARTIAL",
+          "score": 0.4735
+        },
+        {
+          "chunk_id": "indexes-intro:0001",
+          "context": "11.1. Introduction",
+          "url": "https://www.postgresql.org/docs/17/indexes-intro.html#INDEXES-INTRO",
+          "score": 0.3221
+        }
+      ]
+    },
+    {
+      "id": "amb-02",
+      "type": "ambiguous",
+      "gold_ranks": [
+        6,
+        2,
+        null,
+        4
+      ],
+      "first_rank": 2,
+      "success_rank": 2,
+      "distinct_sections_top5": 4,
+      "top1_score": 0.8804401755332947,
+      "top5": [
+        {
+          "chunk_id": "upgrading:0003",
+          "context": "18.6. Upgrading a PostgreSQL Cluster > 18.6.1. Upgrading Data via pg_dumpall",
+          "url": "https://www.postgresql.org/docs/17/upgrading.html#UPGRADING-VIA-PGDUMPALL",
+          "score": 0.8804
+        },
+        {
+          "chunk_id": "backup-file:0000",
+          "context": "25.2. File System Level Backup",
+          "url": "https://www.postgresql.org/docs/17/backup-file.html#BACKUP-FILE",
+          "score": 0.7086
+        },
+        {
+          "chunk_id": "app-pgbasebackup:0020",
+          "context": "pg_basebackup > Examples",
+          "url": "https://www.postgresql.org/docs/17/app-pgbasebackup.html#id-1.9.4.10.9",
+          "score": 0.6208
+        },
+        {
+          "chunk_id": "backup:0000",
+          "context": "Chapter 25. Backup and Restore",
+          "url": "https://www.postgresql.org/docs/17/backup.html#BACKUP",
+          "score": 0.5754
+        },
+        {
+          "chunk_id": "upgrading:0002",
+          "context": "18.6. Upgrading a PostgreSQL Cluster > 18.6.1. Upgrading Data via pg_dumpall",
+          "url": "https://www.postgresql.org/docs/17/upgrading.html#UPGRADING-VIA-PGDUMPALL",
+          "score": 0.5005
+        }
+      ]
+    },
+    {
+      "id": "amb-03",
+      "type": "ambiguous",
+      "gold_ranks": [
+        null,
+        null,
+        1,
+        null
+      ],
+      "first_rank": 1,
+      "success_rank": 1,
+      "distinct_sections_top5": 4,
+      "top1_score": 0.9590116143226624,
+      "top5": [
+        {
+          "chunk_id": "auto-explain:0000",
+          "context": "F.3. auto_explain \u2014 log execution plans of slow queries",
+          "url": "https://www.postgresql.org/docs/17/auto-explain.html#AUTO-EXPLAIN",
+          "score": 0.959
+        },
+        {
+          "chunk_id": "auto-explain:0006",
+          "context": "F.3. auto_explain \u2014 log execution plans of slow queries > F.3.2. Example",
+          "url": "https://www.postgresql.org/docs/17/auto-explain.html#AUTO-EXPLAIN-EXAMPLE",
+          "score": 0.903
+        },
+        {
+          "chunk_id": "auto-explain:0005",
+          "context": "F.3. auto_explain \u2014 log execution plans of slow queries > F.3.2. Example",
+          "url": "https://www.postgresql.org/docs/17/auto-explain.html#AUTO-EXPLAIN-EXAMPLE",
+          "score": 0.7789
+        },
+        {
+          "chunk_id": "textsearch-intro:0000",
+          "context": "12.1. Introduction",
+          "url": "https://www.postgresql.org/docs/17/textsearch-intro.html#TEXTSEARCH-INTRO",
+          "score": 0.4913
+        },
+        {
+          "chunk_id": "xoper-optimization:0000",
+          "context": "36.15. Operator Optimization Information",
+          "url": "https://www.postgresql.org/docs/17/xoper-optimization.html#XOPER-OPTIMIZATION",
+          "score": 0.3788
+        }
+      ]
+    },
+    {
+      "id": "amb-04",
+      "type": "ambiguous",
+      "gold_ranks": [
+        null,
+        1,
+        null
+      ],
+      "first_rank": 1,
+      "success_rank": 1,
+      "distinct_sections_top5": 4,
+      "top1_score": 0.3276524841785431,
+      "top5": [
+        {
+          "chunk_id": "auth-pg-hba-conf:0013",
+          "context": "20.1. The pg_hba.conf File",
+          "url": "https://www.postgresql.org/docs/17/auth-pg-hba-conf.html#AUTH-PG-HBA-CONF",
+          "score": 0.3277
+        },
+        {
+          "chunk_id": "rules-privileges:0001",
+          "context": "39.5. Rules and Privileges",
+          "url": "https://www.postgresql.org/docs/17/rules-privileges.html#RULES-PRIVILEGES",
+          "score": 0.0417
+        },
+        {
+          "chunk_id": "monitoring-stats:0004",
+          "context": "27.2. The Cumulative Statistics System > 27.2.2. Viewing Statistics",
+          "url": "https://www.postgresql.org/docs/17/monitoring-stats.html#MONITORING-STATS-VIEWS",
+          "score": 0.0306
+        },
+        {
+          "chunk_id": "rules-privileges:0002",
+          "context": "39.5. Rules and Privileges",
+          "url": "https://www.postgresql.org/docs/17/rules-privileges.html#RULES-PRIVILEGES",
+          "score": 0.0277
+        },
+        {
+          "chunk_id": "creating-cluster:0002",
+          "context": "18.2. Creating a Database Cluster",
+          "url": "https://www.postgresql.org/docs/17/creating-cluster.html#CREATING-CLUSTER",
+          "score": 0.0199
+        }
+      ]
+    }
+  ],
+  "unanswerable": [
+    {
+      "id": "unans-01",
+      "top1_score": 0.00044386470108292997,
+      "top1_context": "17.7. Platform-Specific Notes > 17.7.5. Visual Studio"
+    },
+    {
+      "id": "unans-02",
+      "top1_score": 0.66570645570755,
+      "top1_context": "17.7. Platform-Specific Notes > 17.7.4. Solaris"
+    },
+    {
+      "id": "unans-03",
+      "top1_score": 0.9774587750434875,
+      "top1_context": "29.12. Quick Setup"
+    },
+    {
+      "id": "unans-04",
+      "top1_score": 0.05555546656250954,
+      "top1_context": "18.2. Creating a Database Cluster"
+    },
+    {
+      "id": "unans-05",
+      "top1_score": 0.6811656355857849,
+      "top1_context": "25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.6. Timelines"
+    },
+    {
+      "id": "unans-06",
+      "top1_score": 0.440021276473999,
+      "top1_context": "Chapter 15. Parallel Query"
+    },
+    {
+      "id": "unans-07",
+      "top1_score": 0.3102961480617523,
+      "top1_context": "CREATE OPERATOR > Compatibility"
+    },
+    {
+      "id": "unans-08",
+      "top1_score": 0.08745208382606506,
+      "top1_context": "9.14. UUID Functions"
+    },
+    {
+      "id": "unans-09",
+      "top1_score": 0.021580463275313377,
+      "top1_context": "B.5. POSIX Time Zone Specifications"
+    }
+  ]
+}

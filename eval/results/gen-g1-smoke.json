@@ -1,0 +1,139 @@
+{
+  "meta": {
+    "name": "g1-smoke",
+    "time": "2026-10-08T11:42:01",
+    "mode": "hybrid_rerank",
+    "k": 5,
+    "model": "openai/gpt-oss-20b",
+    "llm_host": "integrate.api.nvidia.com",
+    "max_output_tokens": 1500,
+    "min_gap_s": 1.6,
+    "price_in_per_m": 0.0,
+    "price_out_per_m": 0.0,
+    "dataset_md5": "c14aa3a16bd39712d3a6fb5351cd473c",
+    "n_questions": 2
+  },
+  "summary": {
+    "n": 2,
+    "status": {
+      "refused": 2
+    },
+    "latency_ms": {
+      "embed_ms": {
+        "p50": 21.63210000435356,
+        "p95": 36.329300004581455,
+        "max": 36.329300004581455
+      },
+      "vector_ms": {
+        "p50": 58.892099994409364,
+        "p95": 77.14599999599159,
+        "max": 77.14599999599159
+      },
+      "bm25_ms": {
+        "p50": 0.4678999976022169,
+        "p95": 0.5704000068362802,
+        "max": 0.5704000068362802
+      },
+      "fuse_ms": {
+        "p50": 0.05720000626752153,
+        "p95": 0.06289999873843044,
+        "max": 0.06289999873843044
+      },
+      "rerank_ms": {
+        "p50": 1180.9001000001444,
+        "p95": 1297.3379000031855,
+        "max": 1297.3379000031855
+      },
+      "retrieval_ms": {
+        "p50": 1262.0519000120112,
+        "p95": 1411.3440000000992,
+        "max": 1411.3440000000992
+      },
+      "llm_ms": {
+        "p50": 5296.533799999452,
+        "p95": 5677.142799999274,
+        "max": 5677.142799999274
+      },
+      "total_ms": {
+        "p50": 6708.8607999976375,
+        "p95": 6939.674399996875,
+        "max": 6939.674399996875
+      }
+    },
+    "tokens": {
+      "prompt": 2610,
+      "completion": 280
+    },
+    "cost_usd": 0.0,
+    "retried": 0,
+    "mean_uncited_sentences_ok": null
+  },
+  "per_question": [
+    {
+      "id": "fact-01",
+      "type": "factual",
+      "status": "refused",
+      "error": null,
+      "gold_in_prompt": false,
+      "answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "raw_answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "cited_chunks": [],
+      "sources_shown": [
+        "sql-comment:0002",
+        "sql-droproutine:0002",
+        "sql-syntax-lexical:0019",
+        "functions-info:0030",
+        "sql-dropprocedure:0003"
+      ],
+      "uncited_sentences": 0,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1360,
+        "completion_tokens": 173,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 36.329300004581455,
+        "vector_ms": 77.14599999599159,
+        "bm25_ms": 0.4678999976022169,
+        "fuse_ms": 0.06289999873843044,
+        "rerank_ms": 1297.3379000031855,
+        "llm_ms": 5296.533799999452,
+        "total_ms": 6708.8607999976375
+      }
+    },
+    {
+      "id": "unans-03",
+      "type": "unanswerable",
+      "status": "refused",
+      "error": null,
+      "gold_in_prompt": null,
+      "answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "raw_answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "cited_chunks": [],
+      "sources_shown": [
+        "logical-replication-quick-setup:0000",
+        "app-pgcreatesubscriber:0007",
+        "sql-createsubscription:0011",
+        "runtime-config-replication:0017",
+        "app-pgcreatesubscriber:0009"
+      ],
+      "uncited_sentences": 0,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1250,
+        "completion_tokens": 107,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 21.63210000435356,
+        "vector_ms": 58.892099994409364,
+        "bm25_ms": 0.5704000068362802,
+        "fuse_ms": 0.05720000626752153,
+        "rerank_ms": 1180.9001000001444,
+        "llm_ms": 5677.142799999274,
+        "total_ms": 6939.674399996875
+      }
+    }
+  ]
+}

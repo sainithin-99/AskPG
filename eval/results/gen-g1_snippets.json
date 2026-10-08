@@ -1,0 +1,418 @@
+{
+  "run": "g1",
+  "chunks_md5": "db65e9d099d2929c2a40c540210b5acc",
+  "answers_ok": 20,
+  "answers_with_snippet": 10,
+  "flagged": [
+    "fact-02",
+    "fact-04",
+    "fact-10",
+    "multi-03",
+    "multi-05",
+    "amb-01",
+    "amb-02",
+    "amb-03",
+    "amb-04"
+  ],
+  "by_verdict": {
+    "supported": 13,
+    "UNSUPPORTED": 10,
+    "PARTIAL": 2,
+    "trivial": 1
+  },
+  "per_answer": [
+    {
+      "id": "fact-02",
+      "type": "factual",
+      "snippets": [
+        {
+          "kind": "fence",
+          "text": "ROLLBACK [ WORK | TRANSACTION ] [ AND [ NO ] CHAIN ]",
+          "n_segments": 1,
+          "found_shown": 1,
+          "found_cited": 1,
+          "verdict": "supported",
+          "unmatched": []
+        },
+        {
+          "kind": "inline",
+          "text": "AND NO CHAIN",
+          "n_segments": 1,
+          "found_shown": 0,
+          "found_cited": 0,
+          "verdict": "UNSUPPORTED",
+          "unmatched": [
+            "andnochain"
+          ]
+        }
+      ],
+      "missing_chunks": []
+    },
+    {
+      "id": "fact-03",
+      "type": "factual",
+      "snippets": [],
+      "missing_chunks": []
+    },
+    {
+      "id": "fact-04",
+      "type": "factual",
+      "snippets": [
+        {
+          "kind": "inline",
+          "text": "ALTER TABLE … SET LOGGED",
+          "n_segments": 2,
+          "found_shown": 1,
+          "found_cited": 1,
+          "verdict": "PARTIAL",
+          "unmatched": [
+            "setlogged"
+          ]
+        }
+      ],
+      "missing_chunks": []
+    },
+    {
+      "id": "fact-05",
+      "type": "factual",
+      "snippets": [],
+      "missing_chunks": []
+    },
+    {
+      "id": "fact-06",
+      "type": "factual",
+      "snippets": [],
+      "missing_chunks": []
+    },
+    {
+      "id": "fact-07",
+      "type": "factual",
+      "snippets": [],
+      "missing_chunks": []
+    },
+    {
+      "id": "fact-08",
+      "type": "factual",
+      "snippets": [],
+      "missing_chunks": []
+    },
+    {
+      "id": "fact-09",
+      "type": "factual",
+      "snippets": [],
+      "missing_chunks": []
+    },
+    {
+      "id": "fact-10",
+      "type": "factual",
+      "snippets": [
+        {
+          "kind": "fence",
+          "text": "SET statement_timeout = '5min';   -- abort after 5 minutes",
+          "n_segments": 1,
+          "found_shown": 0,
+          "found_cited": 0,
+          "verdict": "UNSUPPORTED",
+          "unmatched": [
+            "setstatement_timeout='5min'"
+          ]
+        },
+        {
+          "kind": "fence",
+          "text": "statement_timeout = 300000   # milliseconds",
+          "n_segments": 1,
+          "found_shown": 0,
+          "found_cited": 0,
+          "verdict": "UNSUPPORTED",
+          "unmatched": [
+            "statement_timeout=300000"
+          ]
+        }
+      ],
+      "missing_chunks": []
+    },
+    {
+      "id": "fact-11",
+      "type": "factual",
+      "snippets": [],
+      "missing_chunks": []
+    },
+    {
+      "id": "fact-12",
+      "type": "factual",
+      "snippets": [],
+      "missing_chunks": []
+    },
+    {
+      "id": "multi-01",
+      "type": "multi_hop",
+      "snippets": [],
+      "missing_chunks": []
+    },
+    {
+      "id": "multi-02",
+      "type": "multi_hop",
+      "snippets": [
+        {
+          "kind": "fence",
+          "text": "   wal_level = logical\n   ",
+          "n_segments": 1,
+          "found_shown": 1,
+          "found_cited": 1,
+          "verdict": "supported",
+          "unmatched": []
+        },
+        {
+          "kind": "fence",
+          "text": "   host   all   repuser   0.0.0.0/0   md5\n   ",
+          "n_segments": 1,
+          "found_shown": 1,
+          "found_cited": 1,
+          "verdict": "supported",
+          "unmatched": []
+        },
+        {
+          "kind": "fence",
+          "text": "   CREATE PUBLICATION mypub FOR TABLE users, departments;\n   ",
+          "n_segments": 1,
+          "found_shown": 1,
+          "found_cited": 1,
+          "verdict": "supported",
+          "unmatched": []
+        },
+        {
+          "kind": "fence",
+          "text": "   CREATE SUBSCRIPTION mysub\n     CONNECTION 'dbname=foo host=bar user=repuser'\n     PUBLICATION mypub;\n   ",
+          "n_segments": 3,
+          "found_shown": 3,
+          "found_cited": 3,
+          "verdict": "supported",
+          "unmatched": []
+        }
+      ],
+      "missing_chunks": []
+    },
+    {
+      "id": "multi-03",
+      "type": "multi_hop",
+      "snippets": [
+        {
+          "kind": "fence",
+          "text": "-- Parent (virtual) table\nCREATE TABLE measurement (\n    logdate   date,\n    peaktemp  int,\n    other_col text\n) PARTITION BY RANGE (logdate);          -- partition key\n\n-- Child partition\nCREATE TABLE measurement_y2006m02\n    PARTITION OF measurement\n    FOR VALUES FROM ('2006-02-01') TO ('2006-03-01')\n    PARTITION BY RANGE (peaktemp);      -- optional sub‑partition key",
+          "n_segments": 9,
+          "found_shown": 4,
+          "found_cited": 4,
+          "verdict": "PARTIAL",
+          "unmatched": [
+            "createtablemeasurement(",
+            "logdatedate,",
+            "peaktempint,",
+            "other_coltext",
+            ")partitionbyrange(logdate)"
+          ]
+        }
+      ],
+      "missing_chunks": []
+    },
+    {
+      "id": "multi-04",
+      "type": "multi_hop",
+      "snippets": [],
+      "missing_chunks": []
+    },
+    {
+      "id": "multi-05",
+      "type": "multi_hop",
+      "snippets": [
+        {
+          "kind": "fence",
+          "text": "   hostssl   all   all   192.168.1.0/24   md5   clientcert=verify-ca\n   ",
+          "n_segments": 1,
+          "found_shown": 0,
+          "found_cited": 0,
+          "verdict": "UNSUPPORTED",
+          "unmatched": [
+            "hostsslallall192.168.1.0/24md5clientcert=verify-ca"
+          ]
+        },
+        {
+          "kind": "inline",
+          "text": "ssl = on",
+          "n_segments": 0,
+          "found_shown": 0,
+          "found_cited": 0,
+          "verdict": "trivial",
+          "unmatched": []
+        },
+        {
+          "kind": "inline",
+          "text": "chmod 0600 server.key",
+          "n_segments": 1,
+          "found_shown": 1,
+          "found_cited": 1,
+          "verdict": "supported",
+          "unmatched": []
+        }
+      ],
+      "missing_chunks": []
+    },
+    {
+      "id": "amb-01",
+      "type": "ambiguous",
+      "snippets": [
+        {
+          "kind": "fence",
+          "text": "   CREATE INDEX idx_col ON big_table(col);\n   ",
+          "n_segments": 1,
+          "found_shown": 0,
+          "found_cited": 0,
+          "verdict": "UNSUPPORTED",
+          "unmatched": [
+            "createindexidx_colonbig_table(col)"
+          ]
+        },
+        {
+          "kind": "fence",
+          "text": "   CREATE INDEX big_table_col_y ON big_table(col) INCLUDE (y);\n   ",
+          "n_segments": 1,
+          "found_shown": 0,
+          "found_cited": 0,
+          "verdict": "UNSUPPORTED",
+          "unmatched": [
+            "createindexbig_table_col_yonbig_table(col)include(y)"
+          ]
+        },
+        {
+          "kind": "fence",
+          "text": "   CREATE INDEX access_log_client_ip_ix ON access_log(client_ip)\n   WHERE NOT (client_ip > inet '192.168.100.0' AND client_ip < inet '192.168.100.255');\n   ",
+          "n_segments": 2,
+          "found_shown": 2,
+          "found_cited": 2,
+          "verdict": "supported",
+          "unmatched": []
+        },
+        {
+          "kind": "inline",
+          "text": "ALTER TABLE ADD FOREIGN KEY",
+          "n_segments": 1,
+          "found_shown": 1,
+          "found_cited": 1,
+          "verdict": "supported",
+          "unmatched": []
+        }
+      ],
+      "missing_chunks": []
+    },
+    {
+      "id": "amb-02",
+      "type": "ambiguous",
+      "snippets": [
+        {
+          "kind": "fence",
+          "text": "   pg_dumpall > outputfile\n   ",
+          "n_segments": 1,
+          "found_shown": 1,
+          "found_cited": 1,
+          "verdict": "supported",
+          "unmatched": []
+        },
+        {
+          "kind": "fence",
+          "text": "   tar -cf backup.tar /usr/local/pgsql/data\n   ",
+          "n_segments": 1,
+          "found_shown": 1,
+          "found_cited": 1,
+          "verdict": "supported",
+          "unmatched": []
+        },
+        {
+          "kind": "fence",
+          "text": "   pg_basebackup -D /usr/local/pgsql/data\n   ",
+          "n_segments": 1,
+          "found_shown": 0,
+          "found_cited": 0,
+          "verdict": "UNSUPPORTED",
+          "unmatched": [
+            "pg_basebackup-d/usr/local/pgsql/data"
+          ]
+        }
+      ],
+      "missing_chunks": []
+    },
+    {
+      "id": "amb-03",
+      "type": "ambiguous",
+      "snippets": [
+        {
+          "kind": "fence",
+          "text": "LOAD 'auto_explain';\nSET auto_explain.log_min_duration = 0;   -- log all queries\nSET auto_explain.log_analyze = true;    -- include actual times\nSELECT count(*) FROM pg_class, pg_index\nWHERE oid = indrelid AND indisunique;",
+          "n_segments": 5,
+          "found_shown": 5,
+          "found_cited": 5,
+          "verdict": "supported",
+          "unmatched": []
+        },
+        {
+          "kind": "inline",
+          "text": "auto_explain.log_min_duration = 1000",
+          "n_segments": 1,
+          "found_shown": 0,
+          "found_cited": 0,
+          "verdict": "UNSUPPORTED",
+          "unmatched": [
+            "auto_explain.log_min_duration=1000"
+          ]
+        },
+        {
+          "kind": "inline",
+          "text": "auto_explain.log_analyze = true",
+          "n_segments": 1,
+          "found_shown": 1,
+          "found_cited": 1,
+          "verdict": "supported",
+          "unmatched": []
+        }
+      ],
+      "missing_chunks": []
+    },
+    {
+      "id": "amb-04",
+      "type": "ambiguous",
+      "snippets": [
+        {
+          "kind": "inline",
+          "text": "REVOKE CONNECT ON DATABASE mydb FROM PUBLIC; GRANT CONNECT ON DATABASE mydb TO app_user;",
+          "n_segments": 2,
+          "found_shown": 0,
+          "found_cited": 0,
+          "verdict": "UNSUPPORTED",
+          "unmatched": [
+            "revokeconnectondatabasemydbfrompublic",
+            "grantconnectondatabasemydbtoapp_user"
+          ]
+        },
+        {
+          "kind": "inline",
+          "text": "GRANT SELECT ON phone_number TO assistant;",
+          "n_segments": 1,
+          "found_shown": 1,
+          "found_cited": 1,
+          "verdict": "supported",
+          "unmatched": []
+        },
+        {
+          "kind": "inline",
+          "text": "CREATE VIEW phone_number SECURITY BARRIER AS SELECT person, phone FROM phone_data WHERE phone NOT LIKE '412%';",
+          "n_segments": 1,
+          "found_shown": 0,
+          "found_cited": 0,
+          "verdict": "UNSUPPORTED",
+          "unmatched": [
+            "createviewphone_numbersecuritybarrierasselectperson,phonefromphone_datawherephonenotlike'412%'"
+          ]
+        }
+      ],
+      "missing_chunks": []
+    }
+  ]
+}

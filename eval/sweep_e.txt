@@ -1,0 +1,118 @@
+
+====================================================================================================
+amb-01 (ambiguous): How do I speed up queries on a large table?
+  gold: indexes-intro / 11.1. Introduction; using-explain / 14.1. Using EXPLAIN; ddl-partitioning / 5.12. Table Partitioning
+  distinctive terms used (4): ['suitable', 'inspect', 'plans', 'partitioning']
+  no gold chunk matches 2+ of the terms: the reference answer is worded unlike the gold text, so read the candidates with extra care
+
+  [1] sql-analyze:0007  score 9.1  2/4 terms: ['plans', 'partitioning']
+      ANALYZE > Notes
+      label if it answers: {"page": "sql-analyze", "heading": 'Notes'}
+      ...e largest possible statistics target. If this inaccuracy leads to bad query plans, a more accurate value can be determined manually and then installed with ALTER TABLE ... ALTER COLUMN ... SET (n_distinct = ...).  If the table bei...
+
+  [2] ddl-partitioning:0011  score 8.9  2/4 terms: ['suitable', 'partitioning']
+      5.12. Table Partitioning > 5.12.2. Declarative Partitioning > 5.12.2.2. Partition Maintenance
+      label if it answers: {"page": "ddl-partitioning", "heading": '5.12.2.2. Partition Maintenance'}
+      ...of its sub-partitions will be recursively locked and scanned until either a suitable CHECK constraint is encountered or the leaf partitions are reached.  Similarly, if the partitioned table has a DEFAULT partition, it is recommend...
+
+  [3] ddl-partitioning:0015  score 8.9  2/4 terms: ['suitable', 'partitioning']
+      5.12. Table Partitioning > 5.12.3. Partitioning Using Inheritance
+      label if it answers: {"page": "ddl-partitioning", "heading": '5.12.3. Partitioning Using Inheritance'}
+      While the built-in declarative partitioning is suitable for most common use cases, there are some circumstances where a more flexible approach may be useful. Partitioning can be implemented using table inheritance, which allows fo...
+
+  [4] ddl-partitioning:0018  score 8.9  2/4 terms: ['suitable', 'partitioning']
+      5.12. Table Partitioning > 5.12.3. Partitioning Using Inheritance > 5.12.3.1. Example
+      label if it answers: {"page": "ddl-partitioning", "heading": '5.12.3.1. Example'}
+      ...rected into the appropriate child table. We can arrange that by attaching a suitable trigger function to the root table. If data will be added only to the latest child, we can use a very simple trigger function:  CREATE OR REPLACE...
+
+  [5] ddl-partitioning:0023  score 8.9  2/4 terms: ['suitable', 'partitioning']
+      5.12. Table Partitioning > 5.12.3. Partitioning Using Inheritance > 5.12.3.3. Caveats
+      label if it answers: {"page": "ddl-partitioning", "heading": '5.12.3.3. Caveats'}
+      The following caveats apply to partitioning implemented using inheritance:  - There is no automatic way to verify that all of the CHECK constraints are mutually exclusive. It is safer to create code that generates child tables and...
+
+====================================================================================================
+amb-02 (ambiguous): How do I back up a database?
+  gold: backup-dump / 25.1. SQL Dump; backup-file / 25.2. File System Level Backup; continuous-archiving / 25.3. Continuous Archiving and Point-in-Time Recovery (PITR)
+  distinctive terms used (4): ['pg_dump', 'dump', 'continuous', 'archiving']
+  best gold chunk: backup-dump:0001 matches 4/4 terms
+
+  [1] continuous-archiving:0015  score 13.7  3/4 terms: ['pg_dump', 'continuous', 'archiving']
+      25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.4. Making a Base Backup Using the Low Level API
+      label if it answers: {"page": "continuous-archiving", "heading": '25.3.4. Making a Base Backup Using the Low Level API'}
+      ...ckup, using any convenient file-system-backup tool such as tar or cpio (not pg_dump or pg_dumpall). It is neither necessary nor desirable to stop normal operation of the database while you do this. See Section 25.3.4.1 for things ...
+
+  [2] continuous-archiving:0027  score 13.7  3/4 terms: ['pg_dump', 'continuous', 'archiving']
+      25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.7. Tips and Examples
+      label if it answers: {"page": "continuous-archiving", "heading": '25.3.7.1. Standalone Hot Backups'}
+      25.3.7. Tips and Examples Some tips for configuring continuous archiving are given here.  It is possible to use PostgreSQL's backup facilities to produce standalone hot backups. These are backups that cannot be used for point-in-t...
+
+  [3] backup:0000  score 13.6  3/4 terms: ['dump', 'continuous', 'archiving']
+      Chapter 25. Backup and Restore
+      label if it answers: {"page": "backup", "heading": 'Chapter 25. Backup and Restore'}
+      ...ee fundamentally different approaches to backing up PostgreSQL data:  - SQL dump  - File system level backup  - Continuous archiving  Each has its own strengths and weaknesses; each is discussed in turn in the following sections.
+
+  [4] continuous-archiving:0010  score 13.6  3/4 terms: ['dump', 'continuous', 'archiving']
+      25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.2. Making a Base Backup
+      label if it answers: {"page": "continuous-archiving", "heading": '25.3.2. Making a Base Backup'}
+      ...AL segments of the backup. If you used the label to identify the associated dump file, then the archived history file is enough to tell you which dump file to restore.  Since you have to keep around all the archived WAL files back...
+
+  [5] continuous-archiving:0019  score 13.6  3/4 terms: ['dump', 'continuous', 'archiving']
+      25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.4. Making a Base Backup Using the Low Level API > 25.3.4.1. Backing Up the Data Directory
+      label if it answers: {"page": "continuous-archiving", "heading": '25.3.4.1. Backing Up the Data Directory'}
+      ...to look inside a backup file and determine exactly which backup session the dump file came from. The tablespace map file includes the symbolic link names as they exist in the directory pg_tblspc/ and the full path of each symbolic...
+
+====================================================================================================
+amb-03 (ambiguous): How do I find slow queries?
+  gold: runtime-config-logging / 19.8.2. When to Log; using-explain / 14.1. Using EXPLAIN; auto-explain / AUTO-EXPLAIN; pgstatstatements / PGSTATSTATEMENTS
+  distinctive terms used (4): ['slow', 'log_min_duration_statement', 'analyse', 'plans']
+  best gold chunk: auto-explain:0000 matches 2/4 terms
+
+  [1] auto-explain:0001  score 9.2  2/4 terms: ['slow', 'plans']
+      F.3. auto_explain — log execution plans of slow queries > F.3.1. Configuration Parameters
+      label if it answers: {"page": "auto-explain", "heading": 'F.3.1. Configuration Parameters'}
+      ...at will cause the statement's plan to be logged. Setting this to 0 logs all plans. -1 (the default) disables logging of plans. For example, if you set it to 250ms then all statements that run 250ms or longer will be logged. Only s...
+
+  [2] auto-explain:0005  score 9.2  2/4 terms: ['slow', 'plans']
+      F.3. auto_explain — log execution plans of slow queries > F.3.2. Example
+      label if it answers: {"page": "auto-explain", "heading": 'F.3.2. Example'}
+      postgres=# LOAD 'auto_explain'; postgres=# SET auto_explain.log_min_duration = 0; postgres=# SET auto_explain.log_analyze = true; postgres=# SELECT count(*)            FROM pg_class, pg_index            WHERE oid = indrelid AND in...
+
+  [3] planner-stats:0005  score 9.2  2/4 terms: ['slow', 'plans']
+      14.2. Statistics Used by the Planner > 14.2.2. Extended Statistics
+      label if it answers: {"page": "planner-stats", "heading": '14.2.2. Extended Statistics'}
+      It is common to see slow queries running bad execution plans because multiple columns used in the query clauses are correlated. The planner normally assumes that multiple conditions are independent of each other, an assumption tha...
+
+====================================================================================================
+amb-04 (ambiguous): How do I restrict who can access my data?
+  gold: ddl-priv / 5.8. Privileges; auth-pg-hba-conf / 20.1. The pg_hba.conf File; ddl-rowsecurity / 5.9. Row Security Policies
+  distinctive terms used (4): ['grant', 'revoke', 'pg_hba', 'policies']
+  best gold chunk: ddl-priv:0009 matches 2/4 terms
+
+  [1] extend-extensions:0001  score 13.8  3/4 terms: ['grant', 'revoke', 'policies']
+      36.17. Packaging Related Objects into an Extension
+      label if it answers: {"page": "extend-extensions", "heading": '36.17. Packaging Related Objects into an Extension'}
+      ... script may set privileges on objects that are part of the extension, using GRANT and REVOKE statements. The final set of privileges for each object (if any are set) will be stored in the pg_init_privs system catalog. When pg_dump...
+
+  [2] logical-replication-security:0000  score 9.8  2/4 terms: ['pg_hba', 'policies']
+      29.10. Security
+      label if it answers: {"page": "logical-replication-security", "heading": '29.10. Security'}
+      ...peruser). If the role lacks SUPERUSER and BYPASSRLS, publisher row security policies can execute. If the role does not trust all table owners, include options=-crow_security=off in the connection string; if a table owner then adds...
+
+  [3] ddl-inherit:0004  score 9.0  2/4 terms: ['grant', 'policies']
+      5.11. Inheritance
+      label if it answers: {"page": "ddl-inherit", "heading": '5.11. Inheritance'}
+      ...rform access permission checks on the parent table only. Thus, for example, granting UPDATE permission on the cities table implies permission to update rows in the capitals table as well, when they are accessed through cities. Thi...
+
+  [4] sql-createpolicy:0003  score 9.0  2/4 terms: ['grant', 'policies']
+      CREATE POLICY > Parameters
+      label if it answers: {"page": "sql-createpolicy", "heading": 'Parameters'}
+      ...ify that the policy is to be created as a permissive policy. All permissive policies which are applicable to a given query will be combined together using the Boolean “OR” operator. By creating permissive policies, administrators ...
+
+  [5] app-pg-dumpall:0002  score 8.7  2/4 terms: ['grant', 'revoke']
+      pg_dumpall > Options
+      label if it answers: {"page": "app-pg-dumpall", "heading": 'Options'}
+      ...nd exit.  -x --no-privileges --no-acl Prevent dumping of access privileges (grant/revoke commands).
+
+====================================================================================================
+Read each candidate. Add a section as gold only if a sentence in it states the answer.
+Note the label heading above is the HOST section of the best chunk; if that chunk merged small sections, check its `covers` before labelling.

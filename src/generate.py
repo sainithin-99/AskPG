@@ -8,6 +8,9 @@ Configure in E:\Projects\AskPG\.env (see .env.example) or with environment varia
     LLM_BASE_URL         default http://localhost:11434/v1   (Ollama)
     LLM_API_KEY          default "ollama"                    (Ollama ignores it; hosted APIs need a real key)
     LLM_MODEL            default llama3.1:8b                 (must already be pulled: `ollama pull llama3.1:8b`)
+    LLM_MAX_TOKENS       default 1500                        (reasoning models spend part of it on hidden thinking)
+    LLM_MIN_GAP_S        default 1.6                         (minimum seconds between LLM calls; 1.6 s = 37 requests/min,
+                                                              under the ~40/min free limit. Set 0 for a local model)
     LLM_PRICE_IN_PER_M   USD per 1M input tokens,  default 0 (copy from your provider's pricing page)
     LLM_PRICE_OUT_PER_M  USD per 1M output tokens, default 0
 
@@ -16,6 +19,13 @@ Setup:
 
 Usage (from the repo root):
     python src/generate.py ask "what does work_mem control?" --mode hybrid_rerank -k 5
+
+Result status values:
+    ok               the answer has >= 1 citation and every [n] is a source that was shown
+    refused          the answer is the exact refusal sentence
+    citation_failed  still uncited or badly cited after one corrective retry (safe fallback text is returned)
+    llm_error        the LLM call raised (timeout, 404 model, 429, empty answer from a reasoning model, ...).
+                     generate() never raises for these: batch runs (eval) keep going, and `error` holds the reason.
 
 What "citation enforcement" means here (and what it does not):
   ENFORCED: the answer either is the refusal sentence, or has >= 1 citation and every [n] refers to a
@@ -48,10 +58,13 @@ PRICE_OUT_PER_M = float(os.environ.get("LLM_PRICE_OUT_PER_M") or 0)
 # Reasoning models spend part of this budget on hidden thinking before the visible answer, so it must be
 # generous; raise it (LLM_MAX_TOKENS in .env) if you see "Empty answer ... finish_reason=length".
 MAX_OUTPUT_TOKENS = int(os.environ.get("LLM_MAX_TOKENS") or 1500)
+# Throttle: minimum gap between LLM calls. The NVIDIA free tier allows about 40 requests/minute.
+MIN_GAP_S = float(os.environ.get("LLM_MIN_GAP_S") or 1.6)
 DEFAULT_K = 5
 
 REFUSAL = "I can't find this in the PostgreSQL 17 documentation."
 CITATION_FAILED = "I couldn't produce a properly cited answer. Please see the sources below or rephrase the question."
+LLM_ERROR = "The language model did not return an answer. Please try again."
 
 SYSTEM_PROMPT = f"""You answer questions about PostgreSQL 17 using ONLY the numbered sources provided.
 Rules:
@@ -112,12 +125,20 @@ def strip_think(text: str) -> str:
 
 
 def make_llm():
-    """Returns call(messages) -> (text, {"prompt_tokens", "completion_tokens", "llm_ms"})."""
+    """Returns call(messages) -> (text, {"prompt_tokens", "completion_tokens", "llm_ms"}).
+    The throttle sleeps BEFORE the timer starts, so llm_ms never includes the waiting time.
+    (The openai client's own max_retries=2 retries are not throttled; they only fire on errors.)"""
     from openai import OpenAI
 
     client = OpenAI(base_url=LLM_BASE_URL, api_key=LLM_API_KEY, timeout=120, max_retries=2)
+    last_call = [0.0]  # time.perf_counter() of the previous call
 
     def call(messages: list[dict]):
+        wait = MIN_GAP_S - (time.perf_counter() - last_call[0])
+        if wait > 0:
+            time.sleep(wait)
+        last_call[0] = time.perf_counter()
+
         t0 = time.perf_counter()
         r = client.chat.completions.create(
             model=LLM_MODEL, messages=messages, temperature=0, max_tokens=MAX_OUTPUT_TOKENS
@@ -142,6 +163,8 @@ def make_llm():
 
 # --------------------------------------------------------------------------- pipeline
 def generate(query: str, retrieve, llm, k: int = DEFAULT_K, max_retries: int = 1) -> dict:
+    """Never raises for an LLM failure: returns status="llm_error" with the reason in `error`.
+    (A retrieval failure, e.g. Qdrant down, still raises: that is an infrastructure fault, not a model answer.)"""
     t_start = time.perf_counter()
     hits, stage_ms = retrieve(query, k)
     messages = build_messages(query, hits)
@@ -149,10 +172,16 @@ def generate(query: str, retrieve, llm, k: int = DEFAULT_K, max_retries: int = 1
     prompt_tok = completion_tok = 0
     llm_ms = 0.0
     attempts = 0
-    answer, check = "", {"ok": False}
+    error = None
+    answer = ""
+    check = {"ok": False, "is_refusal": False, "cited": [], "invalid": [], "uncited_sentences": 0}
     while True:
         attempts += 1
-        answer, u = llm(messages)
+        try:
+            answer, u = llm(messages)
+        except Exception as e:  # timeout, 404 model, 429, empty reasoning answer, network ...
+            error = f"{type(e).__name__}: {e}"
+            break
         answer = normalize_citations(answer)
         prompt_tok += u["prompt_tokens"]
         completion_tok += u["completion_tokens"]
@@ -168,12 +197,26 @@ def generate(query: str, retrieve, llm, k: int = DEFAULT_K, max_retries: int = 1
                                         f"citing after each factual sentence, or reply exactly: {REFUSAL}"},
         ]
 
-    status = "refused" if check["is_refusal"] else ("ok" if check["ok"] else "citation_failed")
+    if error:
+        status = "llm_error"
+    elif check["is_refusal"]:
+        status = "refused"
+    else:
+        status = "ok" if check["ok"] else "citation_failed"
+
+    if status == "citation_failed":
+        shown = CITATION_FAILED
+    elif status == "llm_error":
+        shown = LLM_ERROR
+    else:
+        shown = answer.strip()
+
     cost = prompt_tok * PRICE_IN_PER_M / 1e6 + completion_tok * PRICE_OUT_PER_M / 1e6
     return {
         "query": query,
         "status": status,
-        "answer": CITATION_FAILED if status == "citation_failed" else answer.strip(),
+        "error": error,
+        "answer": shown,
         "raw_answer": answer.strip(),
         "citations": [
             {"n": n, "chunk_id": hits[n - 1][0]["chunk_id"], "url": hits[n - 1][0]["url"],
@@ -202,6 +245,8 @@ def ask_cmd(query: str, mode: str, k: int, as_json: bool) -> None:
         return
     print(f"\nQ: {query}\nstatus={res['status']}  attempts={res['attempts']}  model={res['model']}  mode={mode}\n")
     print(res["answer"])
+    if res["status"] == "llm_error":
+        print(f"\n[LLM error]\n{res['error']}")
     if res["status"] == "citation_failed":
         print(f"\n[raw answer that failed enforcement]\n{res['raw_answer']}")
     print("\nSources shown to the model (* = cited):")
@@ -210,7 +255,7 @@ def ask_cmd(query: str, mode: str, k: int, as_json: bool) -> None:
         print(f"  {'*' if s['n'] in cited else ' '} [{s['n']}] {s['url']}")
     u, lat = res["usage"], res["latency_ms"]
     print(f"\ntokens in/out: {u['prompt_tokens']}/{u['completion_tokens']}   cost: ${u['cost_usd']:.5f}")
-    print("latency ms: " + " | ".join(f"{k} {v:.0f}" for k, v in lat.items()))
+    print("latency ms: " + " | ".join(f"{name} {v:.0f}" for name, v in lat.items()))
     print(f"uncited sentences (proxy): {res['uncited_sentences']}")
 
 

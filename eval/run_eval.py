@@ -154,7 +154,15 @@ def vector_retriever():
 
 # Later: "hybrid": ..., "hybrid_rerank": ... with the same signature:
 #   retrieve(query, k) -> ([(payload, score), ...], {"stage_name_ms": float, ...})
-RETRIEVERS = {"vector": vector_retriever}
+# RETRIEVERS = {"vector": vector_retriever}
+
+def make_retriever(mode: str):
+    def factory():
+        import retrieve as rt  # src/ is already on sys.path at the top of this file
+        return rt.build_retriever(mode)
+    return factory
+
+RETRIEVERS = {m: make_retriever(m) for m in ("vector", "bm25", "hybrid", "hybrid_rerank")}
 
 
 # --------------------------------------------------------------------------- metrics
@@ -184,6 +192,8 @@ def score_question(q: dict, hits: list) -> dict:
         "success_rank": success_rank,
         "distinct_sections_top5": len(top5_sections),
         "top1_score": hits[0][1] if hits else None,
+        "top5": [{"chunk_id": p["chunk_id"], "context": p["context"], "url": p["url"],
+                "score": round(float(s), 4)} for p, s in hits[:5]],
     }
 
 
@@ -231,7 +241,8 @@ def run(name: str, retriever_name: str, allow_missing: bool) -> None:
         for stage, ms in {**stage_ms, "total_ms": total_ms}.items():
             lat[stage].append(ms)
         if q["type"] == "unanswerable":
-            unans.append({"id": q["id"], "top1_score": hits[0][1] if hits else None})
+            unans.append({"id": q["id"], "top1_score": hits[0][1] if hits else None,
+            "top1_context": hits[0][0]["context"] if hits else None})
         else:
             scored.append(score_question(q, hits))
 

@@ -1,0 +1,1134 @@
+{
+  "meta": {
+    "name": "g1",
+    "time": "2026-10-08T11:51:26",
+    "mode": "hybrid_rerank",
+    "k": 5,
+    "model": "openai/gpt-oss-20b",
+    "llm_host": "integrate.api.nvidia.com",
+    "max_output_tokens": 1500,
+    "min_gap_s": 1.6,
+    "price_in_per_m": 0.0,
+    "price_out_per_m": 0.0,
+    "dataset_md5": "c14aa3a16bd39712d3a6fb5351cd473c",
+    "n_questions": 30
+  },
+  "summary": {
+    "n": 30,
+    "status": {
+      "refused": 10,
+      "ok": 20
+    },
+    "latency_ms": {
+      "embed_ms": {
+        "p50": 27.161700003489386,
+        "p95": 89.05249999952503,
+        "max": 124.84730000142008
+      },
+      "vector_ms": {
+        "p50": 27.979800004686695,
+        "p95": 75.50320000154898,
+        "max": 89.0648999993573
+      },
+      "bm25_ms": {
+        "p50": 0.4621999978553504,
+        "p95": 1.0648000024957582,
+        "max": 1.3288000045577064
+      },
+      "fuse_ms": {
+        "p50": 0.07929999992484227,
+        "p95": 0.12789999891538173,
+        "max": 0.13350000517675653
+      },
+      "rerank_ms": {
+        "p50": 1265.8708000017214,
+        "p95": 1503.0439999973169,
+        "max": 1536.425699996471
+      },
+      "retrieval_ms": {
+        "p50": 1341.891800002486,
+        "p95": 1577.6627000013832,
+        "max": 1589.916999997513
+      },
+      "llm_ms": {
+        "p50": 8163.296999999147,
+        "p95": 25094.25679999549,
+        "max": 32340.414500002225
+      },
+      "total_ms": {
+        "p50": 9578.971299997647,
+        "p95": 26684.449200001836,
+        "max": 33918.52270000527
+      }
+    },
+    "tokens": {
+      "prompt": 42764,
+      "completion": 8986
+    },
+    "cost_usd": 0.0,
+    "retried": 0,
+    "mean_uncited_sentences_ok": 2.65
+  },
+  "per_question": [
+    {
+      "id": "fact-01",
+      "type": "factual",
+      "status": "refused",
+      "error": null,
+      "gold_in_prompt": false,
+      "answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "raw_answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "cited_chunks": [],
+      "sources_shown": [
+        "sql-comment:0002",
+        "sql-droproutine:0002",
+        "sql-syntax-lexical:0019",
+        "functions-info:0030",
+        "sql-dropprocedure:0003"
+      ],
+      "uncited_sentences": 0,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1360,
+        "completion_tokens": 150,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 27.161700003489386,
+        "vector_ms": 89.0648999993573,
+        "bm25_ms": 1.0648000024957582,
+        "fuse_ms": 0.0957000011112541,
+        "rerank_ms": 1148.5182000033092,
+        "llm_ms": 5545.8657999988645,
+        "total_ms": 6812.53740000102
+      }
+    },
+    {
+      "id": "fact-02",
+      "type": "factual",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": true,
+      "answer": "The syntax for the `ROLLBACK` command is:\n\n```\nROLLBACK [ WORK | TRANSACTION ] [ AND [ NO ] CHAIN ]\n```\n\n* `WORK` or `TRANSACTION` are optional keywords that have no effect.  \n* `AND CHAIN` (or `AND NO CHAIN`) starts a new transaction immediately after the rollback, preserving the same transaction characteristics as the one that just finished.  \n\nA plain `ROLLBACK;` without any modifiers simply aborts the current transaction. [1][4]",
+      "raw_answer": "The syntax for the `ROLLBACK` command is:\n\n```\nROLLBACK [ WORK | TRANSACTION ] [ AND [ NO ] CHAIN ]\n```\n\n* `WORK` or `TRANSACTION` are optional keywords that have no effect.  \n* `AND CHAIN` (or `AND NO CHAIN`) starts a new transaction immediately after the rollback, preserving the same transaction characteristics as the one that just finished.  \n\nA plain `ROLLBACK;` without any modifiers simply aborts the current transaction. [1][4]",
+      "cited_chunks": [
+        "sql-rollback:0000",
+        "sql-rollback:0002"
+      ],
+      "sources_shown": [
+        "sql-rollback:0000",
+        "sql-rollback-to:0000",
+        "glossary:0013",
+        "sql-rollback:0002",
+        "spi-spi-rollback:0000"
+      ],
+      "uncited_sentences": 2,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1015,
+        "completion_tokens": 226,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 16.34090000152355,
+        "vector_ms": 59.10379999841098,
+        "bm25_ms": 0.32479999936185777,
+        "fuse_ms": 0.07929999992484227,
+        "rerank_ms": 1265.8708000017214,
+        "llm_ms": 7209.824099998514,
+        "total_ms": 8551.909900001192
+      }
+    },
+    {
+      "id": "fact-03",
+      "type": "factual",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": true,
+      "answer": "`work_mem` sets the base maximum amount of memory that a single query operation (such as a sort, hash table, merge join, or DISTINCT) may use before it starts writing temporary data to disk. Each operation is allowed to use up to this amount of memory, and multiple operations or sessions can use it concurrently, so the total memory consumption can be many times the `work_mem` value. Hash‑based operations use `work_mem` multiplied by `hash_mem_multiplier` to determine their limit. [5][1]",
+      "raw_answer": "`work_mem` sets the base maximum amount of memory that a single query operation (such as a sort, hash table, merge join, or DISTINCT) may use before it starts writing temporary data to disk. Each operation is allowed to use up to this amount of memory, and multiple operations or sessions can use it concurrently, so the total memory consumption can be many times the `work_mem` value. Hash‑based operations use `work_mem` multiplied by `hash_mem_multiplier` to determine their limit. [5][1]",
+      "cited_chunks": [
+        "runtime-config-resource:0006",
+        "runtime-config-resource:0005"
+      ],
+      "sources_shown": [
+        "runtime-config-resource:0006",
+        "app-postgres:0006",
+        "sql-createindex:0017",
+        "populate:0005",
+        "runtime-config-resource:0005"
+      ],
+      "uncited_sentences": 2,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1404,
+        "completion_tokens": 229,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 124.84730000142008,
+        "vector_ms": 64.74409999646014,
+        "bm25_ms": 1.3288000045577064,
+        "fuse_ms": 0.07729999924777076,
+        "rerank_ms": 1224.0959000046132,
+        "llm_ms": 8163.296999999147,
+        "total_ms": 9578.971299997647
+      }
+    },
+    {
+      "id": "fact-04",
+      "type": "factual",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": true,
+      "answer": "`ALTER TABLE … SET LOGGED` changes a table’s persistence from **unlogged** to **logged** (or vice‑versa). It cannot be applied to temporary tables, and it also changes the persistence of any sequences linked to the table (identity or serial columns) unless those sequences are altered separately. [1]",
+      "raw_answer": "`ALTER TABLE … SET LOGGED` changes a table’s persistence from **unlogged** to **logged** (or vice‑versa). It cannot be applied to temporary tables, and it also changes the persistence of any sequences linked to the table (identity or serial columns) unless those sequences are altered separately. [1]",
+      "cited_chunks": [
+        "sql-altertable:0016"
+      ],
+      "sources_shown": [
+        "sql-altertable:0016",
+        "sql-altertable:0001",
+        "sql-altertable:0017",
+        "sql-altertable:0019",
+        "sql-altersequence:0004"
+      ],
+      "uncited_sentences": 1,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1663,
+        "completion_tokens": 345,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 48.06090000056429,
+        "vector_ms": 50.49750000034692,
+        "bm25_ms": 0.3614999950514175,
+        "fuse_ms": 0.05660000169882551,
+        "rerank_ms": 1438.972999996622,
+        "llm_ms": 13687.638100003824,
+        "total_ms": 15225.856999997632
+      }
+    },
+    {
+      "id": "fact-05",
+      "type": "factual",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": true,
+      "answer": "VACUUM FULL rewrites the whole table into a new file, compacting it so that all dead tuples are removed and the file size is reduced to the minimum needed. This operation returns the freed space to the operating system, requires an ACCESS EXCLUSIVE lock on the table, and is much slower than a plain VACUUM, which only marks dead tuples as reusable within the table and does not release space to the OS. VACUUM FULL also needs extra disk space for the new copy until the rewrite finishes, whereas plain VACUUM can run in parallel and does not need that temporary space. [1][4][5]",
+      "raw_answer": "VACUUM FULL rewrites the whole table into a new file, compacting it so that all dead tuples are removed and the file size is reduced to the minimum needed. This operation returns the freed space to the operating system, requires an ACCESS EXCLUSIVE lock on the table, and is much slower than a plain VACUUM, which only marks dead tuples as reusable within the table and does not release space to the OS. VACUUM FULL also needs extra disk space for the new copy until the rewrite finishes, whereas plain VACUUM can run in parallel and does not need that temporary space. [1][4][5]",
+      "cited_chunks": [
+        "sql-vacuum:0001",
+        "routine-vacuuming:0002",
+        "routine-vacuuming:0003"
+      ],
+      "sources_shown": [
+        "sql-vacuum:0001",
+        "sql-vacuum:0010",
+        "routine-vacuuming:0004",
+        "routine-vacuuming:0002",
+        "routine-vacuuming:0003"
+      ],
+      "uncited_sentences": 2,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1863,
+        "completion_tokens": 447,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 42.6138999973773,
+        "vector_ms": 75.50320000154898,
+        "bm25_ms": 0.6493000037153251,
+        "fuse_ms": 0.07449999975506216,
+        "rerank_ms": 1338.9587000056054,
+        "llm_ms": 16125.296400001389,
+        "total_ms": 17583.391799998935
+      }
+    },
+    {
+      "id": "fact-06",
+      "type": "factual",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": true,
+      "answer": "The default value of max_connections is typically 100 connections. [1]",
+      "raw_answer": "The default value of max_connections is typically 100 connections. [1]",
+      "cited_chunks": [
+        "runtime-config-connection:0001"
+      ],
+      "sources_shown": [
+        "runtime-config-connection:0001",
+        "runtime-config-connection:0002",
+        "app-postgres:0005",
+        "hot-standby:0011",
+        "runtime-config-resource:0004"
+      ],
+      "uncited_sentences": 0,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1533,
+        "completion_tokens": 162,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 29.133500000170898,
+        "vector_ms": 72.42120000591967,
+        "bm25_ms": 0.3878999996231869,
+        "fuse_ms": 0.10350000229664147,
+        "rerank_ms": 1239.8456999944756,
+        "llm_ms": 7520.272999994631,
+        "total_ms": 8862.401799997315
+      }
+    },
+    {
+      "id": "fact-07",
+      "type": "factual",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": true,
+      "answer": "The autovacuum daemon is a background service that automatically runs **VACUUM** and **ANALYZE** on tables that have had a large number of inserted, updated, or deleted tuples. It consists of a launcher process that starts worker processes, one per database roughly every `autovacuum_naptime` seconds, up to `autovacuum_max_workers` workers at a time. Each worker scans the tables in its database and executes VACUUM and/or ANALYZE as needed, using the statistics collection facility and requiring `track_counts` to be true. The daemon does not run for tables with `autovacuum_enabled` set to false (except for wrap‑around protection), and it does not automatically analyze partitioned tables or inheritance parents if only children are modified. [1][2][3][4][5]",
+      "raw_answer": "The autovacuum daemon is a background service that automatically runs **VACUUM** and **ANALYZE** on tables that have had a large number of inserted, updated, or deleted tuples. It consists of a launcher process that starts worker processes, one per database roughly every `autovacuum_naptime` seconds, up to `autovacuum_max_workers` workers at a time. Each worker scans the tables in its database and executes VACUUM and/or ANALYZE as needed, using the statistics collection facility and requiring `track_counts` to be true. The daemon does not run for tables with `autovacuum_enabled` set to false (except for wrap‑around protection), and it does not automatically analyze partitioned tables or inheritance parents if only children are modified. [1][2][3][4][5]",
+      "cited_chunks": [
+        "routine-vacuuming:0022",
+        "routine-vacuuming:0005",
+        "sql-analyze:0008",
+        "sql-analyze:0005",
+        "sql-createtable:0029"
+      ],
+      "sources_shown": [
+        "routine-vacuuming:0022",
+        "routine-vacuuming:0005",
+        "sql-analyze:0008",
+        "sql-analyze:0005",
+        "sql-createtable:0029"
+      ],
+      "uncited_sentences": 3,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1632,
+        "completion_tokens": 684,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 42.925100002321415,
+        "vector_ms": 27.495700000145007,
+        "bm25_ms": 0.5311999993864447,
+        "fuse_ms": 0.061400001868605614,
+        "rerank_ms": 1503.0439999973169,
+        "llm_ms": 23605.687499999476,
+        "total_ms": 25179.997999999614
+      }
+    },
+    {
+      "id": "fact-08",
+      "type": "factual",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": true,
+      "answer": "PostgreSQL supports the following index types: B‑tree, Hash, GiST, SP‑GiST, GIN, BRIN, and the extension bloom. [1]",
+      "raw_answer": "PostgreSQL supports the following index types: B‑tree, Hash, GiST, SP‑GiST, GIN, BRIN, and the extension bloom. [1]",
+      "cited_chunks": [
+        "indexes-types:0000"
+      ],
+      "sources_shown": [
+        "indexes-types:0000",
+        "indexes-index-only-scans:0000",
+        "indexes-multicolumn:0000",
+        "indexes-partial:0003",
+        "sql-createindex:0014"
+      ],
+      "uncited_sentences": 0,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1467,
+        "completion_tokens": 145,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 26.409100006276276,
+        "vector_ms": 32.73069999704603,
+        "bm25_ms": 0.3426999974180944,
+        "fuse_ms": 0.059300000430084765,
+        "rerank_ms": 1260.2349000007962,
+        "llm_ms": 3322.157700000389,
+        "total_ms": 4642.107599996962
+      }
+    },
+    {
+      "id": "fact-09",
+      "type": "factual",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": true,
+      "answer": "Plain EXPLAIN only shows the planner’s estimates for costs, row counts, and the structure of the plan; the query is **not** run.  \nEXPLAIN ANALYZE, by contrast, actually executes the statement, discarding any result rows but keeping side‑effects, and then reports the real row counts and the real execution time for each plan node (in addition to the same estimates that plain EXPLAIN shows) [1][4]. It also adds profiling overhead, so the query can run noticeably longer than a normal execution [3]. The timing shown includes executor start‑up, shutdown, and trigger execution, but not parsing, rewriting, or planning time, and can optionally include time to serialize the output if the SERIALIZE option is used [5].",
+      "raw_answer": "Plain EXPLAIN only shows the planner’s estimates for costs, row counts, and the structure of the plan; the query is **not** run.  \nEXPLAIN ANALYZE, by contrast, actually executes the statement, discarding any result rows but keeping side‑effects, and then reports the real row counts and the real execution time for each plan node (in addition to the same estimates that plain EXPLAIN shows) [1][4]. It also adds profiling overhead, so the query can run noticeably longer than a normal execution [3]. The timing shown includes executor start‑up, shutdown, and trigger execution, but not parsing, rewriting, or planning time, and can optionally include time to serialize the output if the SERIALIZE option is used [5].",
+      "cited_chunks": [
+        "using-explain:0024",
+        "sql-explain:0008",
+        "sql-explain:0002",
+        "using-explain:0038"
+      ],
+      "sources_shown": [
+        "using-explain:0024",
+        "pgtesttiming:0003",
+        "sql-explain:0008",
+        "sql-explain:0002",
+        "using-explain:0038"
+      ],
+      "uncited_sentences": 1,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1218,
+        "completion_tokens": 396,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 21.060099999886006,
+        "vector_ms": 34.420600000885315,
+        "bm25_ms": 0.3091000035055913,
+        "fuse_ms": 0.04739999712910503,
+        "rerank_ms": 1283.599399997911,
+        "llm_ms": 18527.393099997425,
+        "total_ms": 19867.01300000277
+      }
+    },
+    {
+      "id": "fact-10",
+      "type": "factual",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": true,
+      "answer": "To stop a statement that runs for too long, set a timeout on the statement itself.  \nUse the **statement_timeout** parameter, which aborts any command that exceeds the\nspecified duration.  \nExample (per‑session):\n\n```sql\nSET statement_timeout = '5min';   -- abort after 5 minutes\n```\n\nor in *postgresql.conf* (affects all sessions, though it is usually discouraged):\n\n```conf\nstatement_timeout = 300000   # milliseconds\n```\n\nWhen the timeout is reached, the statement is cancelled and an error is logged\nif `log_min_error_statement` is set to `ERROR` or lower.  \n[2]",
+      "raw_answer": "To stop a statement that runs for too long, set a timeout on the statement itself.  \nUse the **statement_timeout** parameter, which aborts any command that exceeds the\nspecified duration.  \nExample (per‑session):\n\n```sql\nSET statement_timeout = '5min';   -- abort after 5 minutes\n```\n\nor in *postgresql.conf* (affects all sessions, though it is usually discouraged):\n\n```conf\nstatement_timeout = 300000   # milliseconds\n```\n\nWhen the timeout is reached, the statement is cancelled and an error is logged\nif `log_min_error_statement` is set to `ERROR` or lower.  \n[2]",
+      "cited_chunks": [
+        "runtime-config-client:0008"
+      ],
+      "sources_shown": [
+        "runtime-config-client:0009",
+        "runtime-config-client:0008",
+        "installation-platform-notes:0011",
+        "sql-end:0002",
+        "sql-abort:0002"
+      ],
+      "uncited_sentences": 2,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1204,
+        "completion_tokens": 280,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 22.19939999486087,
+        "vector_ms": 68.96010000491515,
+        "bm25_ms": 0.3358000030857511,
+        "fuse_ms": 0.07560000085504726,
+        "rerank_ms": 1047.2997999968356,
+        "llm_ms": 14262.141799998062,
+        "total_ms": 15401.226699999825
+      }
+    },
+    {
+      "id": "fact-11",
+      "type": "factual",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": true,
+      "answer": "The pg_hba.conf file controls client authentication. It defines which hosts, databases and users are allowed to connect and which authentication method (password, SSL, GSSAPI, etc.) is required for each matching connection type and address range.[1][4]",
+      "raw_answer": "The pg_hba.conf file controls client authentication. It defines which hosts, databases and users are allowed to connect and which authentication method (password, SSL, GSSAPI, etc.) is required for each matching connection type and address range.[1][4]",
+      "cited_chunks": [
+        "auth-pg-hba-conf:0000",
+        "auth-pg-hba-conf:0001"
+      ],
+      "sources_shown": [
+        "auth-pg-hba-conf:0000",
+        "encryption-options:0002",
+        "auth-pg-hba-conf:0013",
+        "auth-pg-hba-conf:0001",
+        "runtime-config-file-locations:0000"
+      ],
+      "uncited_sentences": 1,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1477,
+        "completion_tokens": 242,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 16.73319999827072,
+        "vector_ms": 25.54769999551354,
+        "bm25_ms": 0.622200001089368,
+        "fuse_ms": 0.12070000229869038,
+        "rerank_ms": 1113.9531000007992,
+        "llm_ms": 8104.079899996577,
+        "total_ms": 9272.405000003346
+      }
+    },
+    {
+      "id": "fact-12",
+      "type": "factual",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": true,
+      "answer": "The function that returns the start time of the current transaction is `transaction_timestamp()` (which is equivalent to the SQL‑standard `CURRENT_TIMESTAMP`).[2]",
+      "raw_answer": "The function that returns the start time of the current transaction is `transaction_timestamp()` (which is equivalent to the SQL‑standard `CURRENT_TIMESTAMP`).[2]",
+      "cited_chunks": [
+        "functions-datetime:0031"
+      ],
+      "sources_shown": [
+        "functions-datetime:0030",
+        "functions-datetime:0031",
+        "monitoring-stats:0077",
+        "functions-info:0004",
+        "functions-admin:0014"
+      ],
+      "uncited_sentences": 0,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1676,
+        "completion_tokens": 156,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 60.61900000349851,
+        "vector_ms": 18.038399997749366,
+        "bm25_ms": 0.40830000216374174,
+        "fuse_ms": 0.08689999958733097,
+        "rerank_ms": 1272.2141000049305,
+        "llm_ms": 12428.100499993889,
+        "total_ms": 13779.74389999872
+      }
+    },
+    {
+      "id": "multi-01",
+      "type": "multi_hop",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": false,
+      "answer": "READ COMMITTED: each statement sees a snapshot of rows that were committed **before that statement began**; it can see new commits made by other transactions that occur between statements.  \nREPEATABLE READ: the transaction takes a snapshot at the start of its first query or data‑modification command, and all subsequent statements see that same snapshot, so they never see changes committed by other transactions after the transaction began (and they never see uncommitted data)[2][1].",
+      "raw_answer": "READ COMMITTED: each statement sees a snapshot of rows that were committed **before that statement began**; it can see new commits made by other transactions that occur between statements.  \nREPEATABLE READ: the transaction takes a snapshot at the start of its first query or data‑modification command, and all subsequent statements see that same snapshot, so they never see changes committed by other transactions after the transaction began (and they never see uncommitted data)[2][1].",
+      "cited_chunks": [
+        "transaction-iso:0007",
+        "sql-set-transaction:0001"
+      ],
+      "sources_shown": [
+        "transaction-iso:0007",
+        "sql-set-transaction:0001",
+        "applevel-consistency:0000",
+        "transaction-iso:0011",
+        "applevel-consistency:0004"
+      ],
+      "uncited_sentences": 1,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1654,
+        "completion_tokens": 508,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 20.495099997788202,
+        "vector_ms": 32.308200003171805,
+        "bm25_ms": 0.5937000023550354,
+        "fuse_ms": 0.09429999772692099,
+        "rerank_ms": 1536.425699996471,
+        "llm_ms": 25094.25679999549,
+        "total_ms": 26684.449200001836
+      }
+    },
+    {
+      "id": "multi-02",
+      "type": "multi_hop",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": true,
+      "answer": "To enable logical replication you must first configure the server for logical decoding and then create a publication and a subscription.\n\n1. **Set the WAL level**  \n   In `postgresql.conf` set  \n   ```sql\n   wal_level = logical\n   ```  \n   This is required for logical replication and logical decoding.  \n   [1][3]\n\n2. **Adjust replication slots and senders**  \n   Set `max_replication_slots` to at least the number of subscriptions you expect, and `max_wal_senders` to at least that number plus any physical replicas.  \n   [1]\n\n3. **Allow replication in `pg_hba.conf`**  \n   Add a line such as  \n   ```\n   host   all   repuser   0.0.0.0/0   md5\n   ```  \n   to permit the replication user.  \n   [2]\n\n4. **Create a publication on the publisher**  \n   ```sql\n   CREATE PUBLICATION mypub FOR TABLE users, departments;\n   ```  \n   [2]\n\n5. **Create a subscription on the subscriber**  \n   ```sql\n   CREATE SUBSCRIPTION mysub\n     CONNECTION 'dbname=foo host=bar user=repuser'\n     PUBLICATION mypub;\n   ```  \n   This starts the replication process, synchronizing the initial table contents and then replicating incremental changes.  \n   [2]",
+      "raw_answer": "To enable logical replication you must first configure the server for logical decoding and then create a publication and a subscription.\n\n1. **Set the WAL level**  \n   In `postgresql.conf` set  \n   ```sql\n   wal_level = logical\n   ```  \n   This is required for logical replication and logical decoding.  \n   [1][3]\n\n2. **Adjust replication slots and senders**  \n   Set `max_replication_slots` to at least the number of subscriptions you expect, and `max_wal_senders` to at least that number plus any physical replicas.  \n   [1]\n\n3. **Allow replication in `pg_hba.conf`**  \n   Add a line such as  \n   ```\n   host   all   repuser   0.0.0.0/0   md5\n   ```  \n   to permit the replication user.  \n   [2]\n\n4. **Create a publication on the publisher**  \n   ```sql\n   CREATE PUBLICATION mypub FOR TABLE users, departments;\n   ```  \n   [2]\n\n5. **Create a subscription on the subscriber**  \n   ```sql\n   CREATE SUBSCRIPTION mysub\n     CONNECTION 'dbname=foo host=bar user=repuser'\n     PUBLICATION mypub;\n   ```  \n   This starts the replication process, synchronizing the initial table contents and then replicating incremental changes.  \n   [2]",
+      "cited_chunks": [
+        "logical-replication-config:0001",
+        "logical-replication-quick-setup:0000",
+        "runtime-config-wal:0000"
+      ],
+      "sources_shown": [
+        "logical-replication-config:0001",
+        "logical-replication-quick-setup:0000",
+        "runtime-config-wal:0000",
+        "logicaldecoding-example:0001",
+        "runtime-config-replication:0005"
+      ],
+      "uncited_sentences": 1,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1263,
+        "completion_tokens": 412,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 36.583200002496596,
+        "vector_ms": 35.207200002332684,
+        "bm25_ms": 0.7684999945922755,
+        "fuse_ms": 0.10379999730503187,
+        "rerank_ms": 1272.9188000012073,
+        "llm_ms": 8264.590799997677,
+        "total_ms": 9610.564200003864
+      }
+    },
+    {
+      "id": "multi-03",
+      "type": "multi_hop",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": true,
+      "answer": "To create a partitioned table you declare the table with a partitioning method and a list of partition‑key columns, then attach child tables that hold the data.\n\n```sql\n-- Parent (virtual) table\nCREATE TABLE measurement (\n    logdate   date,\n    peaktemp  int,\n    other_col text\n) PARTITION BY RANGE (logdate);          -- partition key\n\n-- Child partition\nCREATE TABLE measurement_y2006m02\n    PARTITION OF measurement\n    FOR VALUES FROM ('2006-02-01') TO ('2006-03-01')\n    PARTITION BY RANGE (peaktemp);      -- optional sub‑partition key\n```\n\nThe parent table itself has no storage; all rows are stored in the child tables that match the partition bounds.  \n[3][4]\n\n### Limits on UNIQUE (and PRIMARY KEY) constraints\n\n* The constraint’s columns must include **all** partition‑key columns of the table (and of any ancestor tables in a multi‑level hierarchy).  \n  [1][5]\n\n* The partition key cannot contain expressions or function calls; the constraint must reference the raw key columns only.  \n  [1]\n\n* A unique or primary‑key constraint is virtual: it creates a matching btree index on each child partition automatically.  \n  [5]\n\n* If the table is partitioned, you cannot add a UNIQUE constraint that omits any partition‑key column; otherwise the constraint is rejected.  \n  [1]\n\nThese rules ensure that uniqueness can be enforced within each partition and that the partition structure guarantees no duplicates across partitions.",
+      "raw_answer": "To create a partitioned table you declare the table with a partitioning method and a list of partition‑key columns, then attach child tables that hold the data.\n\n```sql\n-- Parent (virtual) table\nCREATE TABLE measurement (\n    logdate   date,\n    peaktemp  int,\n    other_col text\n) PARTITION BY RANGE (logdate);          -- partition key\n\n-- Child partition\nCREATE TABLE measurement_y2006m02\n    PARTITION OF measurement\n    FOR VALUES FROM ('2006-02-01') TO ('2006-03-01')\n    PARTITION BY RANGE (peaktemp);      -- optional sub‑partition key\n```\n\nThe parent table itself has no storage; all rows are stored in the child tables that match the partition bounds.  \n[3][4]\n\n### Limits on UNIQUE (and PRIMARY KEY) constraints\n\n* The constraint’s columns must include **all** partition‑key columns of the table (and of any ancestor tables in a multi‑level hierarchy).  \n  [1][5]\n\n* The partition key cannot contain expressions or function calls; the constraint must reference the raw key columns only.  \n  [1]\n\n* A unique or primary‑key constraint is virtual: it creates a matching btree index on each child partition automatically.  \n  [5]\n\n* If the table is partitioned, you cannot add a UNIQUE constraint that omits any partition‑key column; otherwise the constraint is rejected.  \n  [1]\n\nThese rules ensure that uniqueness can be enforced within each partition and that the partition structure guarantees no duplicates across partitions.",
+      "cited_chunks": [
+        "ddl-partitioning:0013",
+        "ddl-partitioning:0003",
+        "ddl-partitioning:0007",
+        "sql-createtable:0019"
+      ],
+      "sources_shown": [
+        "ddl-partitioning:0013",
+        "ddl-partitioning:0014",
+        "ddl-partitioning:0003",
+        "ddl-partitioning:0007",
+        "sql-createtable:0019"
+      ],
+      "uncited_sentences": 2,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1982,
+        "completion_tokens": 745,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 86.6290999983903,
+        "vector_ms": 27.979800004686695,
+        "bm25_ms": 0.8501999982399866,
+        "fuse_ms": 0.13350000517675653,
+        "rerank_ms": 1462.0700999948895,
+        "llm_ms": 32340.414500002225,
+        "total_ms": 33918.52270000527
+      }
+    },
+    {
+      "id": "multi-04",
+      "type": "multi_hop",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": false,
+      "answer": "An **SQL dump** (pg_dump) is a logical backup: it writes SQL commands that recreate the database, so the dump can be re‑loaded into newer PostgreSQL versions and even on different machine architectures. It produces an internally consistent snapshot without blocking normal operations (except for exclusive‑lock operations) and is usually smaller than a physical copy because it does not dump indexes or WAL data.  \nContinuous archiving, on the other hand, is a physical backup that copies the data directory and the write‑ahead log (WAL) files. It is server‑version‑specific, can be used for point‑in‑time recovery, and can be taken while the server is running (hot backup). It is typically faster to back up and restore than pg_dump but results in a larger backup file.  \n[2][4]",
+      "raw_answer": "An **SQL dump** (pg_dump) is a logical backup: it writes SQL commands that recreate the database, so the dump can be re‑loaded into newer PostgreSQL versions and even on different machine architectures. It produces an internally consistent snapshot without blocking normal operations (except for exclusive‑lock operations) and is usually smaller than a physical copy because it does not dump indexes or WAL data.  \nContinuous archiving, on the other hand, is a physical backup that copies the data directory and the write‑ahead log (WAL) files. It is server‑version‑specific, can be used for point‑in‑time recovery, and can be taken while the server is running (hot backup). It is typically faster to back up and restore than pg_dump but results in a larger backup file.  \n[2][4]",
+      "cited_chunks": [
+        "backup-dump:0001",
+        "continuous-archiving:0027"
+      ],
+      "sources_shown": [
+        "backup:0000",
+        "backup-dump:0001",
+        "backup-file:0002",
+        "continuous-archiving:0027",
+        "continuous-archiving:0019"
+      ],
+      "uncited_sentences": 4,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1299,
+        "completion_tokens": 536,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 32.257899998512585,
+        "vector_ms": 29.70909999567084,
+        "bm25_ms": 0.500999994983431,
+        "fuse_ms": 0.09069999941857532,
+        "rerank_ms": 1259.085400000913,
+        "llm_ms": 19555.941200000234,
+        "total_ms": 20877.866199996788
+      }
+    },
+    {
+      "id": "multi-05",
+      "type": "multi_hop",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": false,
+      "answer": "To enable SSL and force it for selected clients you need two steps:\n\n1. **Turn on SSL in the server**  \n   * In `postgresql.conf` set `ssl = on`.  \n   * Place a server certificate (`server.crt`) and its private key (`server.key`) in the data directory (or specify other names with `ssl_cert_file` and `ssl_key_file`).  \n   * Ensure the key file is readable only by the PostgreSQL user (e.g., `chmod 0600 server.key`).  \n   * Restart the server.  \n   This makes the server listen for both normal and SSL connections on the same port and negotiates SSL with any client that requests it. [4]\n\n2. **Require SSL for specific hosts in `pg_hba.conf`**  \n   * Use a `hostssl` line for the clients you want to force SSL.  \n   * Optionally add `clientcert=verify-ca` or `clientcert=verify-full` to require a trusted client certificate and, for `verify-full`, also match the certificate’s Common Name to the database user.  \n   Example:  \n   ```\n   hostssl   all   all   192.168.1.0/24   md5   clientcert=verify-ca\n   ```  \n   This line forces any connection from the 192.168.1.0/24 subnet to use SSL and to present a certificate signed by a trusted CA.  \n   The server will still accept non‑SSL connections from other hosts unless they are also listed with `hostssl`.  \n   The `clientcert` option is only available on `hostssl` lines. [3]",
+      "raw_answer": "To enable SSL and force it for selected clients you need two steps:\n\n1. **Turn on SSL in the server**  \n   * In `postgresql.conf` set `ssl = on`.  \n   * Place a server certificate (`server.crt`) and its private key (`server.key`) in the data directory (or specify other names with `ssl_cert_file` and `ssl_key_file`).  \n   * Ensure the key file is readable only by the PostgreSQL user (e.g., `chmod 0600 server.key`).  \n   * Restart the server.  \n   This makes the server listen for both normal and SSL connections on the same port and negotiates SSL with any client that requests it. [4]\n\n2. **Require SSL for specific hosts in `pg_hba.conf`**  \n   * Use a `hostssl` line for the clients you want to force SSL.  \n   * Optionally add `clientcert=verify-ca` or `clientcert=verify-full` to require a trusted client certificate and, for `verify-full`, also match the certificate’s Common Name to the database user.  \n   Example:  \n   ```\n   hostssl   all   all   192.168.1.0/24   md5   clientcert=verify-ca\n   ```  \n   This line forces any connection from the 192.168.1.0/24 subnet to use SSL and to present a certificate signed by a trusted CA.  \n   The server will still accept non‑SSL connections from other hosts unless they are also listed with `hostssl`.  \n   The `clientcert` option is only available on `hostssl` lines. [3]",
+      "cited_chunks": [
+        "ssl-tcp:0004",
+        "ssl-tcp:0001"
+      ],
+      "sources_shown": [
+        "runtime-config-connection:0012",
+        "install-requirements:0005",
+        "ssl-tcp:0004",
+        "ssl-tcp:0001",
+        "encryption-options:0002"
+      ],
+      "uncited_sentences": 9,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1752,
+        "completion_tokens": 504,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 79.05929999833461,
+        "vector_ms": 40.670399997907225,
+        "bm25_ms": 0.6436999974539503,
+        "fuse_ms": 0.09100000170292333,
+        "rerank_ms": 1185.5804000006174,
+        "llm_ms": 21528.36689999822,
+        "total_ms": 22834.773100003076
+      }
+    },
+    {
+      "id": "amb-01",
+      "type": "ambiguous",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": true,
+      "answer": "To make a large table respond faster you can:\n\n1. **Add indexes on the columns used in WHERE or JOIN clauses** – PostgreSQL will automatically keep them up‑to‑date and use them when they help the planner avoid a sequential scan.  \n   *Example:*  \n   ```sql\n   CREATE INDEX idx_col ON big_table(col);\n   ```  \n   [5]\n\n2. **Use covering (INCLUDE) indexes** – If a query needs extra columns that are not part of the search key, include them in the index so the planner can perform an index‑only scan and avoid touching the heap.  \n   *Example:*  \n   ```sql\n   CREATE INDEX big_table_col_y ON big_table(col) INCLUDE (y);\n   ```  \n   [1]\n\n3. **Create partial indexes** – When many rows share a common value that is rarely queried, exclude those rows from the index to reduce its size and update cost.  \n   *Example:*  \n   ```sql\n   CREATE INDEX access_log_client_ip_ix ON access_log(client_ip)\n   WHERE NOT (client_ip > inet '192.168.100.0' AND client_ip < inet '192.168.100.255');\n   ```  \n   [4]\n\n4. **Keep statistics current** – Run `ANALYZE` regularly so the planner has accurate data to decide when to use an index.  \n   [5]\n\n5. **Increase `maintenance_work_mem` while building large indexes** – This speeds up `CREATE INDEX` and `ALTER TABLE ADD FOREIGN KEY` operations.  \n   [2]\n\nBy combining these techniques—appropriate indexes, covering or partial indexes, up‑to‑date statistics, and sufficient memory for maintenance—you can significantly improve query performance on large tables.",
+      "raw_answer": "To make a large table respond faster you can:\n\n1. **Add indexes on the columns used in WHERE or JOIN clauses** – PostgreSQL will automatically keep them up‑to‑date and use them when they help the planner avoid a sequential scan.  \n   *Example:*  \n   ```sql\n   CREATE INDEX idx_col ON big_table(col);\n   ```  \n   [5]\n\n2. **Use covering (INCLUDE) indexes** – If a query needs extra columns that are not part of the search key, include them in the index so the planner can perform an index‑only scan and avoid touching the heap.  \n   *Example:*  \n   ```sql\n   CREATE INDEX big_table_col_y ON big_table(col) INCLUDE (y);\n   ```  \n   [1]\n\n3. **Create partial indexes** – When many rows share a common value that is rarely queried, exclude those rows from the index to reduce its size and update cost.  \n   *Example:*  \n   ```sql\n   CREATE INDEX access_log_client_ip_ix ON access_log(client_ip)\n   WHERE NOT (client_ip > inet '192.168.100.0' AND client_ip < inet '192.168.100.255');\n   ```  \n   [4]\n\n4. **Keep statistics current** – Run `ANALYZE` regularly so the planner has accurate data to decide when to use an index.  \n   [5]\n\n5. **Increase `maintenance_work_mem` while building large indexes** – This speeds up `CREATE INDEX` and `ALTER TABLE ADD FOREIGN KEY` operations.  \n   [2]\n\nBy combining these techniques—appropriate indexes, covering or partial indexes, up‑to‑date statistics, and sufficient memory for maintenance—you can significantly improve query performance on large tables.",
+      "cited_chunks": [
+        "indexes-index-only-scans:0003",
+        "populate:0005",
+        "indexes-partial:0000",
+        "indexes-intro:0001"
+      ],
+      "sources_shown": [
+        "indexes-index-only-scans:0003",
+        "populate:0005",
+        "backup-dump:0006",
+        "indexes-partial:0000",
+        "indexes-intro:0001"
+      ],
+      "uncited_sentences": 5,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1577,
+        "completion_tokens": 568,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 89.05249999952503,
+        "vector_ms": 21.82139999786159,
+        "bm25_ms": 0.5300000048009679,
+        "fuse_ms": 0.09719999798107892,
+        "rerank_ms": 1391.9015999999829,
+        "llm_ms": 16590.774100004637,
+        "total_ms": 18094.57100000145
+      }
+    },
+    {
+      "id": "amb-02",
+      "type": "ambiguous",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": true,
+      "answer": "To back up a PostgreSQL database you can use one of the three supported methods:\n\n1. **Logical dump (SQL dump)** – use `pg_dump` for a single database or `pg_dumpall` for the whole cluster.  \n   ```bash\n   pg_dumpall > outputfile\n   ```  \n   [1][5]\n\n2. **File‑system level backup** – copy the data directory while the server is stopped.  \n   ```bash\n   tar -cf backup.tar /usr/local/pgsql/data\n   ```  \n   [2]\n\n3. **Base backup (continuous‑archiving friendly)** – use `pg_basebackup` to create a consistent copy of the cluster.  \n   ```bash\n   pg_basebackup -D /usr/local/pgsql/data\n   ```  \n   [3]",
+      "raw_answer": "To back up a PostgreSQL database you can use one of the three supported methods:\n\n1. **Logical dump (SQL dump)** – use `pg_dump` for a single database or `pg_dumpall` for the whole cluster.  \n   ```bash\n   pg_dumpall > outputfile\n   ```  \n   [1][5]\n\n2. **File‑system level backup** – copy the data directory while the server is stopped.  \n   ```bash\n   tar -cf backup.tar /usr/local/pgsql/data\n   ```  \n   [2]\n\n3. **Base backup (continuous‑archiving friendly)** – use `pg_basebackup` to create a consistent copy of the cluster.  \n   ```bash\n   pg_basebackup -D /usr/local/pgsql/data\n   ```  \n   [3]",
+      "cited_chunks": [
+        "upgrading:0003",
+        "backup-file:0000",
+        "app-pgbasebackup:0020",
+        "upgrading:0002"
+      ],
+      "sources_shown": [
+        "upgrading:0003",
+        "backup-file:0000",
+        "app-pgbasebackup:0020",
+        "backup:0000",
+        "upgrading:0002"
+      ],
+      "uncited_sentences": 4,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1564,
+        "completion_tokens": 347,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 18.77509999758331,
+        "vector_ms": 28.50110000144923,
+        "bm25_ms": 0.4071000003023073,
+        "fuse_ms": 0.06990000110818073,
+        "rerank_ms": 1135.9279999960563,
+        "llm_ms": 12049.927100000787,
+        "total_ms": 13233.83389999799
+      }
+    },
+    {
+      "id": "amb-03",
+      "type": "ambiguous",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": true,
+      "answer": "To locate slow queries you can use the **auto_explain** module, which logs execution plans for statements that exceed a given duration.  \n1. Load the module (superuser only) or add it to `session_preload_libraries`/`shared_preload_libraries` in `postgresql.conf`.  \n2. Set a threshold for the minimum duration you consider “slow” (e.g., `auto_explain.log_min_duration = 1000` for 1 s).  \n3. Optionally enable `auto_explain.log_analyze = true` to include actual run‑time statistics.  \n4. The module will then write log entries containing the plan and timing for each slow query.  \n\nExample session:\n\n```sql\nLOAD 'auto_explain';\nSET auto_explain.log_min_duration = 0;   -- log all queries\nSET auto_explain.log_analyze = true;    -- include actual times\nSELECT count(*) FROM pg_class, pg_index\nWHERE oid = indrelid AND indisunique;\n```\n\nThe log will contain the duration and the plan, allowing you to identify and investigate slow queries.  \n[1][3]",
+      "raw_answer": "To locate slow queries you can use the **auto_explain** module, which logs execution plans for statements that exceed a given duration.  \n1. Load the module (superuser only) or add it to `session_preload_libraries`/`shared_preload_libraries` in `postgresql.conf`.  \n2. Set a threshold for the minimum duration you consider “slow” (e.g., `auto_explain.log_min_duration = 1000` for 1 s).  \n3. Optionally enable `auto_explain.log_analyze = true` to include actual run‑time statistics.  \n4. The module will then write log entries containing the plan and timing for each slow query.  \n\nExample session:\n\n```sql\nLOAD 'auto_explain';\nSET auto_explain.log_min_duration = 0;   -- log all queries\nSET auto_explain.log_analyze = true;    -- include actual times\nSELECT count(*) FROM pg_class, pg_index\nWHERE oid = indrelid AND indisunique;\n```\n\nThe log will contain the duration and the plan, allowing you to identify and investigate slow queries.  \n[1][3]",
+      "cited_chunks": [
+        "auto-explain:0000",
+        "auto-explain:0005"
+      ],
+      "sources_shown": [
+        "auto-explain:0000",
+        "auto-explain:0006",
+        "auto-explain:0005",
+        "textsearch-intro:0000",
+        "xoper-optimization:0000"
+      ],
+      "uncited_sentences": 5,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1264,
+        "completion_tokens": 370,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 19.00799999566516,
+        "vector_ms": 14.369600001373328,
+        "bm25_ms": 0.42860000394284725,
+        "fuse_ms": 0.06249999569263309,
+        "rerank_ms": 1229.493699996965,
+        "llm_ms": 21944.892299994535,
+        "total_ms": 23208.58980000048
+      }
+    },
+    {
+      "id": "amb-04",
+      "type": "ambiguous",
+      "status": "ok",
+      "error": null,
+      "gold_in_prompt": true,
+      "answer": "To limit who can read or write your data you can use the following PostgreSQL mechanisms:\n\n1. **pg_hba.conf** – Define host‑based rules that allow only specific users or networks to connect to a database.  \n   *Example:* a rule that permits only `app_user` to connect to `mydb` from `192.168.1.0/24`[1].\n\n2. **CONNECT privilege** – Even if a user passes the pg_hba.conf checks, they must have the `CONNECT` privilege on the database. Grant or revoke this privilege to control who can connect.  \n   *Example:* `REVOKE CONNECT ON DATABASE mydb FROM PUBLIC; GRANT CONNECT ON DATABASE mydb TO app_user;`[1].\n\n3. **GRANT/REVOKE on tables and views** – Grant `SELECT`, `INSERT`, `UPDATE`, `DELETE`, etc., only to roles that need them.  \n   *Example:* `GRANT SELECT ON phone_number TO assistant;` and revoke from others[2][4].\n\n4. **Security‑barrier views** – If you need to hide rows or columns, create a view with the `security_barrier` flag so that the rule system cannot be bypassed by user‑defined functions.  \n   *Example:* `CREATE VIEW phone_number SECURITY BARRIER AS SELECT person, phone FROM phone_data WHERE phone NOT LIKE '412%';`[4].\n\n5. **File‑system permissions** – Ensure the data directory is only readable/writable by the PostgreSQL user (or group if needed). `initdb` sets these permissions automatically (0700 for directories, 0600 for files for owner‑only access; 0750/0640 if group read is allowed)[5].\n\nBy combining host‑based authentication, database‑level privileges, object‑level grants, and proper file‑system permissions, you can tightly control who can access your PostgreSQL data.",
+      "raw_answer": "To limit who can read or write your data you can use the following PostgreSQL mechanisms:\n\n1. **pg_hba.conf** – Define host‑based rules that allow only specific users or networks to connect to a database.  \n   *Example:* a rule that permits only `app_user` to connect to `mydb` from `192.168.1.0/24`[1].\n\n2. **CONNECT privilege** – Even if a user passes the pg_hba.conf checks, they must have the `CONNECT` privilege on the database. Grant or revoke this privilege to control who can connect.  \n   *Example:* `REVOKE CONNECT ON DATABASE mydb FROM PUBLIC; GRANT CONNECT ON DATABASE mydb TO app_user;`[1].\n\n3. **GRANT/REVOKE on tables and views** – Grant `SELECT`, `INSERT`, `UPDATE`, `DELETE`, etc., only to roles that need them.  \n   *Example:* `GRANT SELECT ON phone_number TO assistant;` and revoke from others[2][4].\n\n4. **Security‑barrier views** – If you need to hide rows or columns, create a view with the `security_barrier` flag so that the rule system cannot be bypassed by user‑defined functions.  \n   *Example:* `CREATE VIEW phone_number SECURITY BARRIER AS SELECT person, phone FROM phone_data WHERE phone NOT LIKE '412%';`[4].\n\n5. **File‑system permissions** – Ensure the data directory is only readable/writable by the PostgreSQL user (or group if needed). `initdb` sets these permissions automatically (0700 for directories, 0600 for files for owner‑only access; 0750/0640 if group read is allowed)[5].\n\nBy combining host‑based authentication, database‑level privileges, object‑level grants, and proper file‑system permissions, you can tightly control who can access your PostgreSQL data.",
+      "cited_chunks": [
+        "auth-pg-hba-conf:0013",
+        "rules-privileges:0001",
+        "rules-privileges:0002",
+        "creating-cluster:0002"
+      ],
+      "sources_shown": [
+        "auth-pg-hba-conf:0013",
+        "rules-privileges:0001",
+        "monitoring-stats:0004",
+        "rules-privileges:0002",
+        "creating-cluster:0002"
+      ],
+      "uncited_sentences": 8,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1381,
+        "completion_tokens": 502,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 74.41619999735849,
+        "vector_ms": 23.196200003440026,
+        "bm25_ms": 0.45810000301571563,
+        "fuse_ms": 0.09419999696547166,
+        "rerank_ms": 1371.7609999948763,
+        "llm_ms": 19413.617400001385,
+        "total_ms": 20884.023899998283
+      }
+    },
+    {
+      "id": "unans-01",
+      "type": "unanswerable",
+      "status": "refused",
+      "error": null,
+      "gold_in_prompt": null,
+      "answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "raw_answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "cited_chunks": [],
+      "sources_shown": [
+        "installation-platform-notes:0012",
+        "functions-string:0007",
+        "functions-matching:0010",
+        "functions-matching:0011",
+        "libpq-events:0004"
+      ],
+      "uncited_sentences": 0,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1556,
+        "completion_tokens": 112,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 86.58999999897787,
+        "vector_ms": 19.819200002530124,
+        "bm25_ms": 0.7104999967850745,
+        "fuse_ms": 0.1266999970539473,
+        "rerank_ms": 1178.818999993382,
+        "llm_ms": 4524.991199999931,
+        "total_ms": 5811.282599999686
+      }
+    },
+    {
+      "id": "unans-02",
+      "type": "unanswerable",
+      "status": "refused",
+      "error": null,
+      "gold_in_prompt": null,
+      "answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "raw_answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "cited_chunks": [],
+      "sources_shown": [
+        "installation-platform-notes:0007",
+        "sourcerepo:0000",
+        "external-admin-tools:0000",
+        "jit-extensibility:0001",
+        "history:0000"
+      ],
+      "uncited_sentences": 0,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 525,
+        "completion_tokens": 148,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 28.272600000491366,
+        "vector_ms": 14.239600001019426,
+        "bm25_ms": 0.3308000013930723,
+        "fuse_ms": 0.06579999899258837,
+        "rerank_ms": 1346.5961999972933,
+        "llm_ms": 4710.716900000989,
+        "total_ms": 6100.418400004855
+      }
+    },
+    {
+      "id": "unans-03",
+      "type": "unanswerable",
+      "status": "refused",
+      "error": null,
+      "gold_in_prompt": null,
+      "answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "raw_answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "cited_chunks": [],
+      "sources_shown": [
+        "logical-replication-quick-setup:0000",
+        "app-pgcreatesubscriber:0007",
+        "sql-createsubscription:0011",
+        "runtime-config-replication:0017",
+        "app-pgcreatesubscriber:0009"
+      ],
+      "uncited_sentences": 0,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1250,
+        "completion_tokens": 154,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 27.07679999730317,
+        "vector_ms": 14.457400000537746,
+        "bm25_ms": 0.44290000369073823,
+        "fuse_ms": 0.09190000128000975,
+        "rerank_ms": 1221.0294000033173,
+        "llm_ms": 6970.786099998804,
+        "total_ms": 8234.085300005972
+      }
+    },
+    {
+      "id": "unans-04",
+      "type": "unanswerable",
+      "status": "refused",
+      "error": null,
+      "gold_in_prompt": null,
+      "answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "raw_answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "cited_chunks": [],
+      "sources_shown": [
+        "creating-cluster:0002",
+        "config-setting:0004",
+        "install-make:0001",
+        "warm-standby-failover:0002",
+        "manage-ag-config:0000"
+      ],
+      "uncited_sentences": 0,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1384,
+        "completion_tokens": 73,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 72.65740000002552,
+        "vector_ms": 14.357799998833798,
+        "bm25_ms": 0.36279999767430127,
+        "fuse_ms": 0.0686999992467463,
+        "rerank_ms": 1320.9910000005038,
+        "llm_ms": 2244.4517000039923,
+        "total_ms": 3653.077300004952
+      }
+    },
+    {
+      "id": "unans-05",
+      "type": "unanswerable",
+      "status": "refused",
+      "error": null,
+      "gold_in_prompt": null,
+      "answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "raw_answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "cited_chunks": [],
+      "sources_shown": [
+        "continuous-archiving:0025",
+        "queries-with:0012",
+        "tutorial-select:0001",
+        "tsm-system-time:0001",
+        "tsm-system-time:0000"
+      ],
+      "uncited_sentences": 0,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1637,
+        "completion_tokens": 138,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 21.597800005110912,
+        "vector_ms": 34.87989999848651,
+        "bm25_ms": 0.4841999980271794,
+        "fuse_ms": 0.12789999891538173,
+        "rerank_ms": 1392.3039000001154,
+        "llm_ms": 1910.6074000010267,
+        "total_ms": 3360.1799000025494
+      }
+    },
+    {
+      "id": "unans-06",
+      "type": "unanswerable",
+      "status": "refused",
+      "error": null,
+      "gold_in_prompt": null,
+      "answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "raw_answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "cited_chunks": [],
+      "sources_shown": [
+        "parallel-query:0000",
+        "sql-createindex:0016",
+        "sql-analyze:0005",
+        "continuous-archiving:0027",
+        "sql-fetch:0004"
+      ],
+      "uncited_sentences": 0,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1389,
+        "completion_tokens": 89,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 17.675499999313615,
+        "vector_ms": 21.793399995658547,
+        "bm25_ms": 0.4621999978553504,
+        "fuse_ms": 0.12180000339867547,
+        "rerank_ms": 1206.6405000005034,
+        "llm_ms": 2651.300799996534,
+        "total_ms": 3898.1959000011557
+      }
+    },
+    {
+      "id": "unans-07",
+      "type": "unanswerable",
+      "status": "refused",
+      "error": null,
+      "gold_in_prompt": null,
+      "answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "raw_answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "cited_chunks": [],
+      "sources_shown": [
+        "sql-createoperator:0007",
+        "install-requirements:0000",
+        "postgres-user:0000",
+        "supported-platforms:0001",
+        "app-pg-ctl:0007"
+      ],
+      "uncited_sentences": 0,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1112,
+        "completion_tokens": 99,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 21.7971000020043,
+        "vector_ms": 24.208599999838043,
+        "bm25_ms": 0.48240000614896417,
+        "fuse_ms": 0.07240000559249893,
+        "rerank_ms": 1162.2864000019035,
+        "llm_ms": 2823.3680999983335,
+        "total_ms": 4032.4127999992925
+      }
+    },
+    {
+      "id": "unans-08",
+      "type": "unanswerable",
+      "status": "refused",
+      "error": null,
+      "gold_in_prompt": null,
+      "answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "raw_answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "cited_chunks": [],
+      "sources_shown": [
+        "functions-uuid:0000",
+        "install-make:0012",
+        "brin:0013",
+        "datatype-uuid:0001",
+        "uuid-ossp:0000"
+      ],
+      "uncited_sentences": 0,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1089,
+        "completion_tokens": 133,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 15.590200004226062,
+        "vector_ms": 23.486899997806177,
+        "bm25_ms": 0.37399999564513564,
+        "fuse_ms": 0.07210000330815092,
+        "rerank_ms": 1311.4685999971698,
+        "llm_ms": 3876.2541999967652,
+        "total_ms": 5227.465399999346
+      }
+    },
+    {
+      "id": "unans-09",
+      "type": "unanswerable",
+      "status": "refused",
+      "error": null,
+      "gold_in_prompt": null,
+      "answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "raw_answer": "I can't find this in the PostgreSQL 17 documentation.",
+      "cited_chunks": [],
+      "sources_shown": [
+        "datetime-posix-timezone-specs:0003",
+        "tutorial-inheritance:0001",
+        "ddl-inherit:0007",
+        "ddl-inherit:0001",
+        "ddl-inherit:0000"
+      ],
+      "uncited_sentences": 0,
+      "attempts": 1,
+      "usage": {
+        "prompt_tokens": 1574,
+        "completion_tokens": 86,
+        "cost_usd": 0.0
+      },
+      "latency_ms": {
+        "embed_ms": 14.790699999139179,
+        "vector_ms": 22.134600003482774,
+        "bm25_ms": 0.6097000004956499,
+        "fuse_ms": 0.05160000000614673,
+        "rerank_ms": 1491.9321999987005,
+        "llm_ms": 2163.4737999993376,
+        "total_ms": 3693.2846999989124
+      }
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+
+====================================================================================================
+multi-02 (multi_hop): How do I set up logical replication, and which wal_level does it need?
+  gold: logical-replication-quick-setup / 29.12. Quick Setup; runtime-config-wal / 19.5.1. Settings
+  distinctive terms used (5): ['wal_level', 'publisher', 'publication', 'subscription', 'subscriber']
+  best gold chunk: logical-replication-quick-setup:0000 matches 5/5 terms
+
+  [1] pgupgrade:0007  score 19.6  4/5 terms: ['wal_level', 'publisher', 'subscription', 'subscriber']
+      pg_upgrade > Usage
+      label if it answers: {"page": "pgupgrade", "heading": 'Usage'}
+      ...elps avoid the need for manually defining the same logical slots on the new publisher. Migration of logical slots is only supported when the old cluster is version 17.0 or later. Logical slots on clusters before version 17.0 will ...
+
+  [2] logical-replication-architecture:0000  score 18.4  4/5 terms: ['publisher', 'publication', 'subscription', 'subscriber']
+      29.8. Architecture
+      label if it answers: {"page": "logical-replication-architecture", "heading": '29.8. Architecture'}
+      Logical replication starts by copying a snapshot of the data on the publisher database. Once that is done, changes on the publisher are sent to the subscriber as they occur in real time. The subscriber applies data in the order in...
+
+  [3] logical-replication-col-lists:0003  score 18.4  4/5 terms: ['publisher', 'publication', 'subscription', 'subscriber']
+      29.5. Column Lists > 29.5.1. Examples
+      label if it answers: {"page": "logical-replication-col-lists", "heading": '29.5.1. Examples'}
+      ...    |           |          | Indexes:     "t1_pkey" PRIMARY KEY, btree (id) Publications:     "p1" (id, a, b, d)  On the subscriber node, create a table t1 which now only needs a subset of the columns that were on the publisher ta...
+
+  [4] logical-replication-restrictions:0001  score 18.4  4/5 terms: ['publisher', 'publication', 'subscription', 'subscriber']
+      29.7. Restrictions
+      label if it answers: {"page": "logical-replication-restrictions", "heading": '29.7. Restrictions'}
+      ...f tables connected by foreign keys. When replicating a truncate action, the subscriber will truncate the same group of tables that was truncated on the publisher, either explicitly specified or implicitly collected via CASCADE, mi...
+
+  [5] logical-replication-row-filter:0011  score 18.4  4/5 terms: ['publisher', 'publication', 'subscription', 'subscriber']
+      29.4. Row Filters > 29.4.7. Examples
+      label if it answers: {"page": "logical-replication-row-filter", "heading": '29.4.7. Examples'}
+      ...eger |           |          | Indexes:     "t3_pkey" PRIMARY KEY, btree (g) Publications:     "p3" WHERE (g = 10)  On the subscriber node, create a table t1 with the same definition as the one on the publisher, and also create the...
+
+  [6] logical-replication-subscription:0000  score 18.4  4/5 terms: ['publisher', 'publication', 'subscription', 'subscriber']
+      29.2. Subscription
+      label if it answers: {"page": "logical-replication-subscription", "heading": '29.2. Subscription'}
+      A subscription is the downstream side of logical replication. The node where a subscription is defined is referred to as the subscriber. A subscription defines the connection to another database and the set of publications (one or...
+
+  [7] logical-replication-subscription:0004  score 18.4  4/5 terms: ['publisher', 'publication', 'subscription', 'subscriber']
+      29.2. Subscription > 29.2.2. Examples: Set Up Logical Replication
+      label if it answers: {"page": "logical-replication-subscription", "heading": '29.2.2. Examples: Set Up Logical Replication'}
+      Create some test tables on the publisher.  test_pub=# CREATE TABLE t1(a int, b text, PRIMARY KEY(a)); CREATE TABLE test_pub=# CREATE TABLE t2(c int, d text, PRIMARY KEY(c)); CREATE TABLE test_pub=# CREATE TABLE t3(e int, f text, P...
+
+  [8] logical-replication-subscription:0008  score 18.4  4/5 terms: ['publisher', 'publication', 'subscription', 'subscriber']
+      29.2. Subscription > 29.2.3. Examples: Deferred Replication Slot Creation
+      label if it answers: {"page": "logical-replication-subscription", "heading": '29.2.3. Examples: Deferred Replication Slot Creation'}
+      ... was not created automatically, the user must create it manually before the subscription can be activated. The steps to create the slot and activate the subscription are shown in the following examples. These examples specify the ...
+
+  [9] logical-replication-col-lists:0000  score 14.1  3/5 terms: ['publisher', 'publication', 'subscriber']
+      29.5. Column Lists
+      label if it answers: {"page": "logical-replication-col-lists", "heading": '29.5. Column Lists'}
+      Each publication can optionally specify which columns of each table are replicated to subscribers. The table on the subscriber side must have at least all the columns that are published. If no column list is specified, then all co...
+
+  [10] logical-replication-publication:0001  score 14.1  3/5 terms: ['publisher', 'publication', 'subscriber']
+      29.1. Publication
+      label if it answers: {"page": "logical-replication-publication", "heading": '29.1. Publication'}
+      ...ions, so that appropriate rows to update or delete can be identified on the subscriber side. By default, this is the primary key, if there is one. Another unique index (with certain additional requirements) can also be set to be t...
+
+  [11] app-pgcreatesubscriber:0002  score 14.0  3/5 terms: ['publisher', 'subscription', 'subscriber']
+      pg_createsubscriber > Options
+      label if it answers: {"page": "app-pgcreatesubscriber", "heading": 'Options'}
+      pg_createsubscriber accepts the following command-line arguments:  -d dbname --database=dbname The name of the database in which to create a subscription. Multiple databases can be selected by writing multiple -d switches.  -D dir...
+
+  [12] catalog-pg-subscription:0001  score 14.0  3/5 terms: ['publisher', 'subscription', 'subscriber']
+      51.54. pg_subscription
+      label if it answers: {"page": "catalog-pg-subscription", "heading": '51.54. pg_subscription'}
+      Unlike most system catalogs, pg_subscription is shared across all databases of a cluster: there is only one copy of pg_subscription per cluster, not one per database.  Access to the column subconninfo is revoked from normal users,...
+
+  [13] logical-replication-conflicts:0001  score 14.0  3/5 terms: ['publisher', 'subscription', 'subscriber']
+      29.6. Conflicts
+      label if it answers: {"page": "logical-replication-conflicts", "heading": '29.6. Conflicts'}
+      ...). The transaction that produced the conflict can be skipped by using ALTER SUBSCRIPTION ... SKIP with the finish LSN (i.e., LSN 0/14C0378). The finish LSN could be an LSN at which the transaction is committed or prepared on the p...
+
+  [14] logical-replication-security:0002  score 14.0  3/5 terms: ['publisher', 'subscription', 'subscriber']
+      29.10. Security
+      label if it answers: {"page": "logical-replication-security", "heading": '29.10. Security'}
+      If the subscription has been configured with run_as_owner = true, then no user switching will occur. Instead, all operations will be performed with the permissions of the subscription owner. In this case, the subscription owner on...
+
+  [15] logical-replication:0000  score 14.0  3/5 terms: ['publisher', 'subscription', 'subscriber']
+      Chapter 29. Logical Replication
+      label if it answers: {"page": "logical-replication", "heading": 'Chapter 29. Logical Replication'}
+      ...y.  Logical replication uses a publish and subscribe model with one or more subscribers subscribing to one or more publications on a publisher node. Subscribers pull data from the publications they subscribe to and may subsequentl...
+
+====================================================================================================
+Read each candidate. Add a section as gold only if a sentence in it states the answer.
+Note the label heading above is the HOST section of the best chunk; if that chunk merged small sections, check its `covers` before labelling.

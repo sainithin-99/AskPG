@@ -1,0 +1,723 @@
+====================================================================================================
+routine-vacuuming / AUTOVACUUM: 5 chunk(s)
+----------------------------------------------------------------------------------------------------
+routine-vacuuming:0022  301 tok  24.1. Routine Vacuuming > 24.1.6. The Autovacuum Daemon
+PostgreSQL has an optional but highly recommended feature called autovacuum, whose purpose is to automate the execution of VACUUM and ANALYZE commands. When enabled, autovacuum checks for tables that have had a large number of inserted, updated or deleted tuples. These checks use the statistics collection facility; therefore, autovacuum cannot be used unless track_counts is set to true. In the default configuration, autovacuuming is enabled and the related configuration parameters are appropriately set.
+
+The “autovacuum daemon” actually consists of multiple processes. There is a persistent daemon process, called the autovacuum launcher, which is in charge of starting autovacuum worker processes for all databases. The launcher will distribute the work across time, attempting to start one worker within each database every autovacuum_naptime seconds. (Therefore, if the installation has N databases, a new worker will be launched every autovacuum_naptime/N seconds.) A maximum of autovacuum_max_workers worker processes are allowed to run at the same time. If there are more than autovacuum_max_workers databases to be processed, the next database will be processed as soon as the first worker finishes. Each worker process will check each table within its database and execute VACUUM and/or ANALYZE as needed. log_autovacuum_min_duration can be set to monitor autovacuum workers' activity.
+----------------------------------------------------------------------------------------------------
+routine-vacuuming:0023  302 tok  24.1. Routine Vacuuming > 24.1.6. The Autovacuum Daemon
+If several large tables all become eligible for vacuuming in a short amount of time, all autovacuum workers might become occupied with vacuuming those tables for a long period. This would result in other tables and databases not being vacuumed until a worker becomes available. There is no limit on how many workers might be in a single database, but workers do try to avoid repeating work that has already been done by other workers. Note that the number of running workers does not count towards max_connections or superuser_reserved_connections limits.
+
+Tables whose relfrozenxid value is more than autovacuum_freeze_max_age transactions old are always vacuumed (this also applies to those tables whose freeze max age has been modified via storage parameters; see below). Otherwise, if the number of tuples obsoleted since the last VACUUM exceeds the “vacuum threshold”, the table is vacuumed. The vacuum threshold is defined as:
+
+vacuum threshold = vacuum base threshold + vacuum scale factor * number of tuples
+
+where the vacuum base threshold is autovacuum_vacuum_threshold, the vacuum scale factor is autovacuum_vacuum_scale_factor, and the number of tuples is pg_class.reltuples.
+
+The table is also vacuumed if the number of tuples inserted since the last vacuum has exceeded the defined insert threshold, which is defined as:
+
+vacuum insert threshold = vacuum base insert threshold + vacuum insert scale factor * number of tuples
+----------------------------------------------------------------------------------------------------
+routine-vacuuming:0024  318 tok  24.1. Routine Vacuuming > 24.1.6. The Autovacuum Daemon
+The table is also vacuumed if the number of tuples inserted since the last vacuum has exceeded the defined insert threshold, which is defined as:
+
+vacuum insert threshold = vacuum base insert threshold + vacuum insert scale factor * number of tuples
+
+where the vacuum insert base threshold is autovacuum_vacuum_insert_threshold, and vacuum insert scale factor is autovacuum_vacuum_insert_scale_factor. Such vacuums may allow portions of the table to be marked as all visible and also allow tuples to be frozen, which can reduce the work required in subsequent vacuums. For tables which receive INSERT operations but no or almost no UPDATE/DELETE operations, it may be beneficial to lower the table's autovacuum_freeze_min_age as this may allow tuples to be frozen by earlier vacuums. The number of obsolete tuples and the number of inserted tuples are obtained from the cumulative statistics system; it is an eventually-consistent count updated by each UPDATE, DELETE and INSERT operation. If the relfrozenxid value of the table is more than vacuum_freeze_table_age transactions old, an aggressive vacuum is performed to freeze old tuples and advance relfrozenxid; otherwise, only pages that have been modified since the last vacuum are scanned.
+
+For analyze, a similar condition is used: the threshold, defined as:
+
+analyze threshold = analyze base threshold + analyze scale factor * number of tuples
+
+is compared to the total number of tuples inserted, updated, or deleted since the last ANALYZE.
+----------------------------------------------------------------------------------------------------
+routine-vacuuming:0025  378 tok  24.1. Routine Vacuuming > 24.1.6. The Autovacuum Daemon
+For analyze, a similar condition is used: the threshold, defined as:
+
+analyze threshold = analyze base threshold + analyze scale factor * number of tuples
+
+is compared to the total number of tuples inserted, updated, or deleted since the last ANALYZE.
+
+Partitioned tables do not directly store tuples and consequently are not processed by autovacuum. (Autovacuum does process table partitions just like other tables.) Unfortunately, this means that autovacuum does not run ANALYZE on partitioned tables, and this can cause suboptimal plans for queries that reference partitioned table statistics. You can work around this problem by manually running ANALYZE on partitioned tables when they are first populated, and again whenever the distribution of data in their partitions changes significantly.
+
+Temporary tables cannot be accessed by autovacuum. Therefore, appropriate vacuum and analyze operations should be performed via session SQL commands.
+
+The default thresholds and scale factors are taken from postgresql.conf, but it is possible to override them (and many other autovacuum control parameters) on a per-table basis; see Storage Parameters for more information. If a setting has been changed via a table's storage parameters, that value is used when processing that table; otherwise the global settings are used. See Section 19.10 for more details on the global settings.
+
+When multiple workers are running, the autovacuum cost delay parameters (see Section 19.4.4) are “balanced” among all the running workers, so that the total I/O impact on the system is the same regardless of the number of workers actually running. However, any workers processing tables whose per-table autovacuum_vacuum_cost_delay or autovacuum_vacuum_cost_limit storage parameters have been set are not considered in the balancing algorithm.
+----------------------------------------------------------------------------------------------------
+routine-vacuuming:0026  148 tok  24.1. Routine Vacuuming > 24.1.6. The Autovacuum Daemon
+Autovacuum workers generally don't block other commands. If a process attempts to acquire a lock that conflicts with the SHARE UPDATE EXCLUSIVE lock held by autovacuum, lock acquisition will interrupt the autovacuum. For conflicting lock modes, see Table 13.2. However, if the autovacuum is running to prevent transaction ID wraparound (i.e., the autovacuum query name in the pg_stat_activity view ends with (to prevent wraparound)), the autovacuum is not automatically interrupted.
+
+Warning: Regularly running commands that acquire locks conflicting with a SHARE UPDATE EXCLUSIVE lock (e.g., ANALYZE) can effectively prevent autovacuums from ever completing.
+====================================================================================================
+routine-vacuuming / ROUTINE-VACUUMING: 1 chunk(s)
+----------------------------------------------------------------------------------------------------
+routine-vacuuming:0000  158 tok  24.1. Routine Vacuuming
+PostgreSQL databases require periodic maintenance known as vacuuming. For many installations, it is sufficient to let vacuuming be performed by the autovacuum daemon, which is described in Section 24.1.6. You might need to adjust the autovacuuming parameters described there to obtain best results for your situation. Some database administrators will want to supplement or replace the daemon's activities with manually-managed VACUUM commands, which typically are executed according to a schedule by cron or Task Scheduler scripts. To set up manually-managed vacuuming properly, it is essential to understand the issues discussed in the next few subsections. Administrators who rely on autovacuuming may still wish to skim this material to help them understand and adjust autovacuuming.
+====================================================================================================
+runtime-config-autovacuum / RUNTIME-CONFIG-AUTOVACUUM: 5 chunk(s)
+----------------------------------------------------------------------------------------------------
+runtime-config-autovacuum:0000  322 tok  19.10. Automatic Vacuuming
+These settings control the behavior of the autovacuum feature. Refer to Section 24.1.6 for more information. Note that many of these settings can be overridden on a per-table basis; see Storage Parameters.
+
+autovacuum (boolean)
+Controls whether the server should run the autovacuum launcher daemon. This is on by default; however, track_counts must also be enabled for autovacuum to work. This parameter can only be set in the postgresql.conf file or on the server command line; however, autovacuuming can be disabled for individual tables by changing table storage parameters.
+Note that even when this parameter is disabled, the system will launch autovacuum processes if necessary to prevent transaction ID wraparound. See Section 24.1.5 for more information.
+
+autovacuum_max_workers (integer)
+Specifies the maximum number of autovacuum processes (other than the autovacuum launcher) that may be running at any one time. The default is three. This parameter can only be set at server start.
+
+autovacuum_naptime (integer)
+Specifies the minimum delay between autovacuum runs on any given database. In each round the daemon examines the database and issues VACUUM and ANALYZE commands as needed for tables in that database. If this value is specified without units, it is taken as seconds. The default is one minute (1min). This parameter can only be set in the postgresql.conf file or on the server command line.
+----------------------------------------------------------------------------------------------------
+runtime-config-autovacuum:0001  360 tok  19.10. Automatic Vacuuming
+autovacuum_vacuum_threshold (integer)
+Specifies the minimum number of updated or deleted tuples needed to trigger a VACUUM in any one table. The default is 50 tuples. This parameter can only be set in the postgresql.conf file or on the server command line; but the setting can be overridden for individual tables by changing table storage parameters.
+
+autovacuum_vacuum_insert_threshold (integer)
+Specifies the number of inserted tuples needed to trigger a VACUUM in any one table. The default is 1000 tuples. If -1 is specified, autovacuum will not trigger a VACUUM operation on any tables based on the number of inserts. This parameter can only be set in the postgresql.conf file or on the server command line; but the setting can be overridden for individual tables by changing table storage parameters.
+
+autovacuum_analyze_threshold (integer)
+Specifies the minimum number of inserted, updated or deleted tuples needed to trigger an ANALYZE in any one table. The default is 50 tuples. This parameter can only be set in the postgresql.conf file or on the server command line; but the setting can be overridden for individual tables by changing table storage parameters.
+
+autovacuum_vacuum_scale_factor (floating point)
+Specifies a fraction of the table size to add to autovacuum_vacuum_threshold when deciding whether to trigger a VACUUM. The default is 0.2 (20% of table size). This parameter can only be set in the postgresql.conf file or on the server command line; but the setting can be overridden for individual tables by changing table storage parameters.
+----------------------------------------------------------------------------------------------------
+runtime-config-autovacuum:0002  342 tok  19.10. Automatic Vacuuming
+autovacuum_vacuum_insert_scale_factor (floating point)
+Specifies a fraction of the table size to add to autovacuum_vacuum_insert_threshold when deciding whether to trigger a VACUUM. The default is 0.2 (20% of table size). This parameter can only be set in the postgresql.conf file or on the server command line; but the setting can be overridden for individual tables by changing table storage parameters.
+
+autovacuum_analyze_scale_factor (floating point)
+Specifies a fraction of the table size to add to autovacuum_analyze_threshold when deciding whether to trigger an ANALYZE. The default is 0.1 (10% of table size). This parameter can only be set in the postgresql.conf file or on the server command line; but the setting can be overridden for individual tables by changing table storage parameters.
+
+autovacuum_freeze_max_age (integer)
+Specifies the maximum age (in transactions) that a table's pg_class.relfrozenxid field can attain before a VACUUM operation is forced to prevent transaction ID wraparound within the table. Note that the system will launch autovacuum processes to prevent wraparound even when autovacuum is otherwise disabled.
+Vacuum also allows removal of old files from the pg_xact subdirectory, which is why the default is a relatively low 200 million transactions. This parameter can only be set at server start, but the setting can be reduced for individual tables by changing table storage parameters. For more information see Section 24.1.5.
+----------------------------------------------------------------------------------------------------
+runtime-config-autovacuum:0003  289 tok  19.10. Automatic Vacuuming
+autovacuum_multixact_freeze_max_age (integer)
+Specifies the maximum age (in multixacts) that a table's pg_class.relminmxid field can attain before a VACUUM operation is forced to prevent multixact ID wraparound within the table. Note that the system will launch autovacuum processes to prevent wraparound even when autovacuum is otherwise disabled.
+Vacuuming multixacts also allows removal of old files from the pg_multixact/members and pg_multixact/offsets subdirectories, which is why the default is a relatively low 400 million multixacts. This parameter can only be set at server start, but the setting can be reduced for individual tables by changing table storage parameters. For more information see Section 24.1.5.1.
+
+autovacuum_vacuum_cost_delay (floating point)
+Specifies the cost delay value that will be used in automatic VACUUM operations. If -1 is specified, the regular vacuum_cost_delay value will be used. If this value is specified without units, it is taken as milliseconds. The default value is 2 milliseconds. This parameter can only be set in the postgresql.conf file or on the server command line; but the setting can be overridden for individual tables by changing table storage parameters.
+----------------------------------------------------------------------------------------------------
+runtime-config-autovacuum:0004  135 tok  19.10. Automatic Vacuuming
+autovacuum_vacuum_cost_limit (integer)
+Specifies the cost limit value that will be used in automatic VACUUM operations. If -1 is specified (which is the default), the regular vacuum_cost_limit value will be used. Note that the value is distributed proportionally among the running autovacuum workers, if there is more than one, so that the sum of the limits for each worker does not exceed the value of this variable. This parameter can only be set in the postgresql.conf file or on the server command line; but the setting can be overridden for individual tables by changing table storage parameters.
+====================================================================================================
+auth-pg-hba-conf / AUTH-PG-HBA-CONF: 17 chunk(s)
+----------------------------------------------------------------------------------------------------
+auth-pg-hba-conf:0000  274 tok  20.1. The pg_hba.conf File
+Client authentication is controlled by a configuration file, which traditionally is named pg_hba.conf and is stored in the database cluster's data directory. (HBA stands for host-based authentication.) A default pg_hba.conf file is installed when the data directory is initialized by initdb. It is possible to place the authentication configuration file elsewhere, however; see the hba_file configuration parameter.
+
+The pg_hba.conf file is read on start-up and when the main server process receives a SIGHUP signal. If you edit the file on an active system, you will need to signal the postmaster (using pg_ctl reload, calling the SQL function pg_reload_conf(), or using kill -HUP) to make it re-read the file.
+
+Note: The preceding statement is not true on Microsoft Windows: there, any changes in the pg_hba.conf file are immediately applied by subsequent new connections.
+
+The system view pg_hba_file_rules can be helpful for pre-testing changes to the pg_hba.conf file, or for diagnosing problems if loading of the file did not have the desired effects. Rows in the view with non-null error fields indicate problems in the corresponding lines of the file.
+----------------------------------------------------------------------------------------------------
+auth-pg-hba-conf:0001  271 tok  20.1. The pg_hba.conf File
+The general format of the pg_hba.conf file is a set of records, one per line. Blank lines are ignored, as is any text after the # comment character. A record can be continued onto the next line by ending the line with a backslash. (Backslashes are not special except at the end of a line.) A record is made up of a number of fields which are separated by spaces and/or tabs. Fields can contain white space if the field value is double-quoted. Quoting one of the keywords in a database, user, or address field (e.g., all or replication) makes the word lose its special meaning, and just match a database, user, or host with that name. Backslash line continuation applies even within quoted text or comments.
+
+Each authentication record specifies a connection type, a client IP address range (if relevant for the connection type), a database name, a user name, and the authentication method to be used for connections matching these parameters. The first record with a matching connection type, client address, requested database, and user name is used to perform authentication. There is no “fall-through” or “backup”: if one record is chosen and the authentication fails, subsequent records are not considered. If no record matches, access is denied.
+----------------------------------------------------------------------------------------------------
+auth-pg-hba-conf:0002  368 tok  20.1. The pg_hba.conf File
+Each record can be an include directive or an authentication record. Include directives specify files that can be included, that contain additional records. The records will be inserted in place of the include directives. Include directives only contain two fields: include, include_if_exists or include_dir directive and the file or directory to be included. The file or directory can be a relative or absolute path, and can be double-quoted. For the include_dir form, all files not starting with a . and ending with .conf will be included. Multiple files within an include directory are processed in file name order (according to C locale rules, i.e., numbers before letters, and uppercase letters before lowercase ones).
+
+A record can have several formats:
+
+local               database  user  auth-method [auth-options]
+host                database  user  address     auth-method  [auth-options]
+hostssl             database  user  address     auth-method  [auth-options]
+hostnossl           database  user  address     auth-method  [auth-options]
+hostgssenc          database  user  address     auth-method  [auth-options]
+hostnogssenc        database  user  address     auth-method  [auth-options]
+host                database  user  IP-address  IP-mask      auth-method  [auth-options]
+hostssl             database  user  IP-address  IP-mask      auth-method  [auth-options]
+hostnossl           database  user  IP-address  IP-mask      auth-method  [auth-options]
+hostgssenc          database  user  IP-address  IP-mask      auth-method  [auth-options]
+hostnogssenc        database  user  IP-address  IP-mask      auth-method  [auth-options]
+include             file
+include_if_exists   file
+include_dir         directory
+----------------------------------------------------------------------------------------------------
+auth-pg-hba-conf:0003  365 tok  20.1. The pg_hba.conf File
+The meaning of the fields is as follows:
+
+local
+This record matches connection attempts using Unix-domain sockets. Without a record of this type, Unix-domain socket connections are disallowed.
+
+host
+This record matches connection attempts made using TCP/IP. host records match SSL or non-SSL connection attempts as well as GSSAPI encrypted or non-GSSAPI encrypted connection attempts.
+Note: Remote TCP/IP connections will not be possible unless the server is started with an appropriate value for the listen_addresses configuration parameter, since the default behavior is to listen for TCP/IP connections only on the local loopback address localhost.
+
+hostssl
+This record matches connection attempts made using TCP/IP, but only when the connection is made with SSL encryption.
+To make use of this option the server must be built with SSL support. Furthermore, SSL must be enabled by setting the ssl configuration parameter (see Section 18.9 for more information). Otherwise, the hostssl record is ignored except for logging a warning that it cannot match any connections.
+
+hostnossl
+This record type has the opposite behavior of hostssl; it only matches connection attempts made over TCP/IP that do not use SSL.
+
+hostgssenc
+This record matches connection attempts made using TCP/IP, but only when the connection is made with GSSAPI encryption.
+To make use of this option the server must be built with GSSAPI support. Otherwise, the hostgssenc record is ignored except for logging a warning that it cannot match any connections.
+
+hostnogssenc
+This record type has the opposite behavior of hostgssenc; it only matches connection attempts made over TCP/IP that do not use GSSAPI encryption.
+----------------------------------------------------------------------------------------------------
+auth-pg-hba-conf:0004  323 tok  20.1. The pg_hba.conf File
+hostnogssenc
+This record type has the opposite behavior of hostgssenc; it only matches connection attempts made over TCP/IP that do not use GSSAPI encryption.
+
+database
+Specifies which database name(s) this record matches. The value all specifies that it matches all databases. The value sameuser specifies that the record matches if the requested database has the same name as the requested user. The value samerole specifies that the requested user must be a member of the role with the same name as the requested database. (samegroup is an obsolete but still accepted spelling of samerole.) Superusers are not considered to be members of a role for the purposes of samerole unless they are explicitly members of the role, directly or indirectly, and not just by virtue of being a superuser. The value replication specifies that the record matches if a physical replication connection is requested, however, it doesn't match with logical replication connections. Note that physical replication connections do not specify any particular database whereas logical replication connections do specify it. Otherwise, this is the name of a specific PostgreSQL database or a regular expression. Multiple database names and/or regular expressions can be supplied by separating them with commas.
+If the database name starts with a slash (/), the remainder of the name is treated as a regular expression. (See Section 9.7.3.1 for details of PostgreSQL's regular expression syntax.)
+A separate file containing database names and/or regular expressions can be specified by preceding the file name with @.
+----------------------------------------------------------------------------------------------------
+auth-pg-hba-conf:0005  243 tok  20.1. The pg_hba.conf File
+user
+Specifies which database user name(s) this record matches. The value all specifies that it matches all users. Otherwise, this is either the name of a specific database user, a regular expression (when starting with a slash (/), or a group name preceded by +. (Recall that there is no real distinction between users and groups in PostgreSQL; a + mark really means “match any of the roles that are directly or indirectly members of this role”, while a name without a + mark matches only that specific role.) For this purpose, a superuser is only considered to be a member of a role if they are explicitly a member of the role, directly or indirectly, and not just by virtue of being a superuser. Multiple user names and/or regular expressions can be supplied by separating them with commas.
+If the user name starts with a slash (/), the remainder of the name is treated as a regular expression. (See Section 9.7.3.1 for details of PostgreSQL's regular expression syntax.)
+A separate file containing user names and/or regular expressions can be specified by preceding the file name with @.
+----------------------------------------------------------------------------------------------------
+auth-pg-hba-conf:0006  355 tok  20.1. The pg_hba.conf File
+address
+Specifies the client machine address(es) that this record matches. This field can contain either a host name, an IP address range, or one of the special key words mentioned below.
+An IP address range is specified using standard numeric notation for the range's starting address, then a slash (/) and a CIDR mask length. The mask length indicates the number of high-order bits of the client IP address that must match. Bits to the right of this should be zero in the given IP address. There must not be any white space between the IP address, the /, and the CIDR mask length.
+Typical examples of an IPv4 address range specified this way are 172.20.143.89/32 for a single host, or 172.20.143.0/24 for a small network, or 10.6.0.0/16 for a larger one. An IPv6 address range might look like ::1/128 for a single host (in this case the IPv6 loopback address) or fe80::7a31:c1ff:0000:0000/96 for a small network. 0.0.0.0/0 represents all IPv4 addresses, and ::0/0 represents all IPv6 addresses. To specify a single host, use a mask length of 32 for IPv4 or 128 for IPv6. In a network address, do not omit trailing zeroes.
+An entry given in IPv4 format will match only IPv4 connections, and an entry given in IPv6 format will match only IPv6 connections, even if the represented address is in the IPv4-in-IPv6 range.
+----------------------------------------------------------------------------------------------------
+auth-pg-hba-conf:0007  378 tok  20.1. The pg_hba.conf File
+You can also write all to match any IP address, samehost to match any of the server's own IP addresses, or samenet to match any address in any subnet that the server is directly connected to.
+If a host name is specified (anything that is not an IP address range or a special key word is treated as a host name), that name is compared with the result of a reverse name resolution of the client's IP address (e.g., reverse DNS lookup, if DNS is used). Host name comparisons are case insensitive. If there is a match, then a forward name resolution (e.g., forward DNS lookup) is performed on the host name to check whether any of the addresses it resolves to are equal to the client's IP address. If both directions match, then the entry is considered to match. (The host name that is used in pg_hba.conf should be the one that address-to-name resolution of the client's IP address returns, otherwise the line won't be matched. Some host name databases allow associating an IP address with multiple host names, but the operating system will only return one host name when asked to resolve an IP address.)
+A host name specification that starts with a dot (.) matches a suffix of the actual host name. So .example.com would match foo.example.com (but not just example.com).
+When host names are specified in pg_hba.conf, you should make sure that name resolution is reasonably fast. It can be of advantage to set up a local name resolution cache such as nscd. Also, you may wish to enable the configuration parameter log_hostname to see the client's host name instead of the IP address in the log.
+----------------------------------------------------------------------------------------------------
+auth-pg-hba-conf:0008  343 tok  20.1. The pg_hba.conf File
+These fields do not apply to local records.
+Note: Users sometimes wonder why host names are handled in this seemingly complicated way, with two name resolutions including a reverse lookup of the client's IP address. This complicates use of the feature in case the client's reverse DNS entry is not set up or yields some undesirable host name. It is done primarily for efficiency: this way, a connection attempt requires at most two resolver lookups, one reverse and one forward. If there is a resolver problem with some address, it becomes only that client's problem. A hypothetical alternative implementation that only did forward lookups would have to resolve every host name mentioned in pg_hba.conf during every connection attempt. That could be quite slow if many names are listed. And if there is a resolver problem with one of the host names, it becomes everyone's problem.
+Also, a reverse lookup is necessary to implement the suffix matching feature, because the actual client host name needs to be known in order to match it against the pattern.
+Note that this behavior is consistent with other popular implementations of host name-based access control, such as the Apache HTTP Server and TCP Wrappers.
+
+IP-address IP-mask
+These two fields can be used as an alternative to the IP-address/mask-length notation. Instead of specifying the mask length, the actual mask is specified in a separate column. For example, 255.0.0.0 represents an IPv4 CIDR mask length of 8, and 255.255.255.255 represents a CIDR mask length of 32.
+These fields do not apply to local records.
+----------------------------------------------------------------------------------------------------
+auth-pg-hba-conf:0009  344 tok  20.1. The pg_hba.conf File
+auth-method
+Specifies the authentication method to use when a connection matches this record. The possible choices are summarized here; details are in Section 20.3. All the options are lower case and treated case sensitively, so even acronyms like ldap must be specified as lower case.
+trust
+Allow the connection unconditionally. This method allows anyone that can connect to the PostgreSQL database server to login as any PostgreSQL user they wish, without the need for a password or any other authentication. See Section 20.4 for details.
+reject
+Reject the connection unconditionally. This is useful for “filtering out” certain hosts from a group, for example a reject line could block a specific host from connecting, while a later line allows the remaining hosts in a specific network to connect.
+scram-sha-256
+Perform SCRAM-SHA-256 authentication to verify the user's password. See Section 20.5 for details.
+md5
+Perform SCRAM-SHA-256 or MD5 authentication to verify the user's password. See Section 20.5 for details.
+password
+Require the client to supply an unencrypted password for authentication. Since the password is sent in clear text over the network, this should not be used on untrusted networks. See Section 20.5 for details.
+gss
+Use GSSAPI to authenticate the user. This is only available for TCP/IP connections. See Section 20.6 for details. It can be used in conjunction with GSSAPI encryption.
+sspi
+Use SSPI to authenticate the user. This is only available on Windows. See Section 20.7 for details.
+ident
+----------------------------------------------------------------------------------------------------
+auth-pg-hba-conf:0010  210 tok  20.1. The pg_hba.conf File
+Obtain the operating system user name of the client by contacting the ident server on the client and check if it matches the requested database user name. Ident authentication can only be used on TCP/IP connections. When specified for local connections, peer authentication will be used instead. See Section 20.8 for details.
+peer
+Obtain the client's operating system user name from the operating system and check if it matches the requested database user name. This is only available for local connections. See Section 20.9 for details.
+ldap
+Authenticate using an LDAP server. See Section 20.10 for details.
+radius
+Authenticate using a RADIUS server. See Section 20.11 for details.
+cert
+Authenticate using SSL client certificates. See Section 20.12 for details.
+pam
+Authenticate using the Pluggable Authentication Modules (PAM) service provided by the operating system. See Section 20.13 for details.
+bsd
+Authenticate using the BSD Authentication service provided by the operating system. See Section 20.14 for details.
+----------------------------------------------------------------------------------------------------
+auth-pg-hba-conf:0011  361 tok  20.1. The pg_hba.conf File
+auth-options
+After the auth-method field, there can be field(s) of the form name=value that specify options for the authentication method. Details about which options are available for which authentication methods appear below.
+In addition to the method-specific options listed below, there is a method-independent authentication option clientcert, which can be specified in any hostssl record. This option can be set to verify-ca or verify-full. Both options require the client to present a valid (trusted) SSL certificate, while verify-full additionally enforces that the cn (Common Name) in the certificate matches the username or an applicable mapping. This behavior is similar to the cert authentication method (see Section 20.12) but enables pairing the verification of client certificates with any authentication method that supports hostssl entries.
+On any record using client certificate authentication (i.e. one using the cert authentication method or one using the clientcert option), you can specify which part of the client certificate credentials to match using the clientname option. This option can have one of two values. If you specify clientname=CN, which is the default, the username is matched against the certificate's Common Name (CN). If instead you specify clientname=DN the username is matched against the entire Distinguished Name (DN) of the certificate. This option is probably best used in conjunction with a username map. The comparison is done with the DN in RFC 2253 format. To see the DN of a client certificate in this format, do
+openssl x509 -in myclient.crt -noout -subject -nameopt RFC2253 | sed "s/^subject=//"
+----------------------------------------------------------------------------------------------------
+auth-pg-hba-conf:0012  339 tok  20.1. The pg_hba.conf File
+Care needs to be taken when using this option, especially when using regular expression matching against the DN.
+
+include
+This line will be replaced by the contents of the given file.
+
+include_if_exists
+This line will be replaced by the content of the given file if the file exists. Otherwise, a message is logged to indicate that the file has been skipped.
+
+include_dir
+This line will be replaced by the contents of all the files found in the directory, if they don't start with a . and end with .conf, processed in file name order (according to C locale rules, i.e., numbers before letters, and uppercase letters before lowercase ones).
+
+Files included by @ constructs are read as lists of names, which can be separated by either whitespace or commas. Comments are introduced by #, just as in pg_hba.conf, and nested @ constructs are allowed. Unless the file name following @ is an absolute path, it is taken to be relative to the directory containing the referencing file.
+
+Since the pg_hba.conf records are examined sequentially for each connection attempt, the order of the records is significant. Typically, earlier records will have tight connection match parameters and weaker authentication methods, while later records will have looser match parameters and stronger authentication methods. For example, one might wish to use trust authentication for local TCP/IP connections but require a password for remote TCP/IP connections. In this case a record specifying trust authentication for connections from 127.0.0.1 would appear before a record specifying password authentication for a wider range of allowed client IP addresses.
+----------------------------------------------------------------------------------------------------
+auth-pg-hba-conf:0013  110 tok  20.1. The pg_hba.conf File
+Tip: To connect to a particular database, a user must not only pass the pg_hba.conf checks, but must have the CONNECT privilege for the database. If you wish to restrict which users can connect to which databases, it's usually easier to control this by granting/revoking CONNECT privilege than to put the rules in pg_hba.conf entries.
+
+Some examples of pg_hba.conf entries are shown in Example 20.1. See the next section for details on the different authentication methods.
+----------------------------------------------------------------------------------------------------
+auth-pg-hba-conf:0014  415 tok  20.1. The pg_hba.conf File
+Some examples of pg_hba.conf entries are shown in Example 20.1. See the next section for details on the different authentication methods.
+
+Example 20.1. Example pg_hba.conf Entries
+
+# Allow any user on the local system to connect to any database with
+# any database user name using Unix-domain sockets (the default for local
+# connections).
+#
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+local   all             all                                     trust
+
+# The same using local loopback TCP/IP connections.
+#
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+host    all             all             127.0.0.1/32            trust
+
+# The same as the previous line, but using a separate netmask column
+#
+# TYPE  DATABASE        USER            IP-ADDRESS      IP-MASK             METHOD
+host    all             all             127.0.0.1       255.255.255.255     trust
+
+# The same over IPv6.
+#
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+host    all             all             ::1/128                 trust
+
+# The same using a host name (would typically cover both IPv4 and IPv6).
+#
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+host    all             all             localhost               trust
+
+# The same using a regular expression for DATABASE, that allows connection
+# to any databases with a name beginning with "db" and finishing with a
+# number using two to four digits (like "db1234" or "db12").
+#
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+host    "/^db\d{2,4}$"  all             localhost               trust
+
+# Allow any user from any host with IP address 192.168.93.x to connect
+# to database "postgres" as the same user name that ident reports for
+# the connection (typically the operating system user name).
+#
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+host    postgres        all             192.168.93.0/24         ident
+
+# Allow any user from host 192.168.12.10 to connect to database
+# "postgres" if the user's password is correctly supplied.
+#
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+----------------------------------------------------------------------------------------------------
+auth-pg-hba-conf:0015  376 tok  20.1. The pg_hba.conf File
+host    postgres        all             192.168.12.10/32        scram-sha-256
+
+# Allow any user from hosts in the example.com domain to connect to
+# any database if the user's password is correctly supplied.
+#
+# Require SCRAM authentication for most users, but make an exception
+# for user 'mike', who uses an older client that doesn't support SCRAM
+# authentication.
+#
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+host    all             mike            .example.com            md5
+host    all             all             .example.com            scram-sha-256
+
+# In the absence of preceding "host" lines, these three lines will
+# reject all connections from 192.168.54.1 (since that entry will be
+# matched first), but allow GSSAPI-encrypted connections from anywhere else
+# on the Internet.  The zero mask causes no bits of the host IP address to
+# be considered, so it matches any host.  Unencrypted GSSAPI connections
+# (which "fall through" to the third line since "hostgssenc" only matches
+# encrypted GSSAPI connections) are allowed, but only from 192.168.12.10.
+#
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+host    all             all             192.168.54.1/32         reject
+hostgssenc all          all             0.0.0.0/0               gss
+host    all             all             192.168.12.10/32        gss
+
+# Allow users from 192.168.x.x hosts to connect to any database, if
+# they pass the ident check.  If, for example, ident says the user is
+# "bryanh" and he requests to connect as PostgreSQL user "guest1", the
+# connection is allowed if there is an entry in pg_ident.conf for map
+----------------------------------------------------------------------------------------------------
+auth-pg-hba-conf:0016  231 tok  20.1. The pg_hba.conf File
+# "omicron" that says "bryanh" is allowed to connect as "guest1".
+#
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+host    all             all             192.168.0.0/16          ident map=omicron
+
+# If these are the only four lines for local connections, they will
+# allow local users to connect only to their own databases (databases
+# with the same name as their database user name) except for users whose
+# name end with "helpdesk", administrators and members of role "support",
+# who can connect to all databases.  The file $PGDATA/admins contains a
+# list of names of administrators.  Passwords are required in all cases.
+#
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+local   sameuser        all                                     md5
+local   all             /^.*helpdesk$                           md5
+local   all             @admins                                 md5
+local   all             +support                                md5
+
+# The last two lines above can be combined into a single line:
+local   all             @admins,+support                        md5
+
+# The database column can also use lists and file names:
+local   db1,db2,@demodbs  all                                   md5
+====================================================================================================
+runtime-config-file-locations / RUNTIME-CONFIG-FILE-LOCATIONS: 2 chunk(s)
+----------------------------------------------------------------------------------------------------
+runtime-config-file-locations:0000  356 tok  19.2. File Locations
+In addition to the postgresql.conf file already mentioned, PostgreSQL uses two other manually-edited configuration files, which control client authentication (their use is discussed in Chapter 20). By default, all three configuration files are stored in the database cluster's data directory. The parameters described in this section allow the configuration files to be placed elsewhere. (Doing so can ease administration. In particular it is often easier to ensure that the configuration files are properly backed-up when they are kept separate.)
+
+data_directory (string)
+Specifies the directory to use for data storage. This parameter can only be set at server start.
+
+config_file (string)
+Specifies the main server configuration file (customarily called postgresql.conf). This parameter can only be set on the postgres command line.
+
+hba_file (string)
+Specifies the configuration file for host-based authentication (customarily called pg_hba.conf). This parameter can only be set at server start.
+
+ident_file (string)
+Specifies the configuration file for user name mapping (customarily called pg_ident.conf). This parameter can only be set at server start. See also Section 20.2.
+
+external_pid_file (string)
+Specifies the name of an additional process-ID (PID) file that the server should create for use by server administration programs. This parameter can only be set at server start.
+
+In a default installation, none of the above parameters are set explicitly. Instead, the data directory is specified by the -D command-line option or the PGDATA environment variable, and the configuration files are all found within the data directory.
+----------------------------------------------------------------------------------------------------
+runtime-config-file-locations:0001  272 tok  19.2. File Locations
+In a default installation, none of the above parameters are set explicitly. Instead, the data directory is specified by the -D command-line option or the PGDATA environment variable, and the configuration files are all found within the data directory.
+
+If you wish to keep the configuration files elsewhere than the data directory, the postgres -D command-line option or PGDATA environment variable must point to the directory containing the configuration files, and the data_directory parameter must be set in postgresql.conf (or on the command line) to show where the data directory is actually located. Notice that data_directory overrides -D and PGDATA for the location of the data directory, but not for the location of the configuration files.
+
+If you wish, you can specify the configuration file names and locations individually using the parameters config_file, hba_file and/or ident_file. config_file can only be specified on the postgres command line, but the others can be set within the main configuration file. If all three parameters plus data_directory are explicitly set, then it is not necessary to specify -D or PGDATA.
+
+When setting any of these parameters, a relative path will be interpreted with respect to the directory in which postgres is started.
+====================================================================================================
+view-pg-hba-file-rules / VIEW-PG-HBA-FILE-RULES: 1 chunk(s)
+----------------------------------------------------------------------------------------------------
+view-pg-hba-file-rules:0000  360 tok  52.9. pg_hba_file_rules
+The view pg_hba_file_rules provides a summary of the contents of the client authentication configuration file, pg_hba.conf. A row appears in this view for each non-empty, non-comment line in the file, with annotations indicating whether the rule could be applied successfully.
+
+This view can be helpful for checking whether planned changes in the authentication configuration file will work, or for diagnosing a previous failure. Note that this view reports on the current contents of the file, not on what was last loaded by the server.
+
+By default, the pg_hba_file_rules view can be read only by superusers.
+
+Table 52.9. pg_hba_file_rules Columns
+
+Column Type Description
+rule_number int4 Number of this rule, if valid, otherwise NULL . This indicates the order in which each rule is considered until a match is found during authentication.
+file_name text Name of the file containing this rule
+line_number int4 Line number of this rule in file_name
+type text Type of connection
+database text[] List of database name(s) to which this rule applies
+user_name text[] List of user and group name(s) to which this rule applies
+address text Host name or IP address, or one of all , samehost , or samenet , or null for local connections
+netmask text IP address mask, or null if not applicable
+auth_method text Authentication method
+options text[] Options specified for authentication method, if any
+error text If not null, an error message indicating why this line could not be processed
+
+Usually, a row reflecting an incorrect entry will have values for only the line_number and error fields.
+
+See Chapter 20 for more information about client authentication configuration.
+====================================================================================================
+app-postgres / id-1.9.5.16.6.3: 4 chunk(s)
+----------------------------------------------------------------------------------------------------
+app-postgres:0003  374 tok  postgres > Options > General Purpose
+-B nbuffers
+Sets the number of shared buffers for use by the server processes. The default value of this parameter is chosen automatically by initdb. Specifying this option is equivalent to setting the shared_buffers configuration parameter.
+
+-c name=value
+Sets a named run-time parameter. The configuration parameters supported by PostgreSQL are described in Chapter 19. Most of the other command line options are in fact short forms of such a parameter assignment. -c can appear multiple times to set multiple parameters.
+
+-C name
+Prints the value of the named run-time parameter, and exits. (See the -c option above for details.) This returns values from postgresql.conf, modified by any parameters supplied in this invocation. It does not reflect parameters supplied when the cluster was started.
+This can be used on a running server for most parameters. However, the server must be shut down for some runtime-computed parameters (e.g., shared_memory_size, shared_memory_size_in_huge_pages, and wal_segment_size).
+This option is meant for other programs that interact with a server instance, such as pg_ctl, to query configuration parameter values. User-facing applications should instead use SHOW or the pg_settings view.
+
+-d debug-level
+Sets the debug level. The higher this value is set, the more debugging output is written to the server log. Values are from 1 to 5. It is also possible to pass -d 0 for a specific session, which will prevent the server log level of the parent postgres process from being propagated to this session.
+
+-D datadir
+Specifies the file system location of the database configuration files. See Section 19.2 for details.
+----------------------------------------------------------------------------------------------------
+app-postgres:0004  316 tok  postgres > Options > General Purpose
+-D datadir
+Specifies the file system location of the database configuration files. See Section 19.2 for details.
+
+-e
+Sets the default date style to “European”, that is DMY ordering of input date fields. This also causes the day to be printed before the month in certain date output formats. See Section 8.5 for more information.
+
+-F
+Disables fsync calls for improved performance, at the risk of data corruption in the event of a system crash. Specifying this option is equivalent to disabling the fsync configuration parameter. Read the detailed documentation before using this!
+
+-h hostname
+Specifies the IP host name or address on which postgres is to listen for TCP/IP connections from client applications. The value can also be a comma-separated list of addresses, or * to specify listening on all available interfaces. An empty value specifies not listening on any IP addresses, in which case only Unix-domain sockets can be used to connect to the server. Defaults to listening only on localhost. Specifying this option is equivalent to setting the listen_addresses configuration parameter.
+
+-i
+Allows remote clients to connect via TCP/IP (Internet domain) connections. Without this option, only local connections are accepted. This option is equivalent to setting listen_addresses to * in postgresql.conf or via -h.
+This option is deprecated since it does not allow access to the full functionality of listen_addresses. It's usually better to set listen_addresses directly.
+----------------------------------------------------------------------------------------------------
+app-postgres:0005  376 tok  postgres > Options > General Purpose
+-k directory
+Specifies the directory of the Unix-domain socket on which postgres is to listen for connections from client applications. The value can also be a comma-separated list of directories. An empty value specifies not listening on any Unix-domain sockets, in which case only TCP/IP sockets can be used to connect to the server. The default value is normally /tmp, but that can be changed at build time. Specifying this option is equivalent to setting the unix_socket_directories configuration parameter.
+
+-l
+Enables secure connections using SSL. PostgreSQL must have been compiled with support for SSL for this option to be available. For more information on using SSL, refer to Section 18.9.
+
+-N max-connections
+Sets the maximum number of client connections that this server will accept. The default value of this parameter is chosen automatically by initdb. Specifying this option is equivalent to setting the max_connections configuration parameter.
+
+-p port
+Specifies the TCP/IP port or local Unix domain socket file extension on which postgres is to listen for connections from client applications. Defaults to the value of the PGPORT environment variable, or if PGPORT is not set, then defaults to the value established during compilation (normally 5432). If you specify a port other than the default port, then all client applications must specify the same port using either command-line options or PGPORT.
+
+-s
+Print time information and other statistics at the end of each command. This is useful for benchmarking or for use in tuning the number of buffers.
+
+-S work-mem
+Specifies the base amount of memory to be used by sorts and hash tables before resorting to temporary disk files. See the description of the work_mem configuration parameter in Section 19.4.1.
+----------------------------------------------------------------------------------------------------
+app-postgres:0006  143 tok  postgres > Options > General Purpose
+-S work-mem
+Specifies the base amount of memory to be used by sorts and hash tables before resorting to temporary disk files. See the description of the work_mem configuration parameter in Section 19.4.1.
+
+-V --version
+Print the postgres version and exit.
+
+--name=value
+Sets a named run-time parameter; a shorter form of -c.
+
+--describe-config
+This option dumps out the server's internal configuration variables, descriptions, and defaults in tab-delimited COPY format. It is designed primarily for use by administration tools.
+
+-? --help
+Show help about postgres command line arguments, and exit.
+====================================================================================================
+runtime-config-short / RUNTIME-CONFIG-SHORT: 1 chunk(s)
+----------------------------------------------------------------------------------------------------
+runtime-config-short:0000  348 tok  19.18. Short Options
+For convenience there are also single letter command-line option switches available for some parameters. They are described in Table 19.4. Some of these options exist for historical reasons, and their presence as a single-letter option does not necessarily indicate an endorsement to use the option heavily.
+
+Table 19.4. Short Option Key
+
+Short Option | Equivalent
+-B x | shared_buffers = x
+-d x | log_min_messages = DEBUG x
+-e | datestyle = euro
+-fb , -fh , -fi , -fm , -fn , -fo , -fs , -ft | enable_bitmapscan = off , enable_hashjoin = off , enable_indexscan = off , enable_mergejoin = off , enable_nestloop = off , enable_indexonlyscan = off , enable_seqscan = off , enable_tidscan = off
+-F | fsync = off
+-h x | listen_addresses = x
+-i | listen_addresses = '*'
+-k x | unix_socket_directories = x
+-l | ssl = on
+-N x | max_connections = x
+-O | allow_system_table_mods = on
+-p x | port = x
+-P | ignore_system_indexes = on
+-s | log_statement_stats = on
+-S x | work_mem = x
+-tpa , -tpl , -te | log_parser_stats = on , log_planner_stats = on , log_executor_stats = on
+-W x | post_auth_delay = x
+====================================================================================================
+kernel-resources / SYSVIPC: 9 chunk(s)
+----------------------------------------------------------------------------------------------------
+kernel-resources:0001  283 tok  18.4. Managing Kernel Resources > 18.4.1. Shared Memory and Semaphores
+PostgreSQL requires the operating system to provide inter-process communication (IPC) features, specifically shared memory and semaphores. Unix-derived systems typically provide “System V” IPC, “POSIX” IPC, or both. Windows has its own implementation of these features and is not discussed here.
+
+By default, PostgreSQL allocates a very small amount of System V shared memory, as well as a much larger amount of anonymous mmap shared memory. Alternatively, a single large System V shared memory region can be used (see shared_memory_type). In addition a significant number of semaphores, which can be either System V or POSIX style, are created at server startup. Currently, POSIX semaphores are used on Linux and FreeBSD systems while other platforms use System V semaphores.
+
+System V IPC features are typically constrained by system-wide allocation limits. When PostgreSQL exceeds one of these limits, the server will refuse to start and should leave an instructive error message describing the problem and what to do about it. (See also Section 18.3.1.) The relevant kernel parameters are named consistently across different systems; Table 18.1 gives an overview. The methods to set them, however, vary. Suggestions for some platforms are given below.
+----------------------------------------------------------------------------------------------------
+kernel-resources:0002  345 tok  18.4. Managing Kernel Resources > 18.4.1. Shared Memory and Semaphores
+Table 18.1. System V IPC Parameters
+
+Name | Description | Values needed to run one PostgreSQL instance
+SHMMAX | Maximum size of shared memory segment (bytes) | at least 1kB, but the default is usually much higher
+SHMMIN | Minimum size of shared memory segment (bytes) | 1
+SHMALL | Total amount of shared memory available (bytes or pages) | same as SHMMAX if bytes, or ceil(SHMMAX/PAGE_SIZE) if pages, plus room for other applications
+SHMSEG | Maximum number of shared memory segments per process | only 1 segment is needed, but the default is much higher
+SHMMNI | Maximum number of shared memory segments system-wide | like SHMSEG plus room for other applications
+SEMMNI | Maximum number of semaphore identifiers (i.e., sets) | at least ceil((max_connections + autovacuum_max_workers + max_wal_senders + max_worker_processes + 7) / 19) plus room for other applications
+SEMMNS | Maximum number of semaphores system-wide | ceil((max_connections + autovacuum_max_workers + max_wal_senders + max_worker_processes + 7) / 19) * 20 plus room for other applications
+SEMMSL | Maximum number of semaphores per set | at least 20
+SEMMAP | Number of entries in semaphore map | see text
+SEMVMX | Maximum value of semaphore | at least 1000 (The default is often 32767; do not change unless necessary)
+----------------------------------------------------------------------------------------------------
+kernel-resources:0003  209 tok  18.4. Managing Kernel Resources > 18.4.1. Shared Memory and Semaphores
+PostgreSQL requires a few bytes of System V shared memory (typically 48 bytes, on 64-bit platforms) for each copy of the server. On most modern operating systems, this amount can easily be allocated. However, if you are running many copies of the server or you explicitly configure the server to use large amounts of System V shared memory (see shared_memory_type and dynamic_shared_memory_type), it may be necessary to increase SHMALL, which is the total amount of System V shared memory system-wide. Note that SHMALL is measured in pages rather than bytes on many systems.
+
+Less likely to cause problems is the minimum size for shared memory segments (SHMMIN), which should be at most approximately 32 bytes for PostgreSQL (it is usually just 1). The maximum number of segments system-wide (SHMMNI) or per-process (SHMSEG) are unlikely to cause a problem unless your system has them set to zero.
+----------------------------------------------------------------------------------------------------
+kernel-resources:0004  293 tok  18.4. Managing Kernel Resources > 18.4.1. Shared Memory and Semaphores
+When using System V semaphores, PostgreSQL uses one semaphore per allowed connection (max_connections), allowed autovacuum worker process (autovacuum_max_workers), allowed WAL sender process (max_wal_senders), and allowed background process (max_worker_processes), in sets of 19. Each such set will also contain a 20th semaphore which contains a “magic number”, to detect collision with semaphore sets used by other applications. The maximum number of semaphores in the system is set by SEMMNS, which consequently must be at least as high as max_connections plus autovacuum_max_workers plus max_wal_senders, plus max_worker_processes, plus one extra for each 19 allowed connections plus workers (see the formula in Table 18.1). The parameter SEMMNI determines the limit on the number of semaphore sets that can exist on the system at one time. Hence this parameter must be at least ceil((max_connections + autovacuum_max_workers + max_wal_senders + max_worker_processes + 7) / 19). Lowering the number of allowed connections is a temporary workaround for failures, which are usually confusingly worded “No space left on device”, from the function semget.
+----------------------------------------------------------------------------------------------------
+kernel-resources:0005  288 tok  18.4. Managing Kernel Resources > 18.4.1. Shared Memory and Semaphores
+In some cases it might also be necessary to increase SEMMAP to be at least on the order of SEMMNS. If the system has this parameter (many do not), it defines the size of the semaphore resource map, in which each contiguous block of available semaphores needs an entry. When a semaphore set is freed it is either added to an existing entry that is adjacent to the freed block or it is registered under a new map entry. If the map is full, the freed semaphores get lost (until reboot). Fragmentation of the semaphore space could over time lead to fewer available semaphores than there should be.
+
+Various other settings related to “semaphore undo”, such as SEMMNU and SEMUME, do not affect PostgreSQL.
+
+When using POSIX semaphores, the number of semaphores needed is the same as for System V, that is one semaphore per allowed connection (max_connections), allowed autovacuum worker process (autovacuum_max_workers), allowed WAL sender process (max_wal_senders), and allowed background process (max_worker_processes). On the platforms where this option is preferred, there is no specific kernel limit on the number of POSIX semaphores.
+----------------------------------------------------------------------------------------------------
+kernel-resources:0006  263 tok  18.4. Managing Kernel Resources > 18.4.1. Shared Memory and Semaphores
+FreeBSD
+The default shared memory settings are usually good enough, unless you have set shared_memory_type to sysv. System V semaphores are not used on this platform.
+The default IPC settings can be changed using the sysctl or loader interfaces. The following parameters can be set using sysctl:
+# sysctl kern.ipc.shmall=32768
+# sysctl kern.ipc.shmmax=134217728
+To make these settings persist over reboots, modify /etc/sysctl.conf.
+If you have set shared_memory_type to sysv, you might also want to configure your kernel to lock System V shared memory into RAM and prevent it from being paged out to swap. This can be accomplished using the sysctl setting kern.ipc.shm_use_phys.
+If running in a FreeBSD jail, you should set its sysvshm parameter to new, so that it has its own separate System V shared memory namespace. (Before FreeBSD 11.0, it was necessary to enable shared access to the host's IPC namespace from jails, and take measures to avoid collisions.)
+----------------------------------------------------------------------------------------------------
+kernel-resources:0007  300 tok  18.4. Managing Kernel Resources > 18.4.1. Shared Memory and Semaphores
+NetBSD
+The default shared memory settings are usually good enough, unless you have set shared_memory_type to sysv. You will usually want to increase kern.ipc.semmni and kern.ipc.semmns, as NetBSD's default settings for these are uncomfortably small.
+IPC parameters can be adjusted using sysctl, for example:
+# sysctl -w kern.ipc.semmni=100
+To make these settings persist over reboots, modify /etc/sysctl.conf.
+If you have set shared_memory_type to sysv, you might also want to configure your kernel to lock System V shared memory into RAM and prevent it from being paged out to swap. This can be accomplished using the sysctl setting kern.ipc.shm_use_phys.
+
+OpenBSD
+The default shared memory settings are usually good enough, unless you have set shared_memory_type to sysv. You will usually want to increase kern.seminfo.semmni and kern.seminfo.semmns, as OpenBSD's default settings for these are uncomfortably small.
+IPC parameters can be adjusted using sysctl, for example:
+# sysctl kern.seminfo.semmni=100
+To make these settings persist over reboots, modify /etc/sysctl.conf.
+----------------------------------------------------------------------------------------------------
+kernel-resources:0008  375 tok  18.4. Managing Kernel Resources > 18.4.1. Shared Memory and Semaphores
+Linux
+The default shared memory settings are usually good enough, unless you have set shared_memory_type to sysv, and even then only on older kernel versions that shipped with low defaults. System V semaphores are not used on this platform.
+The shared memory size settings can be changed via the sysctl interface. For example, to allow 16 GB:
+$ sysctl -w kernel.shmmax=17179869184
+$ sysctl -w kernel.shmall=4194304
+To make these settings persist over reboots, see /etc/sysctl.conf.
+
+macOS
+The default shared memory and semaphore settings are usually good enough, unless you have set shared_memory_type to sysv.
+The recommended method for configuring shared memory in macOS is to create a file named /etc/sysctl.conf, containing variable assignments such as:
+kern.sysv.shmmax=4194304
+kern.sysv.shmmin=1
+kern.sysv.shmmni=32
+kern.sysv.shmseg=8
+kern.sysv.shmall=1024
+Note that in some macOS versions, all five shared-memory parameters must be set in /etc/sysctl.conf, else the values will be ignored.
+SHMMAX can only be set to a multiple of 4096.
+SHMALL is measured in 4 kB pages on this platform.
+It is possible to change all but SHMMNI on the fly, using sysctl. But it's still best to set up your preferred values via /etc/sysctl.conf, so that the values will be kept across reboots.
+----------------------------------------------------------------------------------------------------
+kernel-resources:0009  336 tok  18.4. Managing Kernel Resources > 18.4.1. Shared Memory and Semaphores
+Solaris illumos
+The default shared memory and semaphore settings are usually good enough for most PostgreSQL applications. Solaris defaults to a SHMMAX of one-quarter of system RAM. To further adjust this setting, use a project setting associated with the postgres user. For example, run the following as root:
+projadd -c "PostgreSQL DB User" -K "project.max-shm-memory=(privileged,8GB,deny)" -U postgres -G postgres user.postgres
+This command adds the user.postgres project and sets the shared memory maximum for the postgres user to 8GB, and takes effect the next time that user logs in, or when you restart PostgreSQL (not reload). The above assumes that PostgreSQL is run by the postgres user in the postgres group. No server reboot is required.
+Other recommended kernel setting changes for database servers which will have a large number of connections are:
+project.max-shm-ids=(priv,32768,deny)
+project.max-sem-ids=(priv,4096,deny)
+project.max-msg-ids=(priv,4096,deny)
+Additionally, if you are running PostgreSQL inside a zone, you may need to raise the zone resource usage limits as well. See "Chapter2: Projects and Tasks" in the System Administrator's Guide for more information on projects and prctl.
+====================================================================================================
+sql-explain / id-1.9.3.148.8: 4 chunk(s)
+----------------------------------------------------------------------------------------------------
+sql-explain:0003  243 tok  EXPLAIN > Parameters
+ANALYZE
+Carry out the command and show actual run times and other statistics. This parameter defaults to FALSE.
+
+VERBOSE
+Display additional information regarding the plan. Specifically, include the output column list for each node in the plan tree, schema-qualify table and function names, always label variables in expressions with their range table alias, and always print the name of each trigger for which statistics are displayed. The query identifier will also be displayed if one has been computed, see compute_query_id for more details. This parameter defaults to FALSE.
+
+COSTS
+Include information on the estimated startup and total cost of each plan node, as well as the estimated number of rows and the estimated width of each row. This parameter defaults to TRUE.
+
+SETTINGS
+Include information on configuration parameters. Specifically, include options affecting query planning with value different from the built-in default value. This parameter defaults to FALSE.
+
+GENERIC_PLAN
+Allow the statement to contain parameter placeholders like $1, and generate a generic plan that does not depend on the values of those parameters. See PREPARE for details about generic plans and the types of statement that support parameters. This parameter cannot be used together with ANALYZE. It defaults to FALSE.
+----------------------------------------------------------------------------------------------------
+sql-explain:0004  238 tok  EXPLAIN > Parameters
+BUFFERS
+Include information on buffer usage. Specifically, include the number of shared blocks hit, read, dirtied, and written, the number of local blocks hit, read, dirtied, and written, the number of temp blocks read and written, and the time spent reading and writing data file blocks, local blocks and temporary file blocks (in milliseconds) if track_io_timing is enabled. A hit means that a read was avoided because the block was found already in cache when needed. Shared blocks contain data from regular tables and indexes; local blocks contain data from temporary tables and indexes; while temporary blocks contain short-term working data used in sorts, hashes, Materialize plan nodes, and similar cases. The number of blocks dirtied indicates the number of previously unmodified blocks that were changed by this query; while the number of blocks written indicates the number of previously-dirtied blocks evicted from cache by this backend during query processing. The number of blocks shown for an upper-level node includes those used by all its child nodes. In text format, only non-zero values are printed. This parameter defaults to FALSE.
+----------------------------------------------------------------------------------------------------
+sql-explain:0005  360 tok  EXPLAIN > Parameters
+SERIALIZE
+Include information on the cost of serializing the query's output data, that is converting it to text or binary format to send to the client. This can be a significant part of the time required for regular execution of the query, if the datatype output functions are expensive or if TOASTed values must be fetched from out-of-line storage. EXPLAIN's default behavior, SERIALIZE NONE, does not perform these conversions. If SERIALIZE TEXT or SERIALIZE BINARY is specified, the appropriate conversions are performed, and the time spent doing so is measured (unless TIMING OFF is specified). If the BUFFERS option is also specified, then any buffer accesses involved in the conversions are counted too. In no case, however, will EXPLAIN actually send the resulting data to the client; hence network transmission costs cannot be investigated this way. Serialization may only be enabled when ANALYZE is also enabled. If SERIALIZE is written without an argument, TEXT is assumed.
+
+WAL
+Include information on WAL record generation. Specifically, include the number of records, number of full page images (fpi) and the amount of WAL generated in bytes. In text format, only non-zero values are printed. This parameter may only be used when ANALYZE is also enabled. It defaults to FALSE.
+
+TIMING
+Include actual startup time and time spent in each node in the output. The overhead of repeatedly reading the system clock can slow down the query significantly on some systems, so it may be useful to set this parameter to FALSE when only actual row counts, and not exact times, are needed. Run time of the entire statement is always measured, even when node-level timing is turned off with this option. This parameter may only be used when ANALYZE is also enabled. It defaults to TRUE.
+----------------------------------------------------------------------------------------------------
+sql-explain:0006  261 tok  EXPLAIN > Parameters
+SUMMARY
+Include summary information (e.g., totaled timing information) after the query plan. Summary information is included by default when ANALYZE is used but otherwise is not included by default, but can be enabled using this option. Planning time in EXPLAIN EXECUTE includes the time required to fetch the plan from the cache and the time required for re-planning, if necessary.
+
+MEMORY
+Include information on memory consumption by the query planning phase. Specifically, include the precise amount of storage used by planner in-memory structures, as well as total memory considering allocation overhead. This parameter defaults to FALSE.
+
+FORMAT
+Specify the output format, which can be TEXT, XML, JSON, or YAML. Non-text output contains the same information as the text output format, but is easier for programs to parse. This parameter defaults to TEXT.
+
+boolean
+Specifies whether the selected option should be turned on or off. You can write TRUE, ON, or 1 to enable the option, and FALSE, OFF, or 0 to disable it. The boolean value can also be omitted, in which case TRUE is assumed.
+
+statement
+Any SELECT, INSERT, UPDATE, DELETE, MERGE, VALUES, EXECUTE, DECLARE, CREATE TABLE AS, or CREATE MATERIALIZED VIEW AS statement, whose execution plan you wish to see.
+====================================================================================================
+sql-explain / id-1.9.3.148.7: 2 chunk(s)
+----------------------------------------------------------------------------------------------------
+sql-explain:0001  320 tok  EXPLAIN > Description
+This command displays the execution plan that the PostgreSQL planner generates for the supplied statement. The execution plan shows how the table(s) referenced by the statement will be scanned — by plain sequential scan, index scan, etc. — and if multiple tables are referenced, what join algorithms will be used to bring together the required rows from each input table.
+
+The most critical part of the display is the estimated statement execution cost, which is the planner's guess at how long it will take to run the statement (measured in cost units that are arbitrary, but conventionally mean disk page fetches). Actually two numbers are shown: the start-up cost before the first row can be returned, and the total cost to return all the rows. For most queries the total cost is what matters, but in contexts such as a subquery in EXISTS, the planner will choose the smallest start-up cost instead of the smallest total cost (since the executor will stop after getting one row, anyway). Also, if you limit the number of rows to return with a LIMIT clause, the planner makes an appropriate interpolation between the endpoint costs to estimate which plan is really the cheapest.
+
+The ANALYZE option causes the statement to be actually executed, not only planned. Then actual run time statistics are added to the display, including the total elapsed time expended within each plan node (in milliseconds) and the total number of rows it actually returned. This is useful for seeing whether the planner's estimates are close to reality.
+----------------------------------------------------------------------------------------------------
+sql-explain:0002  90 tok  EXPLAIN > Description
+Important: Keep in mind that the statement is actually executed when the ANALYZE option is used. Although EXPLAIN will discard any output that a SELECT would return, other side effects of the statement will happen as usual. If you wish to use EXPLAIN ANALYZE on an INSERT, UPDATE, DELETE, MERGE, CREATE TABLE AS, or EXECUTE statement without letting the command affect your data, use this approach:
+BEGIN;
+EXPLAIN ANALYZE ...;
+ROLLBACK;
+====================================================================================================
+ddl-partitioning / DDL-PARTITIONING-OVERVIEW: 2 chunk(s)
+----------------------------------------------------------------------------------------------------
+ddl-partitioning:0001  276 tok  5.12. Table Partitioning > 5.12.1. Overview
+Partitioning refers to splitting what is logically one large table into smaller physical pieces. Partitioning can provide several benefits:
+
+- Query performance can be improved dramatically in certain situations, particularly when most of the heavily accessed rows of the table are in a single partition or a small number of partitions. Partitioning effectively substitutes for the upper tree levels of indexes, making it more likely that the heavily-used parts of the indexes fit in memory.
+
+- When queries or updates access a large percentage of a single partition, performance can be improved by using a sequential scan of that partition instead of using an index, which would require random-access reads scattered across the whole table.
+
+- Bulk loads and deletes can be accomplished by adding or removing partitions, if the usage pattern is accounted for in the partitioning design. Dropping an individual partition using DROP TABLE, or doing ALTER TABLE DETACH PARTITION, is far faster than a bulk operation. These commands also entirely avoid the VACUUM overhead caused by a bulk DELETE.
+
+- Seldom-used data can be migrated to cheaper and slower storage media.
+
+These benefits will normally be worthwhile only when a table would otherwise be very large. The exact point at which a table will benefit from partitioning depends on the application, although a rule of thumb is that the size of the table should exceed the physical memory of the database server.
+----------------------------------------------------------------------------------------------------
+ddl-partitioning:0002  315 tok  5.12. Table Partitioning > 5.12.1. Overview
+These benefits will normally be worthwhile only when a table would otherwise be very large. The exact point at which a table will benefit from partitioning depends on the application, although a rule of thumb is that the size of the table should exceed the physical memory of the database server.
+
+PostgreSQL offers built-in support for the following forms of partitioning:
+
+Range Partitioning
+The table is partitioned into “ranges” defined by a key column or set of columns, with no overlap between the ranges of values assigned to different partitions. For example, one might partition by date ranges, or by ranges of identifiers for particular business objects. Each range's bounds are understood as being inclusive at the lower end and exclusive at the upper end. For example, if one partition's range is from 1 to 10, and the next one's range is from 10 to 20, then value 10 belongs to the second partition not the first.
+
+List Partitioning
+The table is partitioned by explicitly listing which key value(s) appear in each partition.
+
+Hash Partitioning
+The table is partitioned by specifying a modulus and a remainder for each partition. Each partition will hold the rows for which the hash value of the partition key divided by the specified modulus will produce the specified remainder.
+
+If your application needs to use other forms of partitioning not listed above, alternative methods such as inheritance and UNION ALL views can be used instead. Such methods offer flexibility but do not have some of the performance benefits of built-in declarative partitioning.

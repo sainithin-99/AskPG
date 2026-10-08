@@ -1,0 +1,93 @@
+
+====================================================================================================
+fact-05 (factual): What does VACUUM FULL do differently from a plain VACUUM?
+  gold: sql-vacuum / Parameters
+  distinctive terms used (5): ['rewrites', 'reclaim', 'plain', 'slower', 'exclusive']
+  no gold chunk matches 2+ of the terms: the reference answer is worded unlike the gold text, so read the candidates with extra care
+
+  [1] sql-vacuum:0001  score 20.5  4/5 terms: ['rewrites', 'plain', 'slower', 'exclusive']
+      VACUUM > Description
+      label if it answers: {"page": "sql-vacuum", "heading": 'Description'}
+      ...ne maintenance scripts. See ANALYZE for more details about its processing.  Plain VACUUM (without FULL) simply reclaims space and makes it available for re-use. This form of the command can operate in parallel with normal reading ...
+
+  [2] routine-vacuuming:0004  score 15.4  3/5 terms: ['reclaim', 'plain', 'exclusive']
+      24.1. Routine Vacuuming > 24.1.2. Recovering Disk Space
+      label if it answers: {"page": "routine-vacuuming", "heading": '24.1.2. Recovering Disk Space'}
+      ...n't forget to VACUUM each one; the program vacuumdb might be helpful.  Tip: Plain VACUUM may not be satisfactory when a table contains large numbers of dead row versions as a result of massive update or delete activity. If you hav...
+
+  [3] routine-vacuuming:0001  score 11.3  2/5 terms: ['reclaim', 'exclusive']
+      24.1. Routine Vacuuming > 24.1.1. Vacuuming Basics
+      label if it answers: {"page": "routine-vacuuming", "heading": '24.1.1. Vacuuming Basics'}
+      ...re two variants of VACUUM: standard VACUUM and VACUUM FULL. VACUUM FULL can reclaim more disk space but runs much more slowly. Also, the standard form of VACUUM can run in parallel with production database operations. (Commands su...
+
+  [4] sql-altertable:0027  score 11.3  2/5 terms: ['rewrites', 'exclusive']
+      ALTER TABLE > Notes
+      label if it answers: {"page": "sql-altertable", "heading": 'Notes'}
+      ...fy multiple changes in a single ALTER TABLE is that multiple table scans or rewrites can thereby be combined into a single pass over the table.  Scanning a large table to verify a new foreign key or check constraint can take a lon...
+
+  [5] ddl-partitioning:0023  score 9.4  2/5 terms: ['slower', 'exclusive']
+      5.12. Table Partitioning > 5.12.3. Partitioning Using Inheritance > 5.12.3.3. Caveats
+      label if it answers: {"page": "ddl-partitioning", "heading": '5.12.3.3. Caveats'}
+      ...s no automatic way to verify that all of the CHECK constraints are mutually exclusive. It is safer to create code that generates child tables and creates and/or modifies associated objects than to write each by hand.  - Indexes an...
+
+====================================================================================================
+fact-06 (factual): What is the default value of max_connections?
+  gold: runtime-config-connection / 19.3.1. Connection Settings
+  distinctive terms used (1): ['kernel']
+  too few distinctive terms (< 2); nothing to sweep for this question.
+
+====================================================================================================
+fact-07 (factual): What does the autovacuum daemon do?
+  gold: routine-vacuuming / 24.1.6. The Autovacuum Daemon
+  distinctive terms used (3): ['automates', 'checking', 'deleted']
+  no gold chunk matches 2+ of the terms: the reference answer is worded unlike the gold text, so read the candidates with extra care
+
+  [1] index-functions:0004  score 8.6  2/3 terms: ['checking', 'deleted']
+      62.2. Index Access Method Functions
+      label if it answers: {"page": "index-functions", "heading": '62.2. Index Access Method Functions'}
+      ...peration that is intended to be implemented by scanning the whole index and checking each entry to see if it should be deleted. The passed-in callback function must be called, in the style callback(TID, callback_state) returns boo...
+
+  [2] pltcl-dbaccess:0001  score 8.6  2/3 terms: ['checking', 'deleted']
+      42.5. Database Access from PL/Tcl
+      label if it answers: {"page": "pltcl-dbaccess", "heading": '42.5. Database Access from PL/Tcl'}
+      ...f spi_exec is the number of rows processed (selected, inserted, updated, or deleted) by the command, or zero if the command is a utility statement. In addition, if the command is a SELECT statement, the values of the selected colu...
+
+  [3] sql-createtable:0024  score 8.6  2/3 terms: ['checking', 'deleted']
+      CREATE TABLE > Parameters
+      label if it answers: {"page": "sql-createtable", "heading": 'Parameters'}
+      ...t that the check is not deferrable. CASCADE Delete any rows referencing the deleted row, or update the values of the referencing column(s) to the new values of the referenced columns, respectively. SET NULL [ ( column_name [, ... ...
+
+====================================================================================================
+fact-08 (factual): Which index types does PostgreSQL support?
+  gold: indexes-types / 11.2. Index Types
+  distinctive terms used (2): ['gin', 'brin']
+  best gold chunk: indexes-types:0000 matches 2/2 terms
+
+  [1] btree:0010  score 9.3  2/2 terms: ['gin', 'brin']
+      64.1. B-Tree Indexes > 64.1.3. B-Tree Support Functions
+      label if it answers: {"page": "btree", "heading": '64.1.3. B-Tree Support Functions'}
+      ...n. B-tree doesn't allow flexible representation of keys like GiST, SP-GiST, GIN and BRIN do. So, options probably doesn't have much application in the current B-tree index access method. Nevertheless, this support function was add...
+
+  [2] functions-admin:0035  score 9.3  2/2 terms: ['gin', 'brin']
+      9.28. System Administration Functions > 9.28.8. Index Maintenance Functions
+      label if it answers: {"page": "functions-admin", "heading": '9.28.8. Index Maintenance Functions'}
+      Table 9.104. Index Maintenance Functions  Function Description brin_summarize_new_values ( index regclass ) → integer Scans the specified BRIN index to find page ranges in the base table that are not currently summarized by the in...
+
+  [3] indexes-multicolumn:0000  score 9.3  2/2 terms: ['gin', 'brin']
+      11.3. Multicolumn Indexes
+      label if it answers: {"page": "indexes-multicolumn", "heading": '11.3. Multicolumn Indexes'}
+      ...EX test2_mm_idx ON test2 (major, minor);  Currently, only the B-tree, GiST, GIN, and BRIN index types support multiple-key-column indexes. Whether there can be multiple key columns is independent of whether INCLUDE columns can be ...
+
+  [4] indexes-types:0006  score 9.3  2/2 terms: ['gin', 'brin']
+      11.2. Index Types > 11.2.6. BRIN
+      label if it answers: {"page": "indexes-types", "heading": '11.2.6. BRIN'}
+      BRIN indexes (a shorthand for Block Range INdexes) store summaries about the values stored in consecutive physical block ranges of a table. Thus, they are most effective for columns whose values are well-correlated with the physic...
+
+  [5] runtime-config-developer:0007  score 9.3  2/2 terms: ['gin', 'brin']
+      19.17. Developer Options
+      label if it answers: {"page": "runtime-config-developer", "heading": '19.17. Developer Options'}
+      ... or to a comma-separated list of resource managers to check only records originating from those resource managers. Currently, the supported resource managers are heap, heap2, btree, hash, gin, gist, sequence, spgist, brin, and gen...
+
+====================================================================================================
+Read each candidate. Add a section as gold only if a sentence in it states the answer.
+Note the label heading above is the HOST section of the best chunk; if that chunk merged small sections, check its `covers` before labelling.
