@@ -453,3 +453,135 @@ Sample: all 20 flagged claims in 8 answers + 4 seeded random fully-supported ans
 - Section 10: add the 8 Oct probe (nemotron-3-super-120b-a12b OK, gpt-oss-20b OK, nemotron-3-nano-omni-30b-a3b-reasoning HTTP 503). Update "not re-probed since 1 Oct".
 - Section 13: replace "Not yet written: generation metrics ..." with: tracing and p50/p95 done (tested by g1); judge and snippet check written; still not written: closed-book baseline, CI gate.
 - Section 1: git commit, pip freeze, crawl date, d1 gold count (FILL INs).
+
+## 16. Closed-book baseline cb1 (10 Oct 2026)
+
+Source tags: [NOTES] = from my notes of console output (gen-cb1.json and gen-cb1_judge.json not re-read when this was written); [READING] = my own reading, one reader.
+
+### 16.1 Setup
+
+| Item | Value |
+|---|---|
+| Run | gen-cb1, 10 Oct 2026 |
+| Generator | openai/gpt-oss-20b via https://integrate.api.nvidia.com/v1, temperature 0, same throttle as g1 |
+| Retrieval / citations | none. The model MAY abstain with the exact REFUSAL sentence from generate.py |
+| Prompt | differs from g1 on purpose (g1: "use ONLY the sources" + citations). Prompt md5: FILL IN (it is in the cb1 meta) |
+| Questions | the same 30 (labels d3) |
+| Judge | closed-book mode of judge.py: correctness / completeness vs reference_answer only, no faithfulness call, unanswerable questions skipped. Judge nvidia/nemotron-3-super-120b-a12b, prompt md5 b0f970773ac5 (unchanged), JUDGE_MAX_TOKENS=8000 |
+| git commit | FILL IN |
+| Price | LLM_PRICE_* = 0, cost $0 (price unset) |
+
+"status=ok" in cb1 means ANSWERED, not correct. Faithfulness does not apply (no sources).
+
+### 16.2 Run history (all of it is part of the result)
+
+- [NOTES] First pass of all 30 at LLM_MAX_TOKENS=1500: 4 llm_error (fact-08, fact-09, fact-10, multi-03; "Empty answer ... finish_reason=length").
+- [NOTES] `--resume` at LLM_MAX_TOKENS=4000 redid only those 4: fact-08 (472 completion tokens), fact-09 (258) and multi-03 (1514) succeeded; fact-10 failed again. Recorded as "no answer within 4000 tokens". The number was not raised again.
+- So 26 answers ran at 1500 and 4 reruns at 4000 (one failed). meta.max_output_tokens says 4000 for the whole file.
+- fact-08 and fact-09 finished far below the 1500 cap on the rerun: the first failure was run-to-run variance in hidden reasoning, not a budget that was too small. g1 answered fact-10 fine.
+
+### 16.3 Row
+
+| run | model | answerable answered | abstained | unanswerable refused | llm_error | p50 / p95 total ms | tokens in/out |
+|---|---|---|---|---|---|---|---|
+| gen-cb1 (closed book) | openai/gpt-oss-20b | 20/21 | 0 | 5/9 | 1 | 5872 / 43276 | 5140 / 10645 |
+
+[NOTES] The p95 total is contaminated: the failed fact-10 call has llm_ms 0 but its wall time counts in total_ms, and amb-01 took 130 s (probably a client timeout plus retry: a guess). Use llm_ms p50 / p95 = 5754 / 22023 ms (it still includes the 130 s maximum). Tokens are a lower bound (failed calls recorded 0/0).
+
+### 16.4 Refusal behaviour
+
+[NOTES] Refused 5 of 9 unanswerable questions (World Cup, hosting provider, MySQL, SQL Server, France). ANSWERED instead of refusing 4: unans-05 (temporal tables), unans-06 (ClickHouse), unans-07 (Kubernetes), unans-08 (uuidv7).
+
+- Hypothesis, n=9: it refuses what names another system or is off-topic, and answers what sounds like a PostgreSQL feature.
+- unans-05: the answer uses `FOR SYSTEM_TIME AS OF`, `PERIOD FOR SYSTEM_TIME`, `WITH (SYSTEM VERSIONING)`. From memory this is SQL Server / MariaDB syntax, not PostgreSQL: UNVERIFIED, read it against the PG 17 docs before writing it up.
+- unans-08: says uuidv7() is built in to PostgreSQL 17 and invents a timestamp argument. Per the project notes uuidv7() is not in 17, but I have not verified this in the PG 17 / PG 18 docs myself: UNVERIFIED.
+- unans-06 and unans-07 are opinions and ecosystem facts: label them "answered outside the documentation", not "wrong".
+- Compared with g1 (9/9 refused): 5/9 vs 9/9. The prompts differ on purpose and n=9: an observation, not a measured gain.
+
+### 16.5 Judge on cb1
+
+[NOTES] 20 answers judged, 0 errors. Correctness 17 correct / 2 partial / 1 incorrect; completeness 11 complete / 8 partial / 1 missing.
+
+- DISCARDED first judging run: a leftover unindented copy of the faithfulness call ran in every case and produced 188 meaningless "not_supported" claims (no sources were shown). Its correctness was 16/3/1 and completeness 13/6/1. Never log the 188 as a result.
+- The judge is NOT reproducible at temperature 0: the same 20 answers gave correctness 16/3/1 vs 17/2/1 and completeness 13/6/1 vs 11/8/1 on two runs. Differences of 1-2 verdicts between runs are noise.
+
+### 16.6 Comparison with g1, on the 19 questions BOTH answered
+
+Denominator 19 answerable questions. Excluded: fact-01 (REFUSED in g1: reranker truncation, a retrieval failure) and fact-10 (no answer in cb1 within 4000 tokens). Two different reasons.
+
+- Correctness: TIE, 17 correct / 2 partial in each. 14 identical verdicts. g1 better on fact-02 and amb-02; cb1 better on amb-04 and fact-04.
+- Completeness: g1 better on fact-07 and amb-02; cb1 better on amb-01.
+- All within judge noise. By arithmetic cb1's one "incorrect" (and "missing") is fact-01, the question g1 refused; I have not read that per-question record.
+
+### 16.7 Reading (what to claim, what not to)
+
+1. [READING] On this dataset correctness against the reference shows NO retrieval gain. Likely reasons, both HYPOTHESES: a 20B model has seen the public PostgreSQL docs in training (untested), and the judge is lenient (the audit found multi-04 "correct" with 6 of 9 claims ungrounded).
+2. The "cb1 better" cases amb-04 and fact-04 are where the g1 audit found real errors in the g1 answers (invalid SECURITY BARRIER syntax; "unlogged to logged" wording). They show the judge's leniency in reverse; cb1 may carry errors the judge missed.
+3. What retrieval measurably buys: refusal on near-misses (9/9 vs 5/9) and checkability (citations, a grounding score of 0.817 that cb1 cannot have), at the cost of retrieval latency and about 8x the input tokens in g1 (42764 vs a lower bound of 5140; the exact ratio is not meaningful because cb1's total is a lower bound).
+4. A stronger test needs questions a model is unlikely to know (version-specific PG 17 details, rarely-read parameters), not a retrieval tweak.
+
+HONEST FRAMING for the write-up: "On this dataset retrieval does not buy measurable correctness over a strong closed-book model. It buys verifiability and safer refusal."
+
+### 16.8 Limitations specific to cb1
+
+1. One run, one model, temperature 0, no variance estimate; hosted-model non-reproducibility observed (fact-08, fact-09).
+2. Two token budgets inside one run (1500 and 4000) and one question with no answer.
+3. Judge: single model, measured disagreement, not reproducible between runs.
+4. n=9 unanswerable: the 5/9 vs 9/9 difference is an observation.
+5. run_closed_book.py records 0/0 tokens and 0 llm_ms for failed calls but counts their wall time in total_ms; meta.max_output_tokens records the process that wrote the file, not the per-question value.
+6. unans-05 and unans-08 content claims are unverified.
+
+---------------------------------------------------------------------------
+
+## 17. Serving layer, API smoke test and retrieval gate (10-11 Oct 2026)
+
+### 17.1 Serving layer (src/api.py, web/index.html; 10 Oct)
+
+- FastAPI 0.143.0, uvicorn 0.34.3, ONE worker with a lock around the pipeline (the models and the generate.py LLM throttle keep in-process state and are not thread-safe). Wait time is stored as queue_wait_ms in each trace. Scaling out means a separate retrieval service, not more workers.
+- Endpoints: POST /ask, GET /health, GET /stats, GET / (the frontend). Status codes: ok / refused / citation_failed -> 200; llm_error -> 502; retrieval failure -> 503.
+- Traces: one JSONL line per request in data/traces/requests.jsonl (gitignored). api.py has its OWN trace format and does not use src/tracing.py (the docstring wrongly says tracing.py was unavailable: see section 15.8 style correction; unify them).
+- [VERIFIED by running] server starts, /ask answers with citations, a trace line is written, the frontend shows the work_mem answer with clickable citations. One trace (work_mem), a sample, not a benchmark: wall 12.96 s, llm 11.7 s (about 90%), rerank 1.1 s, vector_ms 107 (vs 10-20 ms in the d3 timings: probably a cold first call, unverified).
+- NOT tested: concurrent requests, the 503 path (Qdrant down), the 502 path (bad model name), /stats output, the refusal and COMMENT cases in the browser.
+- Open: the trace has no retrieval scores and no answer text; it stores user questions, so a public deployment needs a retention policy.
+
+### 17.2 API smoke test (eval/smoke_api.py, 10 Oct)
+
+| case | result |
+|---|---|
+| comment-standard | XFAIL (refused; the known reranker truncation issue, kept on purpose) |
+| rollback-syntax | PASS |
+| work-mem | PASS |
+| set-logged | PASS |
+| unanswerable (capital of France) | PASS |
+
+0 hard failures; 7.7-11.5 s per call. The checks are deterministic and weak by design (status; a source URL contains the page; the answer contains a key word). It is a smoke test, not a quality gate. An XPASS on COMMENT would mean a truncation fix worked: read it. The hosted LLM is not reproducible, so rerun a single failure before believing it.
+
+### 17.3 Unit tests and CI (11 Oct)
+
+- tests/conftest.py + tests/test_core.py: 18 tests, all PASS locally (`python -m pytest tests -q`, 0.15 s). They cover check_citations, normalize_citations, strip_think, rrf_fuse, tokenize, norm_heading / norm_page / chunk_keys / gold_key, score_question, summarize, coverage_check, check_gold, tracing. bm25s and embed_index are stubbed; nothing touches a model, Qdrant or real chunks. The expected values were written by hand before the first run.
+- .github/workflows/ci.yml runs the same tests on push. GitHub Actions result: FILL IN (not seen when this was written).
+
+### 17.4 Retrieval regression gate (eval/gate_retrieval.py, 11 Oct): a test of the INSTRUMENT, not an experiment
+
+Setting: current code and index (v3, 6489 chunks), labels d3, baselines eval\results\d3-<mode>.json. Tolerances: success@5 drop of more than 1 question or MRR drop of more than 0.03 -> FAIL. Both thresholds are my choice, not measured.
+
+| run | mode | success@5 | success@1 | MRR | LOST / GAINED | result |
+|---|---|---|---|---|---|---|
+| deliberately broken: RERANK_TOP = FILL IN (normal value 30) | hybrid_rerank | 0.619 (13/21) | 0.524 | 0.563 | LOST fact-02, fact-10, multi-02, amb-01, amb-04; GAINED fact-01 | FAIL (drop 4 questions, MRR drop 0.131) |
+| restored (RERANK_TOP = 30) | vector | 0.810 (17/21) | 0.476 | 0.616 | none / none | PASS |
+| restored | hybrid_rerank | 0.810 (17/21) | 0.619 | 0.695 | none / none | PASS |
+
+Reading:
+- The gate can fail, and it names the questions that broke. A gate that has never failed would have been untested.
+- On unchanged code both modes reproduce the d3 baseline to three decimals, so retrieval is deterministic on this machine for this setup. That supports (it does not prove) the tolerances as noise absorbers.
+- fact-01 (COMMENT) was GAINED under the broken setting. Hypothesis, consistent with the truncation finding: with fewer candidates the reranker has less chance to push the gold chunk out of the top 5. One question from a deliberately broken setup: NOT evidence for any fix.
+- The gate only covers retrieval. It says nothing about answer quality or latency, and it does not detect a relabelling that keeps the gold counts.
+- A whitespace-only difference (one space before a comment on the RERANK_TOP line) remained in the working tree after the restore; it was reverted with `git restore`. The pushed commit has RERANK_TOP = 30.
+
+---------------------------------------------------------------------------
+
+## 15.10 follow-ups (apply these edits to the existing section 15.10)
+
+- Section 10: add the 8 Oct probe (nemotron-3-super-120b-a12b OK, gpt-oss-20b OK, nemotron-3-nano-omni-30b-a3b-reasoning HTTP 503) and the OK probe before the cb1 smoke test on 10 Oct. Replace "not re-probed since 1 Oct".
+- Section 13: replace "Not yet written: generation metrics ..." with: tracing and p50/p95 done; judge, snippet check and closed-book baseline written and run; local retrieval gate written and tested; unit tests and CI workflow written; still not written: a CI gate that needs the corpus.
+- Section 1: git commit, pip freeze, crawl date, d1 gold count (FILL INs).
