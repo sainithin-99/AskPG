@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AskPG</title>
+<style>
+  :root { --bg:#fff; --fg:#1b1f24; --muted:#6b7280; --line:#e5e7eb; --accent:#336791; --card:#f7f8fa; --err:#b42318; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#14171a; --fg:#e6e8eb; --muted:#9aa3ad; --line:#2a2f35; --accent:#7fb2d9; --card:#1c2024; --err:#f97066; }
+  }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 system-ui, sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:1.4rem; margin:0 0 4px; }
+  .sub { color:var(--muted); margin:0 0 20px; font-size:.9rem; }
+  form { display:flex; gap:8px; }
+  input[type=text] { flex:1; padding:10px 12px; font-size:1rem; border:1px solid var(--line); border-radius:8px;
+                     background:var(--card); color:var(--fg); }
+  button { padding:10px 18px; font-size:1rem; border:0; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; }
+  button:disabled { opacity:.6; cursor:wait; }
+  #out { margin-top:24px; }
+  .answer { white-space:pre-wrap; background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
+  .answer pre { background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:10px; overflow-x:auto; white-space:pre; }
+  .answer code { font-family:ui-monospace, Consolas, monospace; font-size:.92em; }
+  .notice { color:var(--muted); }
+  .error { color:var(--err); }
+  a { color:var(--accent); }
+  sup a { text-decoration:none; font-weight:600; }
+  h2 { font-size:1rem; margin:20px 0 6px; }
+  ul.sources { padding-left:20px; margin:0; }
+  ul.sources li { margin:4px 0; }
+  .meta { color:var(--muted); font-size:.82rem; margin-top:14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>AskPG</h1>
+  <p class="sub">Questions about the PostgreSQL 17 documentation. Answers cite their sources; if the docs don't cover it, it says so.</p>
+  <form id="f">
+    <input type="text" id="q" maxlength="500" placeholder="e.g. what does work_mem control?" autofocus required minlength="3">
+    <button id="b" type="submit">Ask</button>
+  </form>
+  <div id="out"></div>
+</main>
+<script>
+const out = document.getElementById("out");
+const btn = document.getElementById("b");
+
+function esc(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+// Escape first, then add a little markup: code fences, inline code, and [n] citations as links.
+function render(answer, citations) {
+  const urlOf = {};
+  for (const c of citations) urlOf[c.n] = c.url;
+  let h = esc(answer);
+  h = h.replace(/```[a-zA-Z]*\n?([\s\S]*?)```/g, (_, code) => "<pre><code>" + code.replace(/\n$/, "") + "</code></pre>");
+  h = h.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+  h = h.replace(/\[(\d+(?:\s*,\s*\d+)*)\]/g, (m, nums) =>
+    nums.split(/\s*,\s*/).map(n => urlOf[n]
+      ? `<sup><a href="${esc(urlOf[n])}" target="_blank" rel="noopener">[${n}]</a></sup>`
+      : `[${n}]`).join(""));
+  return h;
+}
+
+function ms(x) { return x == null ? "?" : (x / 1000).toFixed(1) + " s"; }
+
+document.getElementById("f").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const question = document.getElementById("q").value.trim();
+  if (question.length < 3) return;
+  btn.disabled = true;
+  out.innerHTML = '<p class="notice">Searching the docs and writing an answer (usually 10-15 s)...</p>';
+  try {
+    const r = await fetch("/ask", { method: "POST", headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ question, k: 5 }) });
+    if (!r.ok) {
+      let detail = "Something went wrong.";
+      try { detail = (await r.json()).detail || detail; } catch (_) {}
+      out.innerHTML = `<p class="error">${esc(String(detail))}</p>`;
+      return;
+    }
+    const d = await r.json();
+    let html = "";
+    if (d.status === "ok") {
+      html += `<div class="answer">${render(d.answer, d.citations)}</div>`;
+      if (d.sources.length) {
+        html += "<h2>Sources</h2><ul class='sources'>" + d.sources.map(s =>
+          `<li><a href="${esc(s.url)}" target="_blank" rel="noopener">[${s.n}] ${esc(s.context)}</a></li>`).join("") + "</ul>";
+      }
+    } else if (d.status === "refused") {
+      html += `<p class="notice">${esc(d.answer)}</p>`;
+    } else {
+      html += `<p class="error">${esc(d.answer)}</p>`;
+    }
+    const l = d.latency_ms || {}, u = d.usage || {};
+    html += `<p class="meta">${esc(d.model)} &middot; total ${ms(l.wall_ms)} (retrieval+rerank ${ms(l.total_ms - l.llm_ms)},
+             model ${ms(l.llm_ms)}) &middot; ${u.prompt_tokens || 0} in / ${u.completion_tokens || 0} out tokens
+             &middot; request ${esc(d.request_id)}</p>`;
+    out.innerHTML = html;
+  } catch (err) {
+    out.innerHTML = '<p class="error">Could not reach the server.</p>';
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
