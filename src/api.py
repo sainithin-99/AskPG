@@ -45,6 +45,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 import embed_index as ei
@@ -153,6 +154,12 @@ def ask(req: AskRequest) -> dict:
         "latency_ms": {k: round(v, 1) for k, v in latency.items()},
         "usage": res["usage"],
     }
+
+
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+def index() -> str:
+    """The single-page frontend (web/index.html), served by the same process so no CORS setup is needed."""
+    return (ROOT / "web" / "index.html").read_text(encoding="utf-8")
 
 
 @app.get("/health")
