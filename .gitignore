@@ -3,4 +3,4 @@ data/
 qdrant_storage/
 __pycache__/
 *.pyc
-.venv/
+.venv/eval/audit_g1.txt
