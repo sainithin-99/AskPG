@@ -7,7 +7,7 @@ Setup:
 Run (from the repo root; Qdrant must be running and .env must be set, same as for generate.py):
     uvicorn api:app --app-dir src --port 8000
 
-Then open http://localhost:8000/docs and try POST /ask. Other endpoints:
+Then open http://localhost:8000/ (frontend) or http://localhost:8000/docs. Other endpoints:
     GET /health   Qdrant reachable? which model and retrieval mode?
     GET /stats    status counts and p50/p95 latency over the traces written so far
 
@@ -22,21 +22,24 @@ Design choices:
     the wait is measured and stored as queue_wait_ms, so load shows up in the traces instead of hiding.
   - Sources are returned only when status == "ok", de-duplicated by URL. `citations` keeps the full
     n -> url map so a UI can link every [n] in the answer text.
-  - Trace line = request_id, time, question, status, error, attempts, model, mode, k, per-stage latency,
-    tokens, cost estimate, cited and shown chunk ids. It stores the user's question: a public deployment
-    needs a retention policy (not decided yet).
-  - This file does NOT use src/tracing.py: that file was not available when this was written, so the trace
-    format here is self-contained. Unify the two later.
+  - Traces use src/tracing.py (log_trace / read_traces / summarize), the same format as the eval runs.
+    One line per request: request_id, time, question, mode, k, status, error, attempts, model, latency_ms
+    (retrieval stages + llm_ms + total_ms, as generate() reports them), usage, uncited_sentences,
+    cited_chunks, sources_shown (ids), top1_score (score of the first source shown: for hybrid_rerank this
+    is the reranker sigmoid), and, as TOP-LEVEL fields, queue_wait_ms and wall_ms. They are top-level on
+    purpose: tracing.summarize() adds every latency_ms key except llm_ms / total_ms into retrieval_ms.
+    The answer text is NOT stored. The trace stores the user's question: a public deployment needs a
+    retention policy (not decided yet).
+  - Old trace lines written by the previous api.py (queue_wait_ms / wall_ms INSIDE latency_ms) would be
+    miscounted by /stats: move the old file aside before using this version.
 
 Status handling: ok / refused / citation_failed -> HTTP 200 with the status in the body; llm_error -> 502;
 retrieval failure (Qdrant down, ...) -> 503.
 
-NOT tested when written (syntax read only). The first run shows startup, one answer and one trace line;
-it does not show behaviour under concurrent load.
+NOT tested when written. The first run shows startup, one answer and one trace line; it does not show
+behaviour under concurrent load or the 502 / 503 paths.
 """
-import json
 import os
-import statistics
 import threading
 import time
 import uuid
@@ -51,6 +54,7 @@ from pydantic import BaseModel, Field
 import embed_index as ei
 import generate as gen
 import retrieve as rt
+import tracing as tr
 
 ROOT = Path(__file__).resolve().parent.parent
 TRACE_PATH = Path(os.environ.get("ASKPG_TRACE_PATH") or ROOT / "data" / "traces" / "requests.jsonl")
@@ -58,7 +62,7 @@ MODE = os.environ.get("ASKPG_MODE") or "hybrid_rerank"
 
 _state: dict = {}
 _pipeline_lock = threading.Lock()  # one request at a time through models + LLM throttle
-_trace_lock = threading.Lock()
+_trace_lock = threading.Lock()     # appends and reads of the trace file
 
 
 @asynccontextmanager
@@ -72,7 +76,7 @@ async def lifespan(app: FastAPI):
     _state.clear()
 
 
-app = FastAPI(title="AskPG", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="AskPG", version="0.2.0", lifespan=lifespan)
 
 
 class AskRequest(BaseModel):
@@ -80,31 +84,9 @@ class AskRequest(BaseModel):
     k: int = Field(default=gen.DEFAULT_K, ge=1, le=10)
 
 
-# --------------------------------------------------------------------------- tracing
-def write_trace(rec: dict) -> None:
-    TRACE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    line = json.dumps(rec, ensure_ascii=False, default=str)
-    with _trace_lock, TRACE_PATH.open("a", encoding="utf-8") as f:
-        f.write(line + "\n")
-
-
-def read_traces(limit: int = 1000) -> list[dict]:
-    if not TRACE_PATH.exists():
-        return []
-    with TRACE_PATH.open(encoding="utf-8") as f:
-        lines = f.readlines()[-limit:]
-    out = []
-    for line in lines:
-        try:
-            out.append(json.loads(line))
-        except json.JSONDecodeError:
-            continue  # a half-written line must not break /stats
-    return out
-
-
-def pct(xs: list[float], p: float) -> float:
-    xs = sorted(xs)
-    return xs[min(len(xs) - 1, round(p / 100 * (len(xs) - 1)))] if xs else float("nan")
+def log(result: dict, **extra) -> None:
+    with _trace_lock:
+        tr.log_trace(TRACE_PATH, result, **extra)
 
 
 # --------------------------------------------------------------------------- endpoints
@@ -122,22 +104,24 @@ def ask(req: AskRequest) -> dict:
             res = gen.generate(question, _state["retrieve"], _state["llm"], k=req.k)
         except Exception as e:  # generate() never raises for LLM failures, so this is retrieval / infrastructure
             wall_ms = (time.perf_counter() - t_req) * 1000
-            write_trace({**base, "status": "retrieval_error", "error": f"{type(e).__name__}: {e}",
-                         "latency_ms": {"queue_wait_ms": queue_ms, "wall_ms": wall_ms}})
+            log({"status": "retrieval_error", "error": f"{type(e).__name__}: {e}",
+                 "latency_ms": {"total_ms": wall_ms}},
+                **base, queue_wait_ms=queue_ms, wall_ms=wall_ms)
             raise HTTPException(status_code=503, detail=f"Retrieval backend unavailable (request {rid}).")
 
     wall_ms = (time.perf_counter() - t_req) * 1000
-    latency = {**res["latency_ms"], "queue_wait_ms": queue_ms, "wall_ms": wall_ms}
-    write_trace({
-        **base, "status": res["status"], "error": res["error"], "attempts": res["attempts"], "model": res["model"],
-        "latency_ms": latency, "usage": res["usage"], "uncited_sentences": res["uncited_sentences"],
-        "cited_chunks": [c["chunk_id"] for c in res["citations"]],
-        "sources_shown": [s["chunk_id"] for s in res["sources_shown"]],
-    })
+    shown = res["sources_shown"]
+    log({"status": res["status"], "error": res["error"], "attempts": res["attempts"], "model": res["model"],
+         "latency_ms": res["latency_ms"], "usage": res["usage"], "uncited_sentences": res["uncited_sentences"],
+         "cited_chunks": [c["chunk_id"] for c in res["citations"]],
+         "sources_shown": [s["chunk_id"] for s in shown],
+         "top1_score": float(shown[0]["score"]) if shown else None},
+        **base, queue_wait_ms=queue_ms, wall_ms=wall_ms)
 
     if res["status"] == "llm_error":
         raise HTTPException(status_code=502, detail=f"The language model did not answer (request {rid}). Try again.")
 
+    latency = {**res["latency_ms"], "queue_wait_ms": queue_ms, "wall_ms": wall_ms}  # response only
     sources, seen = [], set()
     if res["status"] == "ok":  # show sources only for a well-formed, cited answer; one entry per URL
         for c in res["citations"]:
@@ -175,22 +159,19 @@ def health() -> dict:
 
 @app.get("/stats")
 def stats(last: int = 1000) -> dict:
-    rows = read_traces(max(1, min(last, 10000)))
+    with _trace_lock:  # a read must not see a half-written line
+        rows = tr.read_traces(TRACE_PATH)
+    rows = rows[-max(1, min(last, 10000)):]
     if not rows:
         return {"requests": 0}
-    counts: dict = {}
-    for r in rows:
-        counts[r["status"]] = counts.get(r["status"], 0) + 1
+    s = tr.summarize(rows)
 
-    def series(key: str) -> list[float]:
-        return [r["latency_ms"][key] for r in rows if key in r.get("latency_ms", {})]
+    def top(key: str):
+        xs = [r[key] for r in rows if key in r]
+        return {"p50": round(tr.pct(xs, 50), 1), "p95": round(tr.pct(xs, 95), 1)} if xs else None
 
-    lat = {key: {"p50": round(pct(xs, 50), 1), "p95": round(pct(xs, 95), 1)}
-           for key in ("wall_ms", "total_ms", "llm_ms", "rerank_ms", "queue_wait_ms")
-           if (xs := series(key))}
-    toks_in = sum(r.get("usage", {}).get("prompt_tokens", 0) for r in rows)
-    toks_out = sum(r.get("usage", {}).get("completion_tokens", 0) for r in rows)
-    cost = sum(r.get("usage", {}).get("cost_usd", 0.0) for r in rows)
-    return {"requests": len(rows), "status": counts, "latency_ms": lat,
-            "tokens": {"prompt": toks_in, "completion": toks_out}, "cost_usd_estimate": cost,
-            "mean_wall_ms": round(statistics.mean(series("wall_ms")), 1) if series("wall_ms") else None}
+    return {"requests": s["n"], "status": s["status"],
+            "latency_ms": {k: {"p50": round(v["p50"], 1), "p95": round(v["p95"], 1)}
+                           for k, v in s["latency_ms"].items()},
+            "queue_wait_ms": top("queue_wait_ms"), "wall_ms": top("wall_ms"),
+            "tokens": s["tokens"], "cost_usd_estimate": s["cost_usd"], "retried": s["retried"]}
