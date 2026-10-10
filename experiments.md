@@ -356,3 +356,100 @@ Question-level LIFT / HARM vs the baseline run (eval\compare_runs.py): <ids>
 Cost: latency delta, token / cost delta, index time or size delta
 Verdict: <keep / drop / inconclusive (n too small)>   Caveats: <label limits, noise, anything changed at the same time>
 ```
+
+## 15. Generation run g1 (8 Oct 2026)
+
+Source tags: [FILE] = recomputed from eval/results/gen-g1.json or audit_g1.txt; [NOTES] = from my notes of console output (snippet and judge JSON files not re-read when this was written); [READING] = my own reading, one reader.
+
+### 15.1 Setup
+
+| Item | Value |
+|---|---|
+| Run | gen-g1, meta time 2026-10-08T11:51:26 |
+| Retrieval | hybrid_rerank, k=5, labels d3, index v3 (6489 chunks) |
+| Generator | openai/gpt-oss-20b via https://integrate.api.nvidia.com/v1, temperature 0, max tokens 1500, min gap 1.6 s |
+| Judge | nvidia/nemotron-3-super-120b-a12b, temperature 0, prompt md5 b0f970773ac5, JUDGE_MAX_TOKENS=8000 |
+| Dataset md5 | c14aa3a16bd39712d3a6fb5351cd473c |
+| chunks_md5 | NOT in g1 meta. Measured at snippet-check time: db65e9d099d2929c2a40c540210b5acc (the judge and audit read chunks.jsonl as it is now) |
+| git commit | FILL IN (g1 meta has none) |
+| Price | LLM_PRICE_* = 0, so cost prints $0. Reference price: FILL IN with source and date |
+
+### 15.2 Row
+
+| run | model | answerable ok | false refusals | unanswerable refused | llm_error | p50 / p95 total ms | p50 / p95 llm ms | tokens in/out | est. cost |
+|---|---|---|---|---|---|---|---|---|---|
+| gen-g1 | openai/gpt-oss-20b | 20/21 | 1 | 9/9 | 0 | 9579 / 26684 | 8163 / 25094 | 42764 / 8986 | $0 (price unset) |
+
+[FILE] Status: 20 ok, 10 refused (9 unanswerable + fact-01), 0 citation_failed, 0 llm_error, 0 retries. By type: factual 11 ok / 1 refused, multi_hop 5 ok, ambiguous 4 ok, unanswerable 9 refused.
+
+[FILE] Latency (ms, p50 / p95 / max): retrieval 1342 / 1578 / 1590 (rerank p50 1266); llm 8163 / 25094 / 32340; total 9579 / 26684 / 33919. n=30, so p95 is about the second-largest value. LLM time is about 85% of p50 request time and includes the network. It tracks output length: 1.9 s for a refusal, 32 s for a 745-token answer. completion_tokens include hidden reasoning (a one-sentence answer shows 162).
+
+### 15.3 gold_in_prompt split (end-to-end diagnostic)
+
+[FILE] gold_in_prompt is True for 17 of 21 answerable questions (all status=ok). This equals d3 hybrid_rerank success@5 = 0.810, as expected: same retriever, same k.
+
+| question | gold_in_prompt | outcome | reading |
+|---|---|---|---|
+| fact-01 (COMMENT) | False | REFUSED | retrieval failure: reranker truncation pushed the gold chunk out of the top 5; the refusal is faithful to the prompt |
+| multi-01 | False | ok | answered from incomplete evidence, did not say which part was unsupported |
+| multi-04 | False | ok | same; 6 of 9 claims not grounded per the judge, yet judged "correct" and "complete" |
+| multi-05 | False | ok | same |
+
+The only false refusal is a retrieval error. The mean `uncited_sentences` proxy (2.65) is not a quality number.
+
+### 15.4 Refusal behaviour
+
+[FILE] 9 of 9 unanswerable questions refused with the exact refusal sentence, including the 7 near-misses (MySQL replication, SQL Server, temporal tables, ClickHouse, Kubernetes, hosting provider, uuidv7). Decision stays: no retrieval gate. A 0.70 reranker threshold would wrongly refuse 3 of 21 answerable questions. Caveat: n=9, one model, one run, temperature 0.
+
+### 15.5 Snippet check (rule 4, deterministic) [NOTES]
+
+26 snippets in 10 of the 20 ok answers: 13 supported, 12 flagged (10 UNSUPPORTED + 2 PARTIAL), 1 trivial. My classification of the 12 [READING, not all verified]:
+- 1 wrong in a way that matters: amb-04 `CREATE VIEW ... SECURITY BARRIER` is invalid syntax. The valid form is in rules-privileges:0003, which the generator never saw, and the cited chunk 0002 shows that view as the insecure example.
+- Several invented illustrative examples: fact-10 (both), multi-05 hostssl line, amb-01 `idx_col`, amb-03 `log_min_duration = 1000`, amb-04 `REVOKE/GRANT CONNECT ... app_user`.
+- Edited docs examples: multi-03 parent table, amb-01 INCLUDE, amb-02 pg_basebackup without `-h mydbserver`.
+- Checker gaps: fact-02 `AND NO CHAIN` and fact-04 `ALTER TABLE ... SET LOGGED` (docs use `[ NO ]` and `{ LOGGED | UNLOGGED }`). Correction: fact-02 is not purely a checker artifact, because the sentence around that snippet is wrong against the source (see 15.6).
+- Only multi-02's snippets were fully verbatim. 7 of 20 ok answers contain a non-verbatim snippet. This is a count, not an error rate.
+
+Open decision: is rule 4 (verbatim snippets only) the behaviour I want? Known checker gaps (bracket/brace syntax, config one-liners under 8 characters, one changed word fails a line) are NOT fixed. Fixing them after seeing results would be "snippet check v2" and needs a g1 re-check.
+
+### 15.6 LLM judge [NOTES]
+
+20 ok answers, 0 judge errors, 109 claims: 89 supported, 20 not_supported, 0 contradicted (supported rate 0.817). 12 of 20 answers fully supported. Correctness 18 correct / 2 partial; completeness 14 complete / 6 partial. Faithfulness means "stated by the shown sources", i.e. grounding, not truth. Correctness vs the reference is lenient (multi-04 is "correct" and "complete" with 6 of 9 claims ungrounded), so always report both. "contradicted" is not a reliable label; the headline is "not supported by the shown sources". Validation on 7 claims I chose myself: 7/7 match (a smoke test, not an agreement statistic). The "24 claims supported only by an uncited source" figure is unusable (many answers cite once per paragraph).
+
+### 15.7 Judge audit (audit_g1.txt, 79 claims, ONE reader)
+
+Sample: all 20 flagged claims in 8 answers + 4 seeded random fully-supported answers (fact-02, fact-06, fact-08, multi-02). Not a population sample. [FILE: the claim lists below match the audit file; the totals are from my reading.]
+
+- Flagged claims: about 13 right or defensible, 4 false positives, 3 borderline.
+  - False positives: multi-03 x3 ("declare the table with a partitioning method...", "virtual constraint / btree index per partition" which [4] and [5] support, "these rules ensure uniqueness..." which [1] states); multi-04 "smaller because it does not dump indexes" (backup-file:0002 [3] says it for indexes; WAL is not mentioned).
+  - Borderline: multi-04 "physical backup ... WAL" and "hot backup"; amb-01 closing summary sentence.
+- False negatives (judge "supported", I disagree):
+  - Clear: fact-02 "`AND CHAIN` (or `AND NO CHAIN`) starts a new transaction" (source: otherwise no new transaction); multi-03 "ancestor tables" (source: descendant); multi-03 "must reference the raw key columns only" (source: must include all key columns).
+  - Leniency / inconsistency: invented snippets in fact-10 (`statement_timeout = 300000`), multi-05 (hostssl 192.168.1.0/24) and amb-01 (`idx_col`) marked supported while the fact-10 `5min` snippet was flagged; amb-04 "INSERT, UPDATE, DELETE" not in the sources; amb-02 pg_basebackup "supported" on a non-verbatim evidence quote; amb-02 "three supported methods" lists base backup in place of continuous archiving, unflagged.
+- Agreement: 72 of 79 (91%) counting only clear errors; 64 of 79 (81%) counting borderline and leniency cases. One of the 4 random fully-supported answers (fact-02) hid a real error.
+- Reading: the judge matches topic words and misses direction and qualifier distortions; errors go both ways and roughly cancel in 0.817, but individual verdicts are unreliable. Use it for relative comparison with the same judge and prompt, audit the claims that change between runs, never present 0.817 as accuracy.
+
+### 15.8 Corrections to earlier statements
+
+- multi-04 PITR "contradicted" was too strong: "cannot be used for PITR" in continuous-archiving:0027 is about standalone hot backups. Accurate: the speed, size and hot-backup claims come from a passage about a different thing (misattribution); the PITR claim is not in the shown chunks (probably true elsewhere: unverified).
+- "smaller because pg_dump does not dump indexes" IS in the shown chunks (backup-file:0002); only the WAL part is not.
+- multi-03's closing paragraph is supported by ddl-partitioning:0013; its "ancestor" claim is wrong.
+- amb-04: the secure-view form is in a chunk the generator never saw, so "not_supported" is defensible and "contradicted" depended on that unseen chunk.
+- 8 Oct upload advice was partly wrong: the project copies of generate.py (v2) and dataset.jsonl (d3) were current, no duplicates existed.
+
+### 15.9 Limitations specific to g1
+
+1. One run, one generator, temperature 0, n=21 answerable: no variance estimate. 1 question = 4.8 points.
+2. The judge is a single-model instrument with measured disagreement (81-91% on an enriched sample read by one person).
+3. g1 meta lacks chunks_md5 and git_commit (patch to run_gen_eval.py pending confirmation); the judge and audit read the current chunks.jsonl.
+4. No closed-book baseline yet, so "retrieval adds value" is still unmeasured.
+5. Citation enforcement is well-formedness only; status=ok is not quality.
+6. multi_hop answers with incomplete evidence are not flagged by the model (multi-01, 04, 05).
+7. Rule 4 behaviour is undecided; the snippet check has known gaps.
+8. LLM latency includes the network and varies 2-32 s with output length.
+
+### 15.10 To fill in / update elsewhere in this file
+
+- Section 10: add the 8 Oct probe (nemotron-3-super-120b-a12b OK, gpt-oss-20b OK, nemotron-3-nano-omni-30b-a3b-reasoning HTTP 503). Update "not re-probed since 1 Oct".
+- Section 13: replace "Not yet written: generation metrics ..." with: tracing and p50/p95 done (tested by g1); judge and snippet check written; still not written: closed-book baseline, CI gate.
+- Section 1: git commit, pip freeze, crawl date, d1 gold count (FILL INs).

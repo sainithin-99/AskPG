@@ -1,0 +1,396 @@
+{
+  "meta": {
+    "name": "cb1",
+    "time": "2026-10-10T17:38:35",
+    "judge_model": "nvidia/nemotron-3-super-120b-a12b",
+    "generator_model": "openai/gpt-oss-20b",
+    "judge_max_tokens": 8000,
+    "prompt_md5": "b0f970773ac5",
+    "chunks_md5": "db65e9d099d2929c2a40c540210b5acc",
+    "gen_run_time": "2026-10-10T17:12:45"
+  },
+  "summary": {
+    "answers_judged": 20,
+    "judge_errors": 0,
+    "claims": 0,
+    "claim_verdicts": {},
+    "claim_supported_rate": null,
+    "supported_only_by_uncited_source": 0,
+    "answers_with_contradicted_claim": 0,
+    "answers_with_not_supported_claim": 0,
+    "answers_fully_supported": 0,
+    "correctness": {
+      "incorrect": 1,
+      "partial": 2,
+      "correct": 17
+    },
+    "completeness": {
+      "missing": 1,
+      "partial": 8,
+      "complete": 11
+    },
+    "by_type": {
+      "factual": {
+        "n": 11,
+        "correctness": {
+          "incorrect": 1,
+          "partial": 1,
+          "correct": 9
+        },
+        "completeness": {
+          "missing": 1,
+          "partial": 4,
+          "complete": 6
+        }
+      },
+      "multi_hop": {
+        "n": 5,
+        "correctness": {
+          "correct": 5
+        },
+        "completeness": {
+          "partial": 1,
+          "complete": 4
+        }
+      },
+      "ambiguous": {
+        "n": 4,
+        "correctness": {
+          "correct": 3,
+          "partial": 1
+        },
+        "completeness": {
+          "complete": 1,
+          "partial": 3
+        }
+      }
+    },
+    "tokens": {
+      "prompt": 8765,
+      "completion": 5419
+    }
+  },
+  "per_question": [
+    {
+      "id": "fact-01",
+      "type": "factual",
+      "claims": [],
+      "correctness": "incorrect",
+      "completeness": "missing",
+      "missing_points": [
+        "There is no COMMENT command in the SQL standard."
+      ],
+      "conflicts": [
+        "The COMMENT ON statement is defined in the SQL standard (since SQL:2003)."
+      ],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 271,
+        "completion_tokens": 179,
+        "llm_ms": 2847.2337999992305
+      }
+    },
+    {
+      "id": "fact-02",
+      "type": "factual",
+      "claims": [],
+      "correctness": "partial",
+      "completeness": "partial",
+      "missing_points": [
+        "AND [ NO ] CHAIN"
+      ],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 311,
+        "completion_tokens": 398,
+        "llm_ms": 3221.0314000003564
+      }
+    },
+    {
+      "id": "fact-03",
+      "type": "factual",
+      "claims": [],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 313,
+        "completion_tokens": 224,
+        "llm_ms": 3909.2960999987554
+      }
+    },
+    {
+      "id": "fact-04",
+      "type": "factual",
+      "claims": [],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 396,
+        "completion_tokens": 242,
+        "llm_ms": 2375.2000000004045
+      }
+    },
+    {
+      "id": "fact-05",
+      "type": "factual",
+      "claims": [],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 334,
+        "completion_tokens": 262,
+        "llm_ms": 5323.9737000003515
+      }
+    },
+    {
+      "id": "fact-06",
+      "type": "factual",
+      "claims": [],
+      "correctness": "correct",
+      "completeness": "partial",
+      "missing_points": [
+        "it might be lower if kernel settings cannot support it"
+      ],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 227,
+        "completion_tokens": 186,
+        "llm_ms": 3526.657200000045
+      }
+    },
+    {
+      "id": "fact-07",
+      "type": "factual",
+      "claims": [],
+      "correctness": "correct",
+      "completeness": "partial",
+      "missing_points": [
+        "checking for tables with many inserted, updated or deleted rows"
+      ],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 344,
+        "completion_tokens": 462,
+        "llm_ms": 3727.459899999303
+      }
+    },
+    {
+      "id": "fact-08",
+      "type": "factual",
+      "claims": [],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 408,
+        "completion_tokens": 101,
+        "llm_ms": 1185.0579999991169
+      }
+    },
+    {
+      "id": "fact-09",
+      "type": "factual",
+      "claims": [],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 386,
+        "completion_tokens": 314,
+        "llm_ms": 2067.6511000001483
+      }
+    },
+    {
+      "id": "fact-11",
+      "type": "factual",
+      "claims": [],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 386,
+        "completion_tokens": 285,
+        "llm_ms": 3552.8204000002006
+      }
+    },
+    {
+      "id": "fact-12",
+      "type": "factual",
+      "claims": [],
+      "correctness": "correct",
+      "completeness": "partial",
+      "missing_points": [
+        "CURRENT_TIMESTAMP equivalence"
+      ],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 287,
+        "completion_tokens": 245,
+        "llm_ms": 2347.4442999995517
+      }
+    },
+    {
+      "id": "multi-01",
+      "type": "multi_hop",
+      "claims": [],
+      "correctness": "correct",
+      "completeness": "partial",
+      "missing_points": [
+        "Repeatable Read can fail with serialization errors."
+      ],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 493,
+        "completion_tokens": 377,
+        "llm_ms": 3463.4411000006367
+      }
+    },
+    {
+      "id": "multi-02",
+      "type": "multi_hop",
+      "claims": [],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 559,
+        "completion_tokens": 162,
+        "llm_ms": 3619.610099998681
+      }
+    },
+    {
+      "id": "multi-03",
+      "type": "multi_hop",
+      "claims": [],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 614,
+        "completion_tokens": 186,
+        "llm_ms": 2010.0837999998475
+      }
+    },
+    {
+      "id": "multi-04",
+      "type": "multi_hop",
+      "claims": [],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 670,
+        "completion_tokens": 249,
+        "llm_ms": 2754.9182000002475
+      }
+    },
+    {
+      "id": "multi-05",
+      "type": "multi_hop",
+      "claims": [],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 605,
+        "completion_tokens": 258,
+        "llm_ms": 2786.8857000012213
+      }
+    },
+    {
+      "id": "amb-01",
+      "type": "ambiguous",
+      "claims": [],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 736,
+        "completion_tokens": 229,
+        "llm_ms": 2500.4463999994186
+      }
+    },
+    {
+      "id": "amb-02",
+      "type": "ambiguous",
+      "claims": [],
+      "correctness": "partial",
+      "completeness": "partial",
+      "missing_points": [
+        "continuous archiving",
+        "file system level backup"
+      ],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 411,
+        "completion_tokens": 548,
+        "llm_ms": 5868.697699999757
+      }
+    },
+    {
+      "id": "amb-03",
+      "type": "ambiguous",
+      "claims": [],
+      "correctness": "correct",
+      "completeness": "partial",
+      "missing_points": [
+        "analyse plans with EXPLAIN"
+      ],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 506,
+        "completion_tokens": 279,
+        "llm_ms": 2623.309900000095
+      }
+    },
+    {
+      "id": "amb-04",
+      "type": "ambiguous",
+      "claims": [],
+      "correctness": "correct",
+      "completeness": "partial",
+      "missing_points": [
+        "row security policies (RLS)"
+      ],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 508,
+        "completion_tokens": 233,
+        "llm_ms": 3220.0329000006604
+      }
+    }
+  ]
+}

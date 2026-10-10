@@ -1,0 +1,1368 @@
+{
+  "meta": {
+    "name": "g1",
+    "time": "2026-10-08T17:10:03",
+    "judge_model": "nvidia/nemotron-3-super-120b-a12b",
+    "generator_model": "openai/gpt-oss-20b",
+    "judge_max_tokens": 8000,
+    "prompt_md5": "b0f970773ac5",
+    "chunks_md5": "db65e9d099d2929c2a40c540210b5acc",
+    "gen_run_time": "2026-10-08T11:51:26"
+  },
+  "summary": {
+    "answers_judged": 20,
+    "judge_errors": 0,
+    "claims": 109,
+    "claim_verdicts": {
+      "supported": 89,
+      "not_supported": 20
+    },
+    "claim_supported_rate": 0.8165137614678899,
+    "supported_only_by_uncited_source": 24,
+    "answers_with_contradicted_claim": 0,
+    "answers_with_not_supported_claim": 8,
+    "answers_fully_supported": 12,
+    "correctness": {
+      "correct": 18,
+      "partial": 2
+    },
+    "completeness": {
+      "complete": 14,
+      "partial": 6
+    },
+    "by_type": {
+      "factual": {
+        "n": 11,
+        "correctness": {
+          "correct": 10,
+          "partial": 1
+        },
+        "completeness": {
+          "complete": 9,
+          "partial": 2
+        }
+      },
+      "multi_hop": {
+        "n": 5,
+        "correctness": {
+          "correct": 5
+        },
+        "completeness": {
+          "complete": 4,
+          "partial": 1
+        }
+      },
+      "ambiguous": {
+        "n": 4,
+        "correctness": {
+          "partial": 1,
+          "correct": 3
+        },
+        "completeness": {
+          "partial": 3,
+          "complete": 1
+        }
+      }
+    },
+    "tokens": {
+      "prompt": 49470,
+      "completion": 80587
+    }
+  },
+  "per_question": [
+    {
+      "id": "fact-10",
+      "type": "factual",
+      "claims": [
+        {
+          "claim": "To stop a statement that runs for too long, set a timeout on the statement itself.",
+          "cited": [
+            2
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "Abort any statement that takes more than the specified amount of time."
+        },
+        {
+          "claim": "Use the statement_timeout parameter, which aborts any command that exceeds the specified duration.",
+          "cited": [
+            2
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "Abort any statement that takes more than the specified amount of time."
+        },
+        {
+          "claim": "Example (per‑session): SET statement_timeout = '5min';   -- abort after 5 minutes",
+          "cited": [
+            2
+          ],
+          "verdict": "not_supported",
+          "found_in_other_source": false,
+          "evidence": "If this value is specified without units, it is taken as milliseconds."
+        },
+        {
+          "claim": "or in postgresql.conf (affects all sessions, though it is usually discouraged): statement_timeout = 300000   # milliseconds",
+          "cited": [
+            2
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "Setting statement_timeout in postgresql.conf is not recommended because it would affect all sessions."
+        },
+        {
+          "claim": "When the timeout is reached, the statement is cancelled and an error is logged if log_min_error_statement is set to ERROR or lower.",
+          "cited": [
+            2
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "the statement that timed out will also be logged."
+        }
+      ],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 1838,
+        "completion_tokens": 2257,
+        "llm_ms": 39191.478499997174
+      }
+    },
+    {
+      "id": "multi-04",
+      "type": "multi_hop",
+      "claims": [
+        {
+          "claim": "An SQL dump (pg_dump) is a logical backup: it writes SQL commands that recreate the database, so the dump can be re‑loaded into newer PostgreSQL versions and even on different machine architectures.",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "pg_dump's output can generally be re-loaded into newer versions of PostgreSQL"
+        },
+        {
+          "claim": "It produces an internally consistent snapshot without blocking normal operations (except for exclusive‑lock operations).",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "Dumps created by pg_dump are internally consistent, meaning, the dump represents a snapshot"
+        },
+        {
+          "claim": "It is usually smaller than a physical copy because it does not dump indexes or WAL data.",
+          "cited": [],
+          "verdict": "not_supported",
+          "found_in_other_source": false,
+          "evidence": ""
+        },
+        {
+          "claim": "Continuous archiving, on the other hand, is a physical backup that copies the data directory and the write‑ahead log (WAL) files.",
+          "cited": [],
+          "verdict": "not_supported",
+          "found_in_other_source": false,
+          "evidence": ""
+        },
+        {
+          "claim": "It is server‑version‑specific.",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "file-level backups and continuous archiving are both extremely server-version-specific"
+        },
+        {
+          "claim": "It can be used for point‑in‑time recovery.",
+          "cited": [],
+          "verdict": "not_supported",
+          "found_in_other_source": false,
+          "evidence": ""
+        },
+        {
+          "claim": "It can be taken while the server is running (hot backup).",
+          "cited": [],
+          "verdict": "not_supported",
+          "found_in_other_source": false,
+          "evidence": ""
+        },
+        {
+          "claim": "It is typically faster to back up and restore than pg_dump.",
+          "cited": [],
+          "verdict": "not_supported",
+          "found_in_other_source": false,
+          "evidence": ""
+        },
+        {
+          "claim": "It results in a larger backup file.",
+          "cited": [],
+          "verdict": "not_supported",
+          "found_in_other_source": false,
+          "evidence": ""
+        }
+      ],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2006,
+        "completion_tokens": 5814,
+        "llm_ms": 45943.7665999867
+      }
+    },
+    {
+      "id": "amb-04",
+      "type": "ambiguous",
+      "claims": [
+        {
+          "claim": "To limit who can read or write your data you can use the following PostgreSQL mechanisms:",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "granting/revoking CONNECT privilege"
+        },
+        {
+          "claim": "**pg_hba.conf** – Define host‑based rules that allow only specific users or networks to connect to a database.",
+          "cited": [
+            1
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "pass the pg_hba.conf checks"
+        },
+        {
+          "claim": "*Example:* a rule that permits only `app_user` to connect to `mydb` from `192.168.1.0/24`[1].",
+          "cited": [
+            1
+          ],
+          "verdict": "not_supported",
+          "found_in_other_source": false,
+          "evidence": ""
+        },
+        {
+          "claim": "**CONNECT privilege** – Even if a user passes the pg_hba.conf checks, they must have the `CONNECT` privilege on the database. Grant or revoke this privilege to control who can connect.",
+          "cited": [
+            1
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "must not only pass the pg_hba.conf checks, but must have the CONNECT privilege"
+        },
+        {
+          "claim": "*Example:* `REVOKE CONNECT ON DATABASE mydb FROM PUBLIC; GRANT CONNECT ON DATABASE mydb TO app_user;`[1].",
+          "cited": [
+            1
+          ],
+          "verdict": "not_supported",
+          "found_in_other_source": false,
+          "evidence": ""
+        },
+        {
+          "claim": "**GRANT/REVOKE on tables and views** – Grant `SELECT`, `INSERT`, `UPDATE`, `DELETE`, etc., only to roles that need them.",
+          "cited": [
+            2,
+            4
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "GRANT SELECT ON phone_number TO assistant"
+        },
+        {
+          "claim": "*Example:* `GRANT SELECT ON phone_number TO assistant;` and revoke from others[2][4].",
+          "cited": [
+            2,
+            4
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "GRANT SELECT ON phone_number TO assistant"
+        },
+        {
+          "claim": "**Security‑barrier views** – If you need to hide rows or columns, create a view with the `security_barrier` flag so that the rule system cannot be bypassed by user‑defined functions.",
+          "cited": [
+            4
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "unless the security_barrier flag has been set"
+        },
+        {
+          "claim": "*Example:* `CREATE VIEW phone_number SECURITY BARRIER AS SELECT person, phone FROM phone_data WHERE phone NOT LIKE '412%';`[4].",
+          "cited": [
+            4
+          ],
+          "verdict": "not_supported",
+          "found_in_other_source": false,
+          "evidence": ""
+        },
+        {
+          "claim": "**File‑system permissions** – Ensure the data directory is only readable/writable by the PostgreSQL user (or group if needed). `initdb` sets these permissions automatically (0700 for directories, 0600 for files for owner‑only access; 0750/0640 if group read is allowed)[5].",
+          "cited": [
+            5
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "0700 for directories and 0600 for files"
+        }
+      ],
+      "correctness": "partial",
+      "completeness": "partial",
+      "missing_points": [
+        "row security policies"
+      ],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2605,
+        "completion_tokens": 4397,
+        "llm_ms": 34306.00409999897
+      }
+    },
+    {
+      "id": "fact-02",
+      "type": "factual",
+      "claims": [
+        {
+          "claim": "The syntax for the `ROLLBACK` command is: `ROLLBACK [ WORK | TRANSACTION ] [ AND [ NO ] CHAIN ]`",
+          "cited": [
+            1,
+            4
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "ROLLBACK [ WORK | TRANSACTION ] [ AND [ NO ] CHAIN ]"
+        },
+        {
+          "claim": "`WORK` or `TRANSACTION` are optional keywords that have no effect.",
+          "cited": [
+            1,
+            4
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "WORK TRANSACTION Optional key words. They have no effect."
+        },
+        {
+          "claim": "`AND CHAIN` (or `AND NO CHAIN`) starts a new transaction immediately after the rollback, preserving the same transaction characteristics as the one that just finished.",
+          "cited": [
+            1,
+            4
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "If AND CHAIN is specified, a new (not aborted) transaction is immediately started with the same transaction characteristics (see SET TRANSACTION) as the just finished one."
+        },
+        {
+          "claim": "A plain `ROLLBACK;` without any modifiers simply aborts the current transaction.",
+          "cited": [
+            1,
+            4
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "ROLLBACK rolls back the current transaction and causes all updates made by the transaction to be discarded."
+        }
+      ],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 1575,
+        "completion_tokens": 1248,
+        "llm_ms": 11340.215400006855
+      }
+    },
+    {
+      "id": "fact-03",
+      "type": "factual",
+      "claims": [
+        {
+          "claim": "`work_mem` sets the base maximum amount of memory that a single query operation (such as a sort, hash table, merge join, or DISTINCT) may use before it starts writing temporary data to disk.",
+          "cited": [
+            5,
+            1
+          ],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "Sets the base maximum amount of memory to be used by a query operation"
+        },
+        {
+          "claim": "Each operation is allowed to use up to this amount of memory, and multiple operations or sessions can use it concurrently, so the total memory consumption can be many times the `work_mem` value.",
+          "cited": [
+            5,
+            1
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "each operation generally being allowed to use as much memory as this value specifies"
+        },
+        {
+          "claim": "Hash‑based operations use `work_mem` multiplied by `hash_mem_multiplier` to determine their limit.",
+          "cited": [
+            5,
+            1
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "The memory limit for a hash table is computed by multiplying work_mem by hash_mem_multiplier"
+        }
+      ],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 1988,
+        "completion_tokens": 2541,
+        "llm_ms": 27015.271000011126
+      }
+    },
+    {
+      "id": "fact-04",
+      "type": "factual",
+      "claims": [
+        {
+          "claim": "`ALTER TABLE … SET LOGGED` changes a table’s persistence from **unlogged** to **logged** (or vice‑versa).",
+          "cited": [
+            1
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "changes the table from unlogged to logged or vice-versa"
+        },
+        {
+          "claim": "It cannot be applied to temporary tables, and it also changes the persistence of any sequences linked to the table (identity or serial columns) unless those sequences are altered separately.",
+          "cited": [
+            1
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "It cannot be applied to a temporary table."
+        }
+      ],
+      "correctness": "partial",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [
+        "The statement that SET LOGGED can change a table from logged to unlogged is incorrect; SET LOGGED only sets a table to logged; to make it unlogged you must use SET UNLOGGED."
+      ],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2230,
+        "completion_tokens": 2683,
+        "llm_ms": 46070.5517000024
+      }
+    },
+    {
+      "id": "fact-05",
+      "type": "factual",
+      "claims": [
+        {
+          "claim": "VACUUM FULL rewrites the whole table into a new file, compacting it so that all dead tuples are removed and the file size is reduced to the minimum needed.",
+          "cited": [
+            1,
+            4,
+            5
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "rewrites the entire contents of the table into a new disk file"
+        },
+        {
+          "claim": "This operation returns the freed space to the operating system.",
+          "cited": [
+            1,
+            4,
+            5
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "allowing unused space to be returned to the operating system"
+        },
+        {
+          "claim": "This operation requires an ACCESS EXCLUSIVE lock on the table.",
+          "cited": [
+            1,
+            4,
+            5
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "requires an ACCESS EXCLUSIVE lock on each table"
+        },
+        {
+          "claim": "This operation is much slower than a plain VACUUM.",
+          "cited": [
+            1,
+            4,
+            5
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "This form is much slower"
+        },
+        {
+          "claim": "Plain VACUUM only marks dead tuples as reusable within the table and does not release space to the OS.",
+          "cited": [
+            1,
+            4,
+            5
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "extra space is not returned to the operating system"
+        },
+        {
+          "claim": "VACUUM FULL also needs extra disk space for the new copy until the rewrite finishes.",
+          "cited": [
+            1,
+            4,
+            5
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "requires extra disk space for the new copy"
+        },
+        {
+          "claim": "Plain VACUUM can run in parallel and does not need that temporary space.",
+          "cited": [
+            1,
+            4,
+            5
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "can operate in parallel with normal reading and writing of the table"
+        }
+      ],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2567,
+        "completion_tokens": 3756,
+        "llm_ms": 34024.140499997884
+      }
+    },
+    {
+      "id": "fact-06",
+      "type": "factual",
+      "claims": [
+        {
+          "claim": "The default value of max_connections is typically 100 connections.",
+          "cited": [
+            1
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "The default is typically 100 connections"
+        }
+      ],
+      "correctness": "correct",
+      "completeness": "partial",
+      "missing_points": [
+        "it might be lower if kernel settings cannot support it"
+      ],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 1950,
+        "completion_tokens": 440,
+        "llm_ms": 5274.721699999645
+      }
+    },
+    {
+      "id": "fact-07",
+      "type": "factual",
+      "claims": [
+        {
+          "claim": "The autovacuum daemon is a background service that automatically runs VACUUM and ANALYZE on tables that have had a large number of inserted, updated, or deleted tuples.",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "automate the execution of VACUUM and ANALYZE commands"
+        },
+        {
+          "claim": "It consists of a launcher process that starts worker processes, one per database roughly every autovacuum_naptime seconds, up to autovacuum_max_workers workers at a time.",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "attempting to start one worker within each database every autovacuum_naptime seconds"
+        },
+        {
+          "claim": "Each worker scans the tables in its database and executes VACUUM and/or ANALYZE as needed, using the statistics collection facility and requiring track_counts to be true.",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "Each worker process will check each table and execute VACUUM and/or ANALYZE as needed"
+        },
+        {
+          "claim": "The daemon does not run for tables with autovacuum_enabled set to false (except for wrap‑around protection).",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "If false, this table will not be autovacuumed, except to prevent transaction ID wraparound"
+        },
+        {
+          "claim": "and it does not automatically analyze partitioned tables or inheritance parents if only children are modified.",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "does not process partitioned tables, nor does it process inheritance parents"
+        }
+      ],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2391,
+        "completion_tokens": 5085,
+        "llm_ms": 39581.916700000875
+      }
+    },
+    {
+      "id": "fact-08",
+      "type": "factual",
+      "claims": [
+        {
+          "claim": "PostgreSQL supports the following index types: B‑tree, Hash, GiST, SP‑GiST, GIN, BRIN, and the extension bloom.",
+          "cited": [
+            1
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "B-tree, Hash, GiST, SP-GiST, GIN, BRIN, and the extension bloom."
+        }
+      ],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 1867,
+        "completion_tokens": 826,
+        "llm_ms": 6410.375199993723
+      }
+    },
+    {
+      "id": "fact-09",
+      "type": "factual",
+      "claims": [
+        {
+          "claim": "Plain EXPLAIN only shows the planner’s estimates for costs, row counts, and the structure of the plan; the query is **not** run.",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "along with the same estimates that a plain EXPLAIN shows."
+        },
+        {
+          "claim": "EXPLAIN ANALYZE, by contrast, actually executes the statement, discarding any result rows but keeping side‑effects, and then reports the real row counts and the real execution time for each plan node (in addition to the same estimates that plain EXPLAIN shows) [1][4].",
+          "cited": [
+            1,
+            4
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "EXPLAIN actually executes the query, and then displays the true row counts"
+        },
+        {
+          "claim": "It also adds profiling overhead, so the query can run noticeably longer than a normal execution [3].",
+          "cited": [
+            3
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "running EXPLAIN ANALYZE on a query can sometimes take significantly longer"
+        },
+        {
+          "claim": "The timing shown includes executor start‑up, shutdown, and trigger execution, but not parsing, rewriting, or planning time, and can optionally include time to serialize the output if the SERIALIZE option is used [5].",
+          "cited": [
+            5
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "includes executor start-up and shut-down time, as well as the time to run any triggers"
+        }
+      ],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 1952,
+        "completion_tokens": 3137,
+        "llm_ms": 24247.857700000168
+      }
+    },
+    {
+      "id": "fact-11",
+      "type": "factual",
+      "claims": [
+        {
+          "claim": "The pg_hba.conf file controls client authentication.",
+          "cited": [
+            1,
+            4
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "Client authentication is controlled by a configuration file, which traditionally is named pg_hba.conf"
+        },
+        {
+          "claim": "It defines which hosts, databases and users are allowed to connect and which authentication method (password, SSL, GSSAPI, etc.) is required for each matching connection type and address range.",
+          "cited": [
+            1,
+            4
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "specifies a connection type, a client IP address range, a database name, a user name"
+        }
+      ],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 1909,
+        "completion_tokens": 1706,
+        "llm_ms": 14150.026499992236
+      }
+    },
+    {
+      "id": "fact-12",
+      "type": "factual",
+      "claims": [
+        {
+          "claim": "The function that returns the start time of the current transaction is transaction_timestamp() (which is equivalent to the SQL‑standard CURRENT_TIMESTAMP).",
+          "cited": [
+            2
+          ],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "transaction_timestamp() is equivalent to CURRENT_TIMESTAMP"
+        }
+      ],
+      "correctness": "correct",
+      "completeness": "partial",
+      "missing_points": [
+        "now() equivalence"
+      ],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2147,
+        "completion_tokens": 733,
+        "llm_ms": 8481.62360000424
+      }
+    },
+    {
+      "id": "multi-01",
+      "type": "multi_hop",
+      "claims": [
+        {
+          "claim": "READ COMMITTED: each statement sees a snapshot of rows that were committed before that statement began",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "A statement can only see rows committed before it began"
+        },
+        {
+          "claim": "READ COMMITTED: it can see new commits made by other transactions that occur between statements",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "A statement can only see rows committed before it began"
+        },
+        {
+          "claim": "REPEATABLE READ: the transaction takes a snapshot at the start of its first query or data-modification command",
+          "cited": [
+            2,
+            1
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "see rows committed before the first query"
+        },
+        {
+          "claim": "REPEATABLE READ: all subsequent statements see that same snapshot",
+          "cited": [
+            2,
+            1
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "successive SELECT commands within a single transaction see the same data"
+        },
+        {
+          "claim": "REPEATABLE READ: they never see changes committed by other transactions after the transaction began",
+          "cited": [
+            2,
+            1
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "never sees changes committed by concurrent transactions"
+        },
+        {
+          "claim": "REPEATABLE READ: they never see uncommitted data",
+          "cited": [
+            2,
+            1
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "never sees either uncommitted data"
+        }
+      ],
+      "correctness": "correct",
+      "completeness": "partial",
+      "missing_points": [
+        "Repeatable Read can fail with serialization errors."
+      ],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2236,
+        "completion_tokens": 3440,
+        "llm_ms": 27848.38499999023
+      }
+    },
+    {
+      "id": "multi-02",
+      "type": "multi_hop",
+      "claims": [
+        {
+          "claim": "To enable logical replication you must first configure the server for logical decoding and then create a publication and a subscription.",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "wal_level = logical"
+        },
+        {
+          "claim": "In `postgresql.conf` set wal_level = logical",
+          "cited": [
+            1,
+            3
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "wal_level must be set to logical."
+        },
+        {
+          "claim": "This is required for logical replication and logical decoding.",
+          "cited": [
+            1,
+            3
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "wal_level must be set to logical."
+        },
+        {
+          "claim": "Set max_replication_slots to at least the number of subscriptions you expect, and max_wal_senders to at least that number plus any physical replicas.",
+          "cited": [
+            1
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "max_replication_slots must be set to at least the number of subscriptions expected to connect"
+        },
+        {
+          "claim": "Add a line such as host all repuser 0.0.0.0/0 md5 to permit the replication user.",
+          "cited": [
+            2
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "host all repuser 0.0.0.0/0 md5"
+        },
+        {
+          "claim": "CREATE PUBLICATION mypub FOR TABLE users, departments;",
+          "cited": [
+            2
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "CREATE PUBLICATION mypub FOR TABLE users, departments;"
+        },
+        {
+          "claim": "CREATE SUBSCRIPTION mysub CONNECTION 'dbname=foo host=bar user=repuser' PUBLICATION mypub;",
+          "cited": [
+            2
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "CREATE SUBSCRIPTION mysub CONNECTION 'dbname=foo host=bar user=repuser' PUBLICATION mypub;"
+        },
+        {
+          "claim": "This starts the replication process, synchronizing the initial table contents and then replicating incremental changes.",
+          "cited": [
+            2
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "start the replication process, which synchronizes the initial table contents"
+        }
+      ],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2255,
+        "completion_tokens": 2850,
+        "llm_ms": 30974.814200002584
+      }
+    },
+    {
+      "id": "multi-03",
+      "type": "multi_hop",
+      "claims": [
+        {
+          "claim": "To create a partitioned table you declare the table with a partitioning method and a list of partition‑key columns, then attach child tables that hold the data.",
+          "cited": [],
+          "verdict": "not_supported",
+          "found_in_other_source": true,
+          "evidence": "The declaration includes the partitioning method plus a list of columns."
+        },
+        {
+          "claim": "The parent table itself has no storage; all rows are stored in the child tables that match the partition bounds.",
+          "cited": [
+            3,
+            4
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "The partitioned table itself is a “virtual” table having no storage of its own."
+        },
+        {
+          "claim": "The constraint’s columns must include all partition‑key columns of the table (and of any ancestor tables in a multi‑level hierarchy).",
+          "cited": [
+            1,
+            5
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "the constraint's columns must include all of the partition key columns."
+        },
+        {
+          "claim": "The partition key cannot contain expressions or function calls; the constraint must reference the raw key columns only.",
+          "cited": [
+            1
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "the partition keys must not include any expressions or function calls"
+        },
+        {
+          "claim": "A unique or primary‑key constraint is virtual: it creates a matching btree index on each child partition automatically.",
+          "cited": [
+            5
+          ],
+          "verdict": "not_supported",
+          "found_in_other_source": true,
+          "evidence": "An index or unique constraint declared on a partitioned table is “virtual”"
+        },
+        {
+          "claim": "If the table is partitioned, you cannot add a UNIQUE constraint that omits any partition‑key column; otherwise the constraint is rejected.",
+          "cited": [
+            1
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "the constraint's columns must include all of the partition key columns."
+        },
+        {
+          "claim": "These rules ensure that uniqueness can be enforced within each partition and that the partition structure guarantees no duplicates across partitions.",
+          "cited": [],
+          "verdict": "not_supported",
+          "found_in_other_source": true,
+          "evidence": "the partition structure itself must guarantee that there are not duplicates in different partitions"
+        }
+      ],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 3010,
+        "completion_tokens": 6171,
+        "llm_ms": 45808.21270000888
+      }
+    },
+    {
+      "id": "multi-05",
+      "type": "multi_hop",
+      "claims": [
+        {
+          "claim": "To enable SSL and force it for selected clients you need two steps.",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "listen for both normal and SSL connections on the same TCP port"
+        },
+        {
+          "claim": "In postgresql.conf set ssl = on.",
+          "cited": [
+            4
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "setting the parameter ssl to on in postgresql.conf"
+        },
+        {
+          "claim": "Place a server certificate (server.crt) and its private key (server.key) in the data directory (or specify other names with ssl_cert_file and ssl_key_file).",
+          "cited": [
+            4
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "server.crt and server.key, respectively, in the server's data directory"
+        },
+        {
+          "claim": "Ensure the key file is readable only by the PostgreSQL user (e.g., chmod 0600 server.key).",
+          "cited": [
+            4
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "achieve this by the command chmod 0600 server.key"
+        },
+        {
+          "claim": "Restart the server.",
+          "cited": [
+            4
+          ],
+          "verdict": "not_supported",
+          "found_in_other_source": false,
+          "evidence": ""
+        },
+        {
+          "claim": "This makes the server listen for both normal and SSL connections on the same port and negotiates SSL with any client that requests it.",
+          "cited": [
+            4
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "listen for both normal and SSL connections on the same TCP port"
+        },
+        {
+          "claim": "Use a hostssl line for the clients you want to force SSL.",
+          "cited": [
+            3
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "appropriate hostssl line(s)"
+        },
+        {
+          "claim": "Optionally add clientcert=verify-ca or clientcert=verify-full to require a trusted client certificate and, for verify-full, also match the certificate’s Common Name to the database user.",
+          "cited": [
+            3
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "matches the cn (Common Name) of the provided certificate"
+        },
+        {
+          "claim": "hostssl   all   all   192.168.1.0/24   md5   clientcert=verify-ca",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "add the authentication option clientcert=verify-ca to the hostssl line"
+        },
+        {
+          "claim": "This line forces any connection from the 192.168.1.0/24 subnet to use SSL and to present a certificate signed by a trusted CA.",
+          "cited": [
+            3
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "requested from the client during SSL connection"
+        },
+        {
+          "claim": "The server will still accept non‑SSL connections from other hosts unless they are also listed with hostssl.",
+          "cited": [
+            3
+          ],
+          "verdict": "not_supported",
+          "found_in_other_source": false,
+          "evidence": ""
+        },
+        {
+          "claim": "The clientcert option is only available on hostssl lines.",
+          "cited": [
+            3
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "only in pg_hba.conf lines specified as hostssl"
+        }
+      ],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 5250,
+        "completion_tokens": 13647,
+        "llm_ms": 114126.94259997807
+      }
+    },
+    {
+      "id": "amb-01",
+      "type": "ambiguous",
+      "claims": [
+        {
+          "claim": "Add indexes on the columns used in WHERE or JOIN clauses – PostgreSQL will automatically keep them up‑to‑date and use them when they help the planner avoid a sequential scan.",
+          "cited": [
+            5
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "use the index in queries when it thinks doing so would be more efficient"
+        },
+        {
+          "claim": "CREATE INDEX idx_col ON big_table(col);",
+          "cited": [
+            5
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "Indexes can be added to and removed from tables at any time."
+        },
+        {
+          "claim": "Use covering (INCLUDE) indexes – If a query needs extra columns that are not part of the search key, include them in the index so the planner can perform an index‑only scan and avoid touching the heap.",
+          "cited": [
+            1
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "could handle these queries as index-only scans, because y can be obtained from the index"
+        },
+        {
+          "claim": "CREATE INDEX big_table_col_y ON big_table(col) INCLUDE (y);",
+          "cited": [
+            1
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "CREATE INDEX tab_x_y ON tab(x) INCLUDE (y);"
+        },
+        {
+          "claim": "Create partial indexes – When many rows share a common value that is rarely queried, exclude those rows from the index to reduce its size and update cost.",
+          "cited": [
+            4
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "This reduces the size of the index"
+        },
+        {
+          "claim": "CREATE INDEX access_log_client_ip_ix ON access_log(client_ip) WHERE NOT (client_ip > inet '192.168.100.0' AND client_ip < inet '192.168.100.255');",
+          "cited": [
+            4
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "CREATE INDEX access_log_client_ip_ix ON access_log (client_ip) WHERE"
+        },
+        {
+          "claim": "Keep statistics current – Run ANALYZE regularly so the planner has accurate data to decide when to use an index.",
+          "cited": [
+            5
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "run the ANALYZE command regularly to update statistics"
+        },
+        {
+          "claim": "Increase maintenance_work_mem while building large indexes – This speeds up CREATE INDEX and ALTER TABLE ADD FOREIGN KEY operations.",
+          "cited": [
+            2
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "speed up CREATE INDEX commands"
+        },
+        {
+          "claim": "By combining these techniques—appropriate indexes, covering or partial indexes, up‑to‑date statistics, and sufficient memory for maintenance—you can significantly improve query performance on large tables.",
+          "cited": [],
+          "verdict": "not_supported",
+          "found_in_other_source": false,
+          "evidence": ""
+        }
+      ],
+      "correctness": "correct",
+      "completeness": "partial",
+      "missing_points": [
+        "Inspect query plans with EXPLAIN",
+        "Consider partitioning"
+      ],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 5303,
+        "completion_tokens": 12571,
+        "llm_ms": 103682.05170000147
+      }
+    },
+    {
+      "id": "amb-02",
+      "type": "ambiguous",
+      "claims": [
+        {
+          "claim": "To back up a PostgreSQL database you can use one of the three supported methods:",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "There are three fundamentally different approaches to backing up PostgreSQL data:"
+        },
+        {
+          "claim": "1. **Logical dump (SQL dump)** – use `pg_dump` for a single database or `pg_dumpall` for the whole cluster.",
+          "cited": [
+            1,
+            5
+          ],
+          "verdict": "not_supported",
+          "found_in_other_source": false,
+          "evidence": ""
+        },
+        {
+          "claim": "pg_dumpall > outputfile",
+          "cited": [
+            1,
+            5
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "pg_dumpall > outputfile"
+        },
+        {
+          "claim": "2. **File‑system level backup** – copy the data directory while the server is stopped.",
+          "cited": [
+            2
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "The database server must be shut down in order to get a usable backup."
+        },
+        {
+          "claim": "tar -cf backup.tar /usr/local/pgsql/data",
+          "cited": [
+            2
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "tar -cf backup.tar /usr/local/pgsql/data"
+        },
+        {
+          "claim": "3. **Base backup (continuous‑archiving friendly)** – use `pg_basebackup` to create a consistent copy of the cluster.",
+          "cited": [
+            3
+          ],
+          "verdict": "not_supported",
+          "found_in_other_source": false,
+          "evidence": ""
+        },
+        {
+          "claim": "pg_basebackup -D /usr/local/pgsql/data",
+          "cited": [
+            3
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "$ pg_basebackup -D /usr/local/pgsql/data"
+        }
+      ],
+      "correctness": "correct",
+      "completeness": "complete",
+      "missing_points": [],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2261,
+        "completion_tokens": 4513,
+        "llm_ms": 36936.93229999917
+      }
+    },
+    {
+      "id": "amb-03",
+      "type": "ambiguous",
+      "claims": [
+        {
+          "claim": "auto_explain module logs execution plans for statements that exceed a given duration",
+          "cited": [
+            1,
+            3
+          ],
+          "verdict": "supported",
+          "found_in_other_source": false,
+          "evidence": "logging execution plans of slow statements"
+        },
+        {
+          "claim": "Loading the module requires superuser or adding it to session_preload_libraries/shared_preload_libraries in postgresql.conf",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "You must be superuser to do that."
+        },
+        {
+          "claim": "Setting auto_explain.log_min_duration defines the threshold for slow queries",
+          "cited": [],
+          "verdict": "not_supported",
+          "found_in_other_source": false,
+          "evidence": ""
+        },
+        {
+          "claim": "Enabling auto_explain.log_analyze = true includes actual run-time statistics",
+          "cited": [],
+          "verdict": "not_supported",
+          "found_in_other_source": false,
+          "evidence": ""
+        },
+        {
+          "claim": "The module writes log entries containing the plan and timing for each slow query",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "LOG: duration: 3.651 ms plan:"
+        },
+        {
+          "claim": "The log will contain the duration and the plan, allowing you to identify and investigate slow queries",
+          "cited": [],
+          "verdict": "supported",
+          "found_in_other_source": true,
+          "evidence": "LOG: duration: 3.651 ms plan:"
+        }
+      ],
+      "correctness": "correct",
+      "completeness": "partial",
+      "missing_points": [
+        "log_min_duration_statement",
+        "EXPLAIN"
+      ],
+      "conflicts": [],
+      "error": null,
+      "usage": {
+        "prompt_tokens": 2130,
+        "completion_tokens": 2772,
+        "llm_ms": 27924.990700019407
+      }
+    }
+  ]
+}
