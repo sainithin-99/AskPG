@@ -1,0 +1,15 @@
+.git
+.github
+.vscode
+.pytest_cache
+__pycache__
+*.pyc
+.env
+.venv
+qdrant_storage
+data/raw
+data/traces
+eval
+tests
+experiments.md
+README_draft.md

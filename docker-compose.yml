@@ -1,0 +1,44 @@
+# AskPG: Qdrant + one-shot indexer + app. WRITTEN OFFLINE, NOT YET RUN.
+#
+#   docker compose build
+#   docker compose up
+#   open http://localhost:8000/
+#
+# Needs a .env in the repo root (LLM_BASE_URL, LLM_API_KEY, LLM_MODEL ...). It is passed at run time and never
+# copied into the image (.dockerignore excludes it). Stop your local `uvicorn` first: port 8000 must be free.
+# This Qdrant does not publish 6333, so it does not clash with your local `qdrant` container.
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.19.1@sha256:12364fe851b9f17356fc88189fc06d1b521262e04659ec7345975b00c9246a10
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  indexer:
+    build: .
+    image: askpg:local
+    command: python scripts/ensure_index.py
+    environment:
+      QDRANT_URL: http://qdrant:6333
+    depends_on:
+      - qdrant
+    restart: "no"
+
+  app:
+    image: askpg:local
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      QDRANT_URL: http://qdrant:6333
+      ASKPG_TRACE_PATH: /app/traces/requests.jsonl
+    volumes:
+      - traces:/app/traces
+    depends_on:
+      qdrant:
+        condition: service_started
+      indexer:
+        condition: service_completed_successfully
+
+volumes:
+  qdrant_data:
+  traces:
