@@ -93,3 +93,9 @@ def test_trace_round_trip(tmp_path):
 
 def test_pct_empty_is_nan():
     assert math.isnan(ev.pct([], 50))
+
+def test_summarize_error_records_do_not_count_as_zero_retrieval():
+    ok = {"status": "ok", "latency_ms": {"embed_ms": 10, "llm_ms": 100, "total_ms": 120}, "usage": {}}
+    err = {"status": "retrieval_error", "latency_ms": {"total_ms": 5}}
+    s = tr.summarize([ok, err])
+    assert s["latency_ms"]["retrieval_ms"]["p50"] == 10

@@ -64,16 +64,19 @@ def last_per_key(records: list[dict], key: str = "qid") -> dict:
     return out
 
 
-def summarize(records: list[dict]) -> dict:
+def summarize(records: list[dict]) -> dict: 
     stages = defaultdict(list)
     for r in records:
         lat = r.get("latency_ms") or {}
         retrieval = 0.0
+        has_stage = False
         for s, v in lat.items():
             if s not in ("llm_ms", "total_ms"):
                 stages[s].append(v)
                 retrieval += v
-        stages["retrieval_ms"].append(retrieval)
+                has_stage = True
+        if has_stage:
+            stages["retrieval_ms"].append(retrieval)
         stages["total_ms"].append(lat.get("total_ms", 0.0))
         if r.get("status") != "llm_error" and "llm_ms" in lat:
             stages["llm_ms"].append(lat["llm_ms"])
