@@ -33,7 +33,7 @@ Harmless warnings: HF_TOKEN "unauthenticated" notice; "position_ids UNEXPECTED" 
 
 | Stage | Setting |
 |---|---|
-| Chunk budget | MAX_TOKENS=400, OVERLAP_TOKENS=60, MIN_TOKENS=25, counted with the BERT tokenizer of the embedder (not tiktoken) |
+| Chunk budget | MAX_TOKENS=380, OVERLAP_TOKENS=60, MIN_TOKENS=25, counted with the BERT tokenizer of the embedder (not tiktoken). Verified 12 Oct 2026: re-chunking with the committed code at 380 reproduces chunks.jsonl byte for byte (md5 db65e9d099d2929c2a40c540210b5acc, 6489 chunks); 400 gives 6252 chunks (md5 a5a66bc4f2d9508e729d4e1e7ab44278). Earlier notes saying 400 were wrong. |
 | Chunk size result | 6489 chunks, tokens min 25 / median 276 / max 472; 0 truncated by the embedder |
 | Embedded text | breadcrumb (`context`) + newline + body |
 | Index | collection askpg_pg17, 6489 points, deterministic uuid5 point ids |
