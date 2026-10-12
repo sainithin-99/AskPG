@@ -52,6 +52,7 @@ except ImportError:
 LLM_BASE_URL = os.environ.get("LLM_BASE_URL") or "http://localhost:11434/v1"
 LLM_API_KEY = os.environ.get("LLM_API_KEY") or "ollama"
 LLM_MODEL = os.environ.get("LLM_MODEL") or "llama3.1:8b"
+LLM_TIMEOUT_S = float(os.environ.get("LLM_TIMEOUT_S") or 60)
 PRICE_IN_PER_M = float(os.environ.get("LLM_PRICE_IN_PER_M") or 0)
 PRICE_OUT_PER_M = float(os.environ.get("LLM_PRICE_OUT_PER_M") or 0)
 
@@ -130,7 +131,7 @@ def make_llm():
     (The openai client's own max_retries=2 retries are not throttled; they only fire on errors.)"""
     from openai import OpenAI
 
-    client = OpenAI(base_url=LLM_BASE_URL, api_key=LLM_API_KEY, timeout=120, max_retries=2)
+    client = OpenAI(base_url=LLM_BASE_URL, api_key=LLM_API_KEY, timeout=LLM_TIMEOUT_S, max_retries=2)
     last_call = [0.0]  # time.perf_counter() of the previous call
 
     def call(messages: list[dict]):
