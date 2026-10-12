@@ -254,10 +254,11 @@ def run(name: str, retriever_name: str, allow_missing: bool) -> None:
           f"{len(scored)} answerable, {len(unans)} unanswerable) ===")
     cols = ["n", "success@1", "success@3", "success@5", "success@10", "gold_recall@5", "mrr",
             "distinct_sections_top5"]
-    print(f"{'group':<12}" + "".join(f"{c:>14}" for c in cols))
+    W = {c: max(14, len(c) + 1) for c in cols}
+    print(f"{'group':<12}" + "".join(f"{c:>{W[c]}}" for c in cols))
     for label, m in [("ALL", overall), *by_type.items()]:
         print(f"{label:<12}" + "".join(
-            f"{m[c]:>14.0f}" if c == "n" else f"{m[c]:>14.3f}" for c in cols))
+            f"{m[c]:>{W[c]}.0f}" if c == "n" else f"{m[c]:>{W[c]}.3f}" for c in cols))
 
     print("\nLatency (ms), single process, warm, one query at a time:")
     for stage, xs in lat.items():

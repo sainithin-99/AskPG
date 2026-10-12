@@ -2,7 +2,7 @@
 Ingest the PostgreSQL docs: crawl -> parse -> chunk -> JSONL.
 
 Usage (run from the repo root):
-    pip install requests beautifulsoup4 tiktoken
+    install requests beautifulsoup4 transformers
     python src/ingest.py download      # crawl HTML into data/raw/ (cached, resumable)
     python src/ingest.py chunk         # parse + chunk into data/chunks/chunks.jsonl
     python src/ingest.py sample -n 20  # print random chunks for your eyeball check
@@ -25,7 +25,6 @@ from urllib.parse import urldefrag, urljoin
 from transformers import AutoTokenizer
 
 import requests
-import tiktoken
 from bs4 import BeautifulSoup, NavigableString
 
 # --------------------------------------------------------------------------- config
@@ -36,8 +35,9 @@ ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT / "data" / "raw"
 OUT_PATH = ROOT / "data" / "chunks" / "chunks.jsonl"
 
-# Token budgets. bge-small has a 512-token limit on ITS tokenizer; we count with
-# tiktoken (cl100k) as a proxy, so leave headroom.
+# Token budgets. Tokens are counted with the embedder's own BERT tokenizer (see ntok below),
+# not tiktoken. bge-small has a 512-token limit on that tokenizer; MAX_TOKENS leaves headroom
+# for the overlap and held-back lead-ins that are added on top, and for the breadcrumb.
 MAX_TOKENS = 380
 OVERLAP_TOKENS = 60
 MIN_TOKENS = 25  # drop fragments smaller than this (usually heading-only sections)

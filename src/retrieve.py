@@ -18,7 +18,7 @@ Usage (from the repo root):
 
 Score meaning differs per mode, so never compare scores across modes:
     vector = cosine, bm25 = BM25 score, hybrid = RRF score (tiny, rank-based),
-    hybrid_rerank = cross-encoder logit. For an "unanswerable" threshold the reranker
+    hybrid_rerank = cross-encoder score (sigmoid of the logit, 0-1). For an "unanswerable" threshold the reranker
     score is the most informative one; calibrate it on the eval set.
 
 Payloads come from data/chunks/chunks.jsonl (loaded once), not from Qdrant, so BM25 and vector
