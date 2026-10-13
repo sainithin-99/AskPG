@@ -1,5 +1,7 @@
 # AskPG experiment log
 
+Last updated 13 Oct 2026. Sections 18-22 were added from the project notes of 12 Oct (not from re-read result files): each states its source. Section 23 (13 Oct container re-check) comes from console output and a trace line pasted on 13 Oct. The LLM-timeout step (generate.py) was in progress and is NOT logged yet; its scripts (timeout_check.py, timeout_check2.py) are untracked and were not read.
+
 Rules for this file
 - Every run gets a row with numbers. Every finding says whether it is VERIFIED (from saved results), HYPOTHESIS (untested) or RETRACTED.
 - Bug fixes define the baseline and are not experiments. Diagnostic findings are logged as findings; their fixes are logged as separate experiments.
@@ -52,8 +54,8 @@ Harmless warnings: HF_TOKEN "unauthenticated" notice; "position_ids UNEXPECTED" 
 | Version | What changed | Chunks | Dropped | Truncated at 512 | Index time | Notes |
 |---|---|---|---|---|---|---|
 | v0 | tiktoken budget 380, CPU | 6008 | n/a | 83 silently truncated | 807 s | wrong tokenizer for the embedder |
-| v1 | BERT-tokenizer budget 400, GPU | 6499 | 1019 | 0 | 104 s | tokenizer fix; many drops of small sections |
-| v2 | merge small sections into a neighbour; skip See Also / Author(s) | 6489 | 33 | 0 | 90 s | 762 merged, 243 skipped (211 See Also, 21 Author, 11 Authors; all verified legitimate); `covers` field added |
+| v1 | BERT-tokenizer budget (value at the time NOT verified; earlier notes said 400, which was wrong for v3), GPU | 6499 | 1019 | 0 | 104 s | tokenizer fix; many drops of small sections |
+| v2 | (budget value not verified) merge small sections into a neighbour; skip See Also / Author(s) | 6489 | 33 | 0 | 90 s | 762 merged, 243 skipped (211 See Also, 21 Author, 11 Authors; all verified legitimate); `covers` field added |
 | anchor fix | heading_anchor() tries several HTML layouts | 6489 | n/a | n/a | n/a | chunks with '#anchor' in the url: 0 -> 6489/6489 |
 | v3 | chunk_blocks fix (lead-in stays with next block; short tail appended to previous chunk) + first chunk of a merged section takes covers[0] anchor/breadcrumb | 6489 | 13 (true loss 2) | 0 | 81 s | tokens 25 / 276 / 472; verified on sql-rollback (chunk 0000 url ends #SQL-ROLLBACK with context "ROLLBACK"; chunk 0002 is "ROLLBACK > Examples") |
 
@@ -286,13 +288,15 @@ LLM refusal probes (6 Oct 2026, openai/gpt-oss-20b, hybrid_rerank, k=5, n=3, NOT
 
 ## 10. LLM provider notes
 
-Provider: NVIDIA build.nvidia.com free API (https://integrate.api.nvidia.com/v1). Probed 30 Sep - 1 Oct 2026, not re-probed since; re-probe with src\probe_llm.py before generation runs and record the exact model id and date for every run.
+Provider: NVIDIA build.nvidia.com free API (https://integrate.api.nvidia.com/v1). Probed 30 Sep - 1 Oct 2026 and again 8 Oct 2026 (nemotron-3-super-120b-a12b OK, gpt-oss-20b OK, nemotron-3-nano-omni-30b-a3b-reasoning HTTP 503); gpt-oss-20b also answered on 10 Oct (cb1 smoke test) and 12 Oct (container, rotated key). No full re-probe since 8 Oct; re-probe with src\probe_llm.py (it does not load .env) before the next generation run and record the exact model id and date for every run.
 - Working default: openai/gpt-oss-20b (about 2.8 s on the first test; 3.0-8.9 s on the 6 Oct refusal probes, 91-125 output tokens): LLM latency is highly variable, report p50/p95.
 - Also callable: nvidia/nemotron-3-nano-omni-30b-a3b-reasoning (ok, about 12 s); nvidia/nemotron-3-super-120b-a12b (good answers, cites with the full-width bracket, handled by normalization).
 - Avoid: nemotron-3-ultra-550b and nemotron-3.5-lightning (reasoning leaks into the answer, slow), glm-5.3-flash (empty, slow); kimi-k3, deepseek-v4.1-flash, glm-5.3 timed out.
 - Listed by /models but not callable by this account (HTTP 404): llama-3.1-nemotron-70b/51b, mistral and others. Every model that answered is a reasoning model.
 - Limits: about 40 requests/minute (429s), limited free credits, no per-token billing. Latency includes the network and must be reported separately from local numbers. Reasoning models spend max_tokens on hidden thinking (generate.py raises a clear error on an empty answer).
 - Cost: LLM_PRICE_IN_PER_M and LLM_PRICE_OUT_PER_M are currently 0, so cost prints $0. Before the generation eval set a STATED reference price and record its source here: price in = FILL IN USD per 1M tokens, price out = FILL IN USD per 1M tokens, source = FILL IN (URL and date). Cost in the write-up is an estimate from token counts, not a bill.
+- Hosted-model non-reproducibility: at temperature 0 the same question can run away in hidden reasoning once and finish normally on rerun (cb1 fact-08, fact-09); LLM time for the same work_mem question was 4.2 s then 9.9 s locally, and 8.4 s then 4.4 s in the container (12 Oct).
+- Client timeout: generate.py uses `timeout=120, max_retries=2` (a hung call can take up to about 6 min). An LLM_TIMEOUT_S setting (default 60 s, MY choice, not measured: g1's slowest call was 32 s; the cb1 outlier of 130 s looked like a hung call plus a retry) was being added on 12-13 Oct: IN PROGRESS, not logged as done.
 - Local fallback: Ollama (llama3.1:8b / llama3.2:3b); a 6 GB GPU shared with the reranker may spill to CPU.
 
 ## 11. Security incident and checklist
@@ -309,6 +313,7 @@ Checklist (tick only after verifying each step yourself):
 - [ ] repo history shows one clean commit
 - [ ] secret scanning and push protection enabled on the GitHub repo
 - [ ] GitGuardian alert marked resolved
+- [ ] SECOND EXPOSURE (11 Oct, chat transcript only, not the repo: `docker compose config` printed the live key): key rotation reported done by me on 12 Oct and again on 13 Oct; after the 13 Oct `docker compose up -d --force-recreate` the app container answered real questions (section 23), so the NEW key works. Whether the OLD key is revoked in the NVIDIA console is implied by "rotated" but not separately confirmed: tick the first box and this one once you have looked at the console.
 
 ## 12. Known limitations (README material)
 
@@ -339,9 +344,10 @@ Checklist (tick only after verifying each step yourself):
 | E8 | Merge already-kept small sections (sql-altertable crowding) | crowding on command pages | success@k | re-chunk, re-baseline |
 | E9 | v3 gate-order fix in chunk_blocks (size check after popping held lead-ins) | sql-comment:0006 duplicate | chunk count, dropped count | re-chunk, re-baseline |
 | E10 | SPLIT_IDENTIFIERS=True in the BM25 tokenizer | "work mem" vs work_mem | bm25 and hybrid success@k | none |
+| E12 | RERANK_TOP 10 / 20 / 30 on the CPU path (one change per run, gate running) | CPU rerank about 15 s per request in the container (n=3) | rerank ms and success@5 per setting; n=21, so a one-question drop is noise | possible recall loss; E3 (deeper) is the opposite direction and stays separate |
 | E11 | LLM comparison (gpt-oss-20b vs others), refusal behaviour on the unanswerable set incl. near-misses, closed-book baseline | decides whether a refusal gate is worth building | faithfulness, answer correctness, refusal precision/recall, tokens, cost, latency p50/p95 | rate limit, credits |
 
-Not yet written: generation metrics in run_eval.py (faithfulness, answer correctness, closed-book baseline); tracing and p50/p95 aggregation across many queries; CI regression gate.
+Status 13 Oct: tracing and p50/p95 aggregation done (tracing.py, used by api.py and the gen runs); judge, snippet check and closed-book baseline written and run; local retrieval gate written and tested; unit tests (29) and a CI workflow for them written. Still not written: a CI gate that needs the corpus (it cannot run on a clean runner).
 
 ## 14. Template for every new entry
 
@@ -448,7 +454,7 @@ Sample: all 20 flagged claims in 8 answers + 4 seeded random fully-supported ans
 7. Rule 4 behaviour is undecided; the snippet check has known gaps.
 8. LLM latency includes the network and varies 2-32 s with output length.
 
-### 15.10 To fill in / update elsewhere in this file
+### 15.10 To fill in / update elsewhere in this file (APPLIED 13 Oct: sections 10 and 13 updated above; section 1 FILL INs remain)
 
 - Section 10: add the 8 Oct probe (nemotron-3-super-120b-a12b OK, gpt-oss-20b OK, nemotron-3-nano-omni-30b-a3b-reasoning HTTP 503). Update "not re-probed since 1 Oct".
 - Section 13: replace "Not yet written: generation metrics ..." with: tracing and p50/p95 done (tested by g1); judge and snippet check written; still not written: closed-book baseline, CI gate.
@@ -539,9 +545,9 @@ HONEST FRAMING for the write-up: "On this dataset retrieval does not buy measura
 
 - FastAPI 0.143.0, uvicorn 0.34.3, ONE worker with a lock around the pipeline (the models and the generate.py LLM throttle keep in-process state and are not thread-safe). Wait time is stored as queue_wait_ms in each trace. Scaling out means a separate retrieval service, not more workers.
 - Endpoints: POST /ask, GET /health, GET /stats, GET / (the frontend). Status codes: ok / refused / citation_failed -> 200; llm_error -> 502; retrieval failure -> 503.
-- Traces: one JSONL line per request in data/traces/requests.jsonl (gitignored). api.py has its OWN trace format and does not use src/tracing.py (the docstring wrongly says tracing.py was unavailable: see section 15.8 style correction; unify them).
+- Traces: one JSONL line per request in data/traces/requests.jsonl (gitignored). SUPERSEDED: this was api.py v0.1.0's own trace format; v0.2.0 (11 Oct) uses src/tracing.py, see section 18.
 - [VERIFIED by running] server starts, /ask answers with citations, a trace line is written, the frontend shows the work_mem answer with clickable citations. One trace (work_mem), a sample, not a benchmark: wall 12.96 s, llm 11.7 s (about 90%), rerank 1.1 s, vector_ms 107 (vs 10-20 ms in the d3 timings: probably a cold first call, unverified).
-- NOT tested: concurrent requests, the 503 path (Qdrant down), the 502 path (bad model name), /stats output, the refusal and COMMENT cases in the browser.
+- Tested later (11-12 Oct): 503, 502, concurrency, /stats: see section 19. Still not looked at in the browser: the refusal and COMMENT cases. NOT tested: a hanging Qdrant, a provider timeout or 429.
 - Open: the trace has no retrieval scores and no answer text; it stores user questions, so a public deployment needs a retention policy.
 
 ### 17.2 API smoke test (eval/smoke_api.py, 10 Oct)
@@ -558,8 +564,8 @@ HONEST FRAMING for the write-up: "On this dataset retrieval does not buy measura
 
 ### 17.3 Unit tests and CI (11 Oct)
 
-- tests/conftest.py + tests/test_core.py: 18 tests, all PASS locally (`python -m pytest tests -q`, 0.15 s). They cover check_citations, normalize_citations, strip_think, rrf_fuse, tokenize, norm_heading / norm_page / chunk_keys / gold_key, score_question, summarize, coverage_check, check_gold, tracing. bm25s and embed_index are stubbed; nothing touches a model, Qdrant or real chunks. The expected values were written by hand before the first run.
-- .github/workflows/ci.yml runs the same tests on push. GitHub Actions result: FILL IN (not seen when this was written).
+- (11 Oct) tests/conftest.py + tests/test_core.py: 18 tests, all PASS locally (`python -m pytest tests -q`, 0.15 s). They cover check_citations, normalize_citations, strip_think, rrf_fuse, tokenize, norm_heading / norm_page / chunk_keys / gold_key, score_question, summarize, coverage_check, check_gold, tracing. bm25s and embed_index are stubbed; nothing touches a model, Qdrant or real chunks. The expected values were written by hand before the first run.
+- .github/workflows/ci.yml runs the same tests on push. GitHub Actions: green on the first 5 runs; I reported the check of the newest run (d898728) as done on 12 Oct but did not paste the test count (expected 29: FILL IN). Later growth to 29 tests is in section 18.
 
 ### 17.4 Retrieval regression gate (eval/gate_retrieval.py, 11 Oct): a test of the INSTRUMENT, not an experiment
 
@@ -567,7 +573,7 @@ Setting: current code and index (v3, 6489 chunks), labels d3, baselines eval\res
 
 | run | mode | success@5 | success@1 | MRR | LOST / GAINED | result |
 |---|---|---|---|---|---|---|
-| deliberately broken: RERANK_TOP = FILL IN (normal value 30) | hybrid_rerank | 0.619 (13/21) | 0.524 | 0.563 | LOST fact-02, fact-10, multi-02, amb-01, amb-04; GAINED fact-01 | FAIL (drop 4 questions, MRR drop 0.131) |
+| deliberately broken: RERANK_TOP lowered, value NOT recorded (normal value 30; lesson: record it) | hybrid_rerank | 0.619 (13/21) | 0.524 | 0.563 | LOST fact-02, fact-10, multi-02, amb-01, amb-04; GAINED fact-01 | FAIL (drop 4 questions, MRR drop 0.131) |
 | restored (RERANK_TOP = 30) | vector | 0.810 (17/21) | 0.476 | 0.616 | none / none | PASS |
 | restored | hybrid_rerank | 0.810 (17/21) | 0.619 | 0.695 | none / none | PASS |
 
@@ -580,8 +586,115 @@ Reading:
 
 ---------------------------------------------------------------------------
 
-## 15.10 follow-ups (apply these edits to the existing section 15.10)
+## 18. Tracing unification and unit tests (11-12 Oct 2026)
 
-- Section 10: add the 8 Oct probe (nemotron-3-super-120b-a12b OK, gpt-oss-20b OK, nemotron-3-nano-omni-30b-a3b-reasoning HTTP 503) and the OK probe before the cb1 smoke test on 10 Oct. Replace "not re-probed since 1 Oct".
-- Section 13: replace "Not yet written: generation metrics ..." with: tracing and p50/p95 done; judge, snippet check and closed-book baseline written and run; local retrieval gate written and tested; unit tests and CI workflow written; still not written: a CI gate that needs the corpus.
-- Section 1: git commit, pip freeze, crawl date, d1 gold count (FILL INs).
+Source tag: [NOTES] = from my project notes of 12 Oct, not re-read from files.
+
+- api.py v0.2.0 now uses src/tracing.py. One JSONL line per request in data/traces/requests.jsonl (gitignored): ts, request_id, time (UTC), question, mode, k, status, error, attempts, model, latency_ms (embed, vector, bm25, fuse, rerank, llm, total), usage, uncited_sentences, cited_chunks, sources_shown, top1_score. queue_wait_ms and wall_ms are TOP-LEVEL fields on purpose: tracing.summarize adds every latency_ms key except llm_ms and total_ms into retrieval_ms. A retrieval_error trace has latency_ms {total_ms}. Answer text is NOT stored (decision pending); traces store user questions, so a public deployment needs a retention policy.
+- Bug found by predicting /stats on 3 failure traces: summarize() counted records without retrieval stages as 0 ms. Fixed TEST-FIRST (commit 8097eea): `1 failed, 28 passed` -> a half-applied edit `2 failed, 27 passed` (my first correction named a missing `has_stage` pair; the missing line was `has_stage = True`) -> `29 passed`. This is a bug fix: it defines the baseline, it is not an experiment.
+- Tests: 29 pass locally (12 Oct, 0.17 s), tests/{conftest,test_core,test_more}.py; they need no corpus, GPU, Qdrant or LLM; conftest stubs bm25s and embed_index. api.py is not imported by the tests (CI has no fastapi).
+- Trace files from before v0.2.0 must be moved aside before reading /stats. Failure-test files should be renamed (requests_failure_tests_502.jsonl, requests_concurrency_tests.jsonl) so test rows do not skew /stats; whether I did this is unconfirmed.
+
+## 19. API failure-path and concurrency tests (11-12 Oct 2026): SERVICE tests, not experiments
+
+Source tag: [NOTES].
+
+| test | setup | result |
+|---|---|---|
+| 503 (11 Oct) | server started with Qdrant up, then `docker stop qdrant` | /health 503 "Qdrant unreachable: ResponseHandlingException"; POST /ask 503; traces status retrieval_error with the real cause ([WinError 10061]); wall about 4.1 s before the 503 (cause not investigated: probably client timeout or retry, a guess); recovered without restart after `docker start qdrant`; /stats on 3 traces matched my prediction line by line, including the retrieval_ms 0.0 quirk (fixed in section 18) |
+| 502 (12 Oct) | server started with `set LLM_MODEL=not-a-real-model` (a real provider 404) | HTTP 502 "The language model did not answer (request ea56f8cc49b2). Try again."; trace: llm_error, error "NotFoundError: 404 page not found", attempts 1, wall 2,270 ms (rerank 1,265 ms), llm_ms 0.0, tokens 0/0. A 404 is not retried, so nothing hung. Covers ONLY a 404, not timeouts or 429s |
+| concurrency (a), failure path | 3 simultaneous requests; the server was still on the bad model by my mistake (a `set` in one window does not reach a server started earlier) | all three 502; queue_wait 0 / 2,076 / 3,225 ms; walls 2,081 / 3,246 / 4,828 ms; each wait equals the previous request's wall time. Valid lock test; my prediction of three 200s was wrong |
+| concurrency (b), normal path | 3 simultaneous requests, local server, threading.Lock | all HTTP 200, 33.4 s total; queue_wait 0 / 10,936 / 19,315 ms; walls 10,941 / 19,316 / 31,366 ms; client times 13.0 / 21.4 / 33.4 s |
+
+Reading:
+- The lock serialises requests and queue_wait_ms makes the waiting visible. It is not FIFO (client 2 finished before client 1). The third user waited about 33 s.
+- Capacity (derivation from n=3 at about 10 s per request, NOT a load test): about 6 requests/min from one worker. Scaling out means a separate retrieval service, not more workers.
+- Client-measured times run about 2 s above server walls in both runs; cause unknown (connection setup or thread start is a guess). The 6.9 s vs about 5 s gap in the first run is likewise unexplained. The 502 body has no request_id (expected).
+- NOT tested: a hanging Qdrant, a provider timeout or 429. scripts/concurrency_test.py was written 12 Oct. CONFIRMED UNTRACKED on 13 Oct (`git commit` listed it under untracked files, next to scripts/timeout_check.py and scripts/timeout_check2.py). Commit it once read, with the results above already logged here.
+
+## 20. Docker packaging and first container run (11-12 Oct 2026)
+
+Source tag: [NOTES]. One machine, other containers running, one question: NOT a benchmark.
+
+| item | value |
+|---|---|
+| Dockerfile | python:3.10-slim (pip 23.0.1 in that image); torch 2.10.0+cpu, then requirements.txt; both models baked in (HF_HOME=/opt/hf); copies src, scripts, web and ONLY data/chunks/chunks.jsonl; one uvicorn worker on 0.0.0.0:8000 |
+| build 1 | FAILED at the torch step: `--index-url` replaces PyPI, so torch's dependencies came from the PyTorch index; pip rejected the typing_extensions wheel metadata, fell back to the source archive, which needs flit_core, not on that index |
+| build 2 (fix, worked) | `pip install --upgrade pip && pip install torch==2.10.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu && pip install -r requirements.txt`. THREE things changed at once (pip upgrade, --extra-index-url, +cpu pin): the cause is NOT isolated. Do not write "old pip was the cause" |
+| build time | 490 s (torch + requirements 244 s, model baking 231 s); a rebuild after a src change about 2 s |
+| image | askpg:local, 2.64 GB (what dominates it: not checked) |
+| .dockerignore | first saved as `dockerignore` without the dot, so BuildKit ignored it (clue: "transferring context: 2B"); fixed. .env was never baked into an image |
+| compose | qdrant (pinned image and digest, named volume askpg_qdrant_data, port 6333 not published), indexer (askpg:local, scripts/ensure_index.py, restart "no"), app (port 8000, env_file .env, QDRANT_URL=http://qdrant:6333, traces on volume askpg_traces; depends_on qdrant started and indexer service_completed_successfully). Files committed in 1ae3dfc |
+| requirements.txt | requests 2.32.5, beautifulsoup4 4.14.3, transformers 5.2.0, sentence-transformers 5.2.3, qdrant-client 1.19.1, numpy 2.2.6, bm25s 0.3.11, openai 2.24.0, python-dotenv 1.1.0, fastapi 0.143.0, uvicorn 0.34.3 (torch excluded). Fills the pinned-versions FILL IN for these packages in section 1; others (torch, pytest, ...) still FILL IN from `pip freeze` |
+| first index in the container | 6489 chunks on CPU, 0 truncated, 7 chunks/s over the first 512, "Done in 13110s. Collection holds 6489 points (expected 6489)". The 13110 s (3.6 h) is wall-clock (time.time()) and probably CONTAMINATED by a machine suspend while travelling (HYPOTHESIS, not checked). Log it as "13110 s wall-clock, contaminated; clean rate not measured". A clean rerun would need `docker compose run --rm indexer` on an empty volume with the machine awake (about 15 min; optional) |
+| app | /health returned {"status":"ok","model":"openai/gpt-oss-20b","mode":"hybrid_rerank","chunks":6489}; a browser question (work_mem) returned a correct answer with a clickable [5] and one source (19.4.1 Memory) using the ROTATED key |
+| CPU latency (n=3, same question) | rerank p50 14,980 ms (p95 15,128.6); retrieval p50 15,083.9; llm p50 4,401 ms (first request 8,388); total/wall p50 19,604 ms (first request 23.5 s). About 13x the GPU machine's rerank p50 (1,181 ms). The 15 s was NOT a first-request warm-up. Re-measured 13 Oct after a recreate (rerank 11,988 ms in one traced request): see section 23 |
+
+Reading: on the GPU machine the LLM was about 85% of a request; on the CPU container the reranker is about 77% (15 s of 19.6 s). The bottleneck moves with the hardware. ensure_index.py rebuilds only when the collection count differs from the chunks.jsonl line count (it does not notice a re-chunk that keeps the count). A hosted deployment should ship a prebuilt Qdrant snapshot. Never use `docker compose down -v` (deletes the index volume). Port 8000 is shared between the container and a local uvicorn.
+
+## 21. Chunk budget reproducibility check (12 Oct 2026): an INSTRUMENT check
+
+Source tag: [NOTES]. scripts/check_rechunk.py re-chunks into data\tmp_rechunk (never touching data\chunks) at MAX_TOKENS 380 and 400.
+
+| MAX_TOKENS | chunks | md5 | dropped | tokens min / median / max |
+|---|---|---|---|---|
+| 380 | 6489 | db65e9d099d2929c2a40c540210b5acc = the current chunks.jsonl (MATCH; 762 merged, 243 skipped) | 13 | 25 / 276 / 472 |
+| 400 | 6252 | a5a66bc4f2d9508e729d4e1e7ab44278 (differs) | 11 | 25 / 285 / 470 |
+
+Conclusion: the committed code reproduces the baseline; MAX_TOKENS is 380 and was never 400 (`git log -S"MAX_TOKENS = 400"` is empty); the earlier notes were wrong; the gate baseline and all d3 results stand. Actual max chunk is 472 because overlap and held-back lead-ins are added on top of the budget. What v0/v1/v2 used is NOT verified. (data\tmp_rechunk did not exist when I tried to remove it: unexplained, probably nothing to remove; confirm data\chunks\chunks.jsonl exists.)
+
+## 22. Smaller 12 Oct items (instrument checks and code hygiene)
+
+Source tag: [NOTES].
+- Quick closes (8de44fb): stale tiktoken comment and import removed from ingest.py; retrieve.py docstring now says the reranker score is a sigmoid of the logit; src/audit_dropped.py and src/rank_of.py removed; scripts/check_rechunk.py committed. d898728 corrected the budget line in this file.
+- run_eval.py summary header fixed (column widths `max(14, len(c)+1)`). Verified 12 Oct with `run --name header-check --retriever vector`: ALL row success@5 0.810, MRR 0.616 (= d3-vector), failing @5 multi-01, 02, 04, 05; p50 total 50 ms (one warm run beside running Docker, not a regression). header-check.json was deleted. Lesson: my first edit deleted the old header line without adding the new one, and the next paste left the old loop in place (duplicate rows); py_compile cannot catch either, `git diff` did.
+- run_gen_eval.py patch (git_commit, chunks_md5 in meta) is on disk (lines 48, 156, 157); g1's meta lacks both. run_closed_book.py writes git_commit but not chunks_md5.
+- Known cosmetic items: run_closed_book records 0/0 tokens for llm_error rows; judge.report() prints meaningless faithfulness lines for cb1.
+- Git (12 Oct, superseded by section 23 for 13 Oct): last pushed d898728. Commits: 8097eea (tracing fix), 1ae3dfc (Docker files), 8de44fb (quick closes), d898728 (this file). Tag baseline-d3 = d701cf5.
+- README: README_draft.md exists (11 Oct) and must be read against this file, then swapped in as README.md (Docker facts, sections 19-21, MAX_TOKENS=380). Not done.
+
+## 23. Container re-check after key rotation (13 Oct 2026)
+
+Source tag: [CONSOLE] = output pasted on 13 Oct (docker compose ps, logs, trace line, UI timing lines). One machine, one question, 2 samples: NOT a benchmark.
+
+**State found.** `docker compose ps -a`: askpg-indexer-1 Exited (0) 28 h earlier; askpg-app-1 and askpg-qdrant-1 both Exited (255) "26 seconds ago", created 41-45 h earlier; `curl /health` -> "Empty reply from server" (port 8000 still published, nothing behind it). HYPOTHESIS (logs not read): both containers died together, so Docker Desktop / WSL restarted rather than the app crashing.
+
+**Recreate.** `docker compose up -d --force-recreate` was used (a plain start would have reused the env_file values read at container creation, i.e. the revoked key). Volumes survived.
+- [VERIFIED] The indexer log printed "Collection askpg_pg17 already holds 6489 points = 6489 chunks. Nothing to do." (twice in the tail): the persisted-volume check passes, so the CPU index is a one-time cost.
+- [VERIFIED] /health after the recreate: {"status":"ok","model":"openai/gpt-oss-20b","mode":"hybrid_rerank","chunks":6489}. This proves startup and Qdrant connectivity only; /health does not call the LLM.
+- [VERIFIED] The new key works: two browser questions (work_mem) returned correct-looking answers with `[5][1]` linked to one source entry (19.4.1 Memory). Chunk text was not read again.
+
+**Two timing lines (UI, work_mem).**
+
+| sample | total | retrieval+rerank (UI) | model | tokens in / out | request |
+|---|---|---|---|---|---|
+| 1 | 18.4 s | 13.6 s | 4.8 s | 1404 / 229 | 529cdc7d5b0d |
+| 2 | 17.2 s | 12.0 s | 5.2 s | 1404 / 232 | d65719916e59 |
+
+**Trace of sample 2** (`docker compose exec app tail -n 1 /app/traces/requests.jsonl`): embed 28.4 ms, vector 17.8, bm25 0.7, fuse 0.1, **rerank 11,987.6**, llm 5,169.3, total 17,204.1; queue_wait 0.017 ms; wall 17,204.2 ms; status ok, attempts 1, uncited_sentences 2, top1_score 0.97821349 (d3 fact-03 top-1: 0.9782136), sources_shown runtime-config-resource:0006, app-postgres:0006, sql-createindex:0017, populate:0005, runtime-config-resource:0005 (same five as the local run), cited 0006 and 0005.
+
+Reading:
+- Retrieval in the container reproduces the eval: same top-1 score and the same five chunks as locally.
+- The UI's "retrieval+rerank" is total minus LLM time, so it includes embed, vector and BM25, but those are about 47 ms: it is essentially all rerank (11,988 of 17,204 ms = 70% of the request; the LLM was 30%).
+- Rerank on CPU: 11,988 ms here vs the GPU d3 p50 1,181 ms = about 10x. Section 20 recorded p50 14,980 ms (n=3, 12 Oct) = about 13x. So the CPU rerank is 12-15 s across the samples so far, the ratio 10-13x; the spread is unexplained (machine load, thermal state and background containers are guesses). Report a RANGE with n, never a single "CPU latency".
+- The two answers differ in wording (229 vs 232 output tokens) at temperature 0 with an identical 1404-token prompt: consistent with the hosted-model non-reproducibility already noted. Only the retrieval timing is comparable across samples.
+- Consequence for the write-up: on CPU the reranker (precision gain, no @5 gain, about 33x hybrid's latency on GPU) is the dominant cost of a request. Reranking fewer candidates (RERANK_TOP) or a cheaper reranker are candidate experiments, gated, not changes to make now.
+
+**Corrections (mine, 13 Oct).** (1) I said "7 to 12 times slower", mixing retrieval+rerank (about 1.8 s local, so about 7x) with rerank-only (1,181 ms, so about 10x). The like-for-like figures are in the Reading above. (2) I told you to commit the Docker files as if they were untracked; they were already committed in 1ae3dfc, and `git commit` correctly said "nothing added to commit".
+
+**Git state 13 Oct** (from the `git commit` message): branch ahead of origin/main by 1 commit (which one: NOT confirmed; run `git log --oneline -4` and `git diff --stat origin/main..HEAD`). Untracked: README_draft.md, eval/read_cb1.txt, scripts/concurrency_test.py, scripts/timeout_check.py, scripts/timeout_check2.py. The two timeout scripts were not read and their purpose is not recorded here. Actions result for the newest push: NOT reported.
+
+## 24. Still to fill in (13 Oct 2026)
+
+- Section 1: crawl date (`dir /tc data\raw\index.html`), pip freeze versions (torch, pytest, ...), git commit per run.
+- d1 gold count (expected from the notes: d2 = 35, d3 = 42).
+- cb1 prompt md5 (in the cb1 meta).
+- Reference LLM price and source (section 10).
+- Actions test count for d898728 (expect 29), and the status of the newest push (one commit was unpushed on 13 Oct).
+- Which commit is unpushed (`git log --oneline -4`, `git diff --stat origin/main..HEAD`).
+- Purpose and results of scripts/timeout_check.py and timeout_check2.py (untracked, not read); commit them, with concurrency_test.py, after reading.
+- Old NVIDIA key revoked in the console (look, then tick section 11).
+- A clean CPU index time (section 20's 13110 s is contaminated) and a rerank p50 over more than 3 requests (section 23).
+- LLM timeout (generate.py): decide default, whether max_retries stays 2, test with a tiny timeout, then log as a service test.
+- Smoke test re-run against the container; a hanging-Qdrant test; a 429 / timeout test.
+- Key-leak checklist boxes (section 11): tick only after verifying each step.

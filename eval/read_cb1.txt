@@ -1,0 +1,57 @@
+fact-01 ok
+Yes. The `COMMENT ON` statement is defined in the SQL standard (since SQL:2003) and lets you attach a comment to database objects such as tables, columns, indexes, etc. For example:
+
+```sql
+COMMENT ON TABLE mytable IS 'Stores customer data';
+```
+------------------------------------------------------------
+unans-05 ok
+Use the **`FOR SYSTEM_TIME AS OF`** clause (or `BETWEEN`) on a system‑versioned table.
+
+```sql
+-- Example table
+CREATE TABLE orders (
+    id          int,
+    product     text,
+    qty         int,
+    sys_start   timestamptz GENERATED ALWAYS AS ROW START,
+    sys_end     timestamptz GENERATED ALWAYS AS ROW END,
+    PERIOD FOR SYSTEM_TIME (sys_start, sys_end)
+) WITH (SYSTEM VERSIONING);
+
+-- Query the state of the table at a specific instant
+SELECT *
+FROM orders
+FOR SYSTEM_TIME AS OF '2024-01-15 10:30:00';
+```
+
+This returns the rows that were valid at that instant.  
+You can also use `FOR SYSTEM_TIME BETWEEN 't1' AND 't2'` to get the state over a range.
+------------------------------------------------------------
+unans-08 ok
+`uuidv7()` is a built‑in function in PostgreSQL 17 that returns a UUID v7.  
+It can be called with no arguments (uses the current time) or with a
+timestamp/value to make the UUID deterministic.
+
+```sql
+-- Simple usage – current time
+SELECT uuidv7();          -- → 7f1c2e3d-4b5a-7c6d-8e9f-0123456789ab
+
+-- With a timestamp (timestamp with/without time zone)
+SELECT uuidv7('2024-10-10 12:00:00+00');   -- deterministic UUID
+
+-- With an epoch millisecond value
+SELECT uuidv7(1700000000000);              -- same as above
+```
+
+You can also use it in table definitions:
+
+```sql
+CREATE TABLE events (
+    id   uuid PRIMARY KEY DEFAULT uuidv7(),
+    name text
+);
+```
+
+No extension is required; `uuidv7()` is available directly in PostgreSQL 17.
+------------------------------------------------------------
