@@ -1,204 +1,181 @@
 # AskPG
+![answer with citations](docs/answer.png)
+![refusal](docs/refusal.png)
 
-A production-style RAG (retrieval-augmented generation) system over the **PostgreSQL 17 documentation**, built with plain Python (no LangChain / LlamaIndex) and designed to be **measured**, not just demoed.
 
-> **Status: work in progress.** Ingestion, chunking, embedding and vector search work. The evaluation set, hybrid retrieval, reranking, generation with citations, observability and CI gating are planned and not built yet. See [Status](#status).
+A RAG system over the **PostgreSQL 17 documentation**, built in plain Python (no LangChain / LlamaIndex) and designed to be **measured**, not just demoed: hybrid retrieval, cross-encoder reranking, cited answers, an LLM-judged evaluation, a closed-book baseline, per-request tracing and a local regression gate.
 
-## Goals
+> Status (Oct 2026): retrieval, generation, evaluation, API and frontend work and are measured. Unit tests run in CI. Docker packaging is built and starts, but CPU latency inside the container is not yet measured. The app is not hosted publicly. See [Status](#status) and [Limitations](#limitations).
 
-1. **Production RAG**: hybrid retrieval (BM25 + vector), cross-encoder reranking, citation enforcement, and a CI-gated evaluation pipeline.
-2. **Observability**: tracing, per-stage latency (p50/p95), cost per request, quality metrics, and regression gating in CI.
-3. **Evidence over vibes**: every change is evaluated on a fixed question set and logged in [`experiments.md`](experiments.md) with numbers, including a **closed-book baseline** (same questions, no retrieval) to show that retrieval adds real value.
+## What this project shows
+
+- A retrieval pipeline built and compared step by step (vector, BM25, hybrid, rerank), with every run logged with numbers in [`experiments.md`](experiments.md).
+- An evaluation I tried to break: label versions, a coverage check, a judge audited by hand, a closed-book baseline, and a regression gate I tested by breaking it on purpose.
+- Honest results, including the ones that did not go my way (hybrid is not better than vector at @5; retrieval shows no measured correctness gain over a strong closed-book model on this dataset).
+
+## What the measurements say
+
+All numbers come from a 30-question dev set (21 answerable, 9 unanswerable). With 21 answerable questions, **one question = 4.8 points**, so differences under about two questions are noise. Details and every run are in [`experiments.md`](experiments.md).
+
+### Retrieval (labels d3, index v3: 1127 pages, 6489 chunks)
+
+| mode | success@1 | success@5 | success@10 | MRR | p50 latency (local, GPU) |
+|---|---|---|---|---|---|
+| vector (bge-small) | 0.476 | 0.810 | 0.905 | 0.616 | 34 ms |
+| bm25 | 0.429 | 0.667 | 0.857 | 0.537 | 0.2 ms |
+| hybrid (RRF) | 0.476 | 0.714 | 0.952 | 0.586 | 37 ms |
+| hybrid + rerank (bge-reranker-base) | 0.619 | 0.810 | 0.905 | 0.695 | 1215 ms |
+
+- The reranker is a **precision** gain (rank-1 hits 13 vs 10, MRR 0.695 vs 0.616), not a recall gain (success@5 is 17/21 for both), at about 33x hybrid's latency.
+- Hybrid is **not** better than vector at @5 here (0.714 vs 0.810); it is better at @10. Why is untested.
+- Labels moved the metrics more than the code did. Labels were widened twice after seeing results (d2, d3); this favours the reranker and is disclosed in the log. Rows from different label versions are never compared as progress.
+
+### Generation (g1: hybrid_rerank, k=5, openai/gpt-oss-20b, temperature 0)
+
+| | result |
+|---|---|
+| answerable questions answered with well-formed citations | 20 / 21 (the one refusal is a retrieval failure) |
+| unanswerable questions refused | 9 / 9, including 7 near-misses (MySQL replication, SQL Server, Kubernetes ...) |
+| claims supported by the sources the model was shown | 89 / 109 (0.817), judged by a different model |
+| answer time p50 / p95 | 9.6 s / 26.7 s (the hosted LLM is about 85% of it) |
+
+"Supported" means grounded in the retrieved chunks, not "true". The judge is one model and is not reproducible at temperature 0. I audited 79 of its claims by hand (one reader): it agreed with my reading on 81-91% of them and misses direction and qualifier errors (for example "ancestor" vs "descendant"). Use it for relative comparison, not as an accuracy figure.
+
+### Closed-book baseline (cb1: same model, same questions, no retrieval)
+
+| | g1 (retrieval) | cb1 (closed book) |
+|---|---|---|
+| correctness vs reference, 19 questions both answered | 17 correct / 2 partial | 17 correct / 2 partial |
+| unanswerable refused | 9 / 9 | 5 / 9 |
+
+The 19 exclude fact-01 (refused in g1, a retrieval failure) and fact-10 (the closed-book call did not finish within its token budget).
+
+**On this dataset retrieval does not buy measurable correctness over a strong closed-book model. It buys verifiability (citations, a grounding check) and safer refusal.** Likely reasons, both untested: a 20B model has seen the public PostgreSQL docs, the dev set is too easy, and the correctness judge is lenient. A harder set (PostgreSQL 17-specific details, rarely-read parameters) is the next step.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    A[PG17 docs HTML] --> B[ingest.py<br/>crawl + parse + merge + chunk]
+    A[PG17 docs HTML] --> B[ingest.py<br/>crawl, parse, merge, chunk]
     B --> C[chunks.jsonl]
     C --> D[embed_index.py<br/>bge-small embeddings]
     D --> E[(Qdrant)]
-    Q[User question] --> F[retrieve.py<br/>vector -> hybrid -> rerank]
+    Q[Question] --> F[retrieve.py<br/>vector + BM25, RRF, rerank]
     E --> F
-    F --> G[generate.py<br/>answer + citations]
-    G --> H[Answer with sources]
-    I[eval/run_eval.py] -. measures .-> F
-    I -. measures .-> G
+    C --> F
+    F --> G[generate.py<br/>numbered sources, citation check]
+    G --> H[api.py<br/>/ask, traces, /stats]
+    H --> I[web/index.html]
+    J[eval/*] -. measures .-> F
+    J -. measures .-> G
 ```
-
-Everything up to the vector store exists today. `retrieve.py` (beyond plain vector search), `generate.py` and `eval/` are planned.
 
 ## Design decisions
 
 | Decision | Choice | Why |
 |---|---|---|
-| Framework | Plain Python scripts | Every step is visible and explainable. |
-| Embedding model | `BAAI/bge-small-en-v1.5` (local, fp32) | Small and fast; runs on a 6 GB GPU or CPU. Query-side instruction prefix only, as the model recommends. |
-| Vector DB | Qdrant (Docker) | A separate stateful service, as in production, so latency numbers include a real network hop. |
-| Chunk sizing | Counted with the **embedder's own tokenizer** (BERT wordpiece), budget 400, overlap 60 | A first attempt counted with tiktoken and silently truncated 1.4% of chunks at the model's 512-token limit. |
-| Small sections | **Merged into a neighbour**, not dropped | An audit showed dropping them removed real content (see [Findings](#findings)). |
-| Cross-reference sections | "See Also" and "Author" sections skipped on purpose, and logged | They hold only cross-references and credits. Skipping is deliberate and visible in `skipped.jsonl`. |
-| Chunk provenance | Each chunk carries `covers`: every original section merged into it | Lets the eval map a gold section to the chunk that now contains it. |
-| Chunk context | Breadcrumb (`page > section`) prepended before embedding | Headings carry much of the meaning, especially on short reference-page chunks. |
-| Point IDs | Deterministic UUIDv5 from `chunk_id` | Re-indexing overwrites instead of duplicating. |
-| Eval gold labels | **URL + section anchor**, matched against `covers`; never `chunk_id` | Chunk IDs change whenever chunking changes. |
-| Score thresholds | Not hard-coded | bge-small scores sit in a narrow band (~0.63-0.84); abstention will be calibrated on the eval set. |
+| Framework | Plain Python | every step is visible and explainable |
+| Embedder | `BAAI/bge-small-en-v1.5`, fp32, query-side instruction only | small and fast; runs on a 6 GB GPU or CPU |
+| Chunk budget | counted with the embedder's own tokenizer: 400 tokens, 60 overlap | counting with a different tokenizer silently truncated 1.4% of chunks |
+| Small sections | merged into a neighbour, not dropped | dropping them removed real content (syntax, parameters) |
+| Provenance | each chunk lists every section it covers (`covers`) | lets the eval map a gold section to the chunk that holds it |
+| Keyword search | bm25s, snake_case identifiers kept whole, no stemming | the docs are full of exact identifiers (`work_mem`) |
+| Fusion | Reciprocal Rank Fusion over 50 + 50 candidates | no score normalisation needed |
+| Reranker | `BAAI/bge-reranker-base` on the top 30 fused candidates | measured: a precision gain |
+| Citations | exact refusal sentence or at least one valid `[n]`; one corrective retry | checks well-formedness only, not that the source supports the claim |
+| Refusal | the LLM alone, no retrieval-score gate | scores do not separate unanswerable questions; the LLM refused 9/9 |
+| Serving | FastAPI, ONE worker, a lock around the pipeline | the models and the LLM throttle keep in-process state; queue wait is traced |
+| Gold labels | page + section heading (or anchor), never chunk id | chunk ids change whenever chunking changes |
+
+## Quickstart A: Docker (Windows, Command Prompt)
+
+Needs Docker Desktop and a hosted or local OpenAI-compatible LLM endpoint.
+
+1. Copy `.env.example` to `.env` and set `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL`. The key stays in `.env`, which is git-ignored.
+2. Start the stack:
+
+```
+docker compose up
+```
+
+Three services start: `qdrant` (pinned image), `indexer` (embeds the chunks, skips the work if the index already matches `chunks.jsonl`) and `app` (port 8000). The app waits for the indexer, so **the first start takes about 15 minutes on CPU** (about 7 chunks/s). Later starts are fast. Do not run `docker compose down -v`: it deletes the index volume.
+
+Open http://localhost:8000/. Endpoints: `POST /ask`, `GET /health`, `GET /stats`.
+
+## Quickstart B: local Python
+
+Tested on Windows with Python 3.10 and a GTX 1660 Ti (CPU also works).
+
+```
+pip install -r requirements.txt
+docker run -d --name qdrant -p 6333:6333 -v "%cd%/qdrant_storage:/qdrant/storage" qdrant/qdrant:v1.19.1
+python src/ingest.py download
+python src/ingest.py chunk
+python src/embed_index.py index --recreate
+uvicorn api:app --app-dir src --port 8000
+```
+
+`requirements.txt` excludes torch (install the build that matches your hardware).
+
+## Testing and gating
+
+```
+python -m pytest tests -q                      # unit tests; also run by GitHub Actions on every push
+python eval\gate_retrieval.py                  # LOCAL retrieval regression gate (needs Qdrant and the index)
+python eval\run_eval.py run --name <label> --retriever hybrid_rerank
+python eval\run_gen_eval.py --name <label>     # end-to-end generation run (calls the hosted LLM)
+python eval\judge.py <label>                   # LLM judge on a saved run
+```
+
+The retrieval gate re-runs the eval on the current code and fails if success@5 drops by more than one question or MRR by more than 0.03 (tolerances are my choice, not measured). It aborts if the baseline is stale (chunk count or label counts changed). I broke it on purpose once (a lower `RERANK_TOP`): success@5 fell to 13/21 and the gate failed; after restoring the setting it reproduced the d3 numbers exactly. CI runs only the corpus-free unit tests; the gate needs the gitignored data, a GPU and a built index, so it stays local.
 
 ## Repo layout
 
 ```
-data/raw/             downloaded HTML (cached, resumable)
-data/chunks/          chunks.jsonl, dropped.jsonl, skipped.jsonl
-src/ingest.py         crawl -> parse -> merge small sections -> chunk -> JSONL
-src/embed_index.py    embed chunks, load into Qdrant, query CLI
-src/audit_dropped.py  one-off audit script (written for the pre-merge dropped.jsonl format)
-src/retrieve.py       (planned) vector -> hybrid -> rerank
-src/generate.py       (planned) answer generation with citations
-eval/dataset.jsonl    (planned) questions + gold source sections
-eval/run_eval.py      (planned) metrics, latency percentiles, CI gate
-experiments.md        every run, with numbers
+src/        ingest, embed_index, retrieve, generate, tracing, api
+web/        single-page frontend
+eval/       dataset.jsonl, run_eval, gate_retrieval, run_gen_eval, run_closed_book, judge, snippet_check, smoke_api ...
+tests/      unit tests (no model, no Qdrant, no network)
+scripts/    make_requirements, ensure_index
+Dockerfile, docker-compose.yml, requirements.txt
+experiments.md   every run, with numbers
 ```
-
-## Quickstart (Windows, Command Prompt)
-
-Tested on Windows with project path `E:\Projects\AskPG`. Commands use `cmd` syntax.
-
-**1. Install dependencies**
-
-```
-pip install requests beautifulsoup4 transformers sentence-transformers qdrant-client numpy
-```
-
-Optional, for NVIDIA GPU indexing: on Windows, `pip install sentence-transformers` pulls a CPU-only PyTorch. The GPU setup used in this project was:
-
-```
-pip uninstall -y torch
-pip install torch==2.10.0 --index-url https://download.pytorch.org/whl/cu128
-```
-
-Check it worked:
-
-```
-python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
-```
-
-**2. Start Qdrant**
-
-```
-docker run -d --name qdrant -p 6333:6333 -v "%cd%/qdrant_storage:/qdrant/storage" qdrant/qdrant
-curl http://localhost:6333/healthz
-```
-
-On Linux/macOS use `$(pwd)` instead of `%cd%`. The image tag is not pinned yet (see [Known limitations](#known-limitations)).
-
-**3. Crawl, chunk, index**
-
-```
-python src/ingest.py download
-python src/ingest.py chunk
-python src/embed_index.py index --recreate
-```
-
-In the index output, check for `Chunks longer than the model's 512-token limit: 0` and `Collection holds N points (expected N)`.
-
-**4. Query**
-
-```
-python src/embed_index.py query "what does work_mem control?" -k 5
-```
-
-To eyeball chunk quality: `python src/ingest.py sample -n 20`.
 
 ## Status
 
 | Component | State |
 |---|---|
-| Crawler + HTML parser + chunker (`ingest.py`) | Done |
-| Audit of dropped short chunks | Done; fix applied (v2) |
-| Verification of v2 (read the 33 remaining drops, spot-check a merged chunk, targeted queries) | **Pending** |
-| Embedding + Qdrant indexing + query CLI (`embed_index.py`) | Done, run on real Qdrant + GPU |
-| Eval set + metrics (recall@k, MRR, faithfulness, correctness) | Not started (next) |
-| Closed-book baseline | Not started |
-| BM25 hybrid retrieval | Not started |
-| Cross-encoder reranker (`bge-reranker-base`) | Not started |
-| Generation with citation enforcement | Not started |
-| Tracing, latency percentiles, cost per request | Not started |
-| CI regression gate | Not started |
-| Dockerized app + thin frontend | Not started |
+| Crawler, parser, chunker (v3) | done, verified |
+| Embedding + Qdrant index | done |
+| Vector, BM25, hybrid, hybrid + rerank | done, measured |
+| Generation with citation check | done, measured (g1) |
+| LLM judge, snippet check, closed-book baseline | done, run once each |
+| API + frontend + tracing | done; the Qdrant-down path (503) and recovery tested; the LLM-error path (502) not yet tested against a real provider error |
+| Unit tests + CI | 29 unit tests; GitHub Actions workflow |
+| Docker packaging | built (image 2.64 GB, build about 490 s); CPU latency in the container not yet measured |
+| Public hosting | not done (see below) |
+| Larger, harder dataset with a held-out test split | not started |
 
-## Findings
+## Running it publicly
 
-Real numbers from runs so far. Retrieval quality has **not** been measured yet; there is no eval set, so nothing below is a quality claim.
+It is not hosted. Before exposing it I would need: a per-IP rate limit and daily cap (every request spends the free LLM quota), a written retention policy (traces store user questions), a shorter LLM timeout (currently 120 s), and a prebuilt Qdrant snapshot so a host does not spend 15 minutes indexing.
 
-### Indexing runs
+## Limitations
 
-| Run | Change | Chunks | Dropped | Truncated at 512 tok | Device | Throughput | Index time |
-|---|---|---|---|---|---|---|---|
-| v0 | tiktoken budget 380 | 6008 | not recorded | 83 (1.4%) | CPU | ~7 chunks/s | 807 s |
-| v1 | BERT-tokenizer budget 400 (bug fix) | 6499 | 1019 | **0** | GPU | 62-82 chunks/s | 104 s |
-| v2 | merge small sections (correctness fix) | 6489 | **33** | **0** | GPU | 66-79 chunks/s | 90 s |
-
-v1 and v2 are bug fixes, not experiments: they define the baseline that later experiments are measured against.
-
-- **Truncation bug (v0 to v1).** v0 counted tokens with a different tokenizer than the embedder, so 83 chunks exceeded the model's limit and their tails were silently never embedded. v1 counts with the embedder's tokenizer.
-- **GPU vs CPU.** The default `pip install` gave a CPU-only PyTorch. A CUDA build cut indexing from 807 s to 104 s.
-- **Silent data loss (v1 to v2).** v1 dropped 1019 chunks under 25 tokens, about 14% of candidate chunks (but only a small share of total text, since dropped chunks are tiny; that estimate is unmeasured). Logging and auditing them showed:
-  - 994 of the 1019 were **entire sections missing from the index**; only 25 were leftovers of sections that were otherwise kept.
-  - About 92% came from reference pages (`sql`, `spi`, `app`, `ecpg`, `contrib`), which are built from many tiny sections such as Synopsis, Compatibility and Parameters.
-  - In a random sample of 25: 7 were pure cross-references or credits, 10 were substantive content (syntax, parameters, return values, compatibility statements), and 8 were one-line purpose statements. That is 18 of 25 with content; with a sample this small, the true rate is uncertain by tens of points.
-  - Effect: whether a command's syntax was searchable depended on how long the syntax happened to be. That would have made retrieval look worse than it is in any eval.
-  - Fix (v2): merge small sections into the next section (or the previous one at the end of a page); skip "See Also"/"Author" sections on purpose and log them. Result: dropped 1019 to 33, 762 sections merged, 243 skipped, chunks 6499 to 6489, truncation still 0.
-- **Chunk sizes (v2).** Tokens per chunk: min 25, median 276, max 472. The max exceeds the 400 budget because carried-over overlap and held-back lead-in lines are added on top of a full chunk, and the embedder text also includes the breadcrumb. Re-check the truncation line whenever the budget or breadcrumb changes.
-- **Not yet verified for v2:** the 33 remaining drops, that skipped sections are only "See Also"/"Author", and that a merged chunk (for example `sql-rollback`) really contains the folded-in synopsis.
-
-### Smoke-test observations (3 queries, not a quality measure)
-
-Run on the v0 index; a rerun on v2 is pending.
-
-- `work_mem`: correct chunk at rank 1.
-- MVCC / read locks: plausible rank 1, but ranks 2-5 drift onto locking topics.
-- `ALTER TABLE ... SET LOGGED`: correct chunk at rank 1, but all top-5 hits came from the same page (`sql-altertable`). Short sibling chunks crowd the top-k. This motivates a reranker, per-page diversity, or merging small sections that are already kept, each to be tested through the eval.
-
-### Planned results table
-
-Filled in as each change is evaluated. Empty cells are unmeasured, not zero.
-
-| Configuration | Recall@5 | MRR | Faithfulness | Answer correctness | p50 latency | p95 latency |
-|---|---|---|---|---|---|---|
-| Closed-book (no retrieval) | | | | | | |
-| Vector only (v2 baseline) | | | | | | |
-| + BM25 hybrid | | | | | | |
-| + Reranker | | | | | | |
-| + Citation enforcement | | | | | | |
-| + Merge already-kept small sections | | | | | | |
-
-## Evaluation plan
-
-- 50-100 questions with gold source sections, including multi-hop, unanswerable and ambiguous questions.
-- Gold labels reference **URL + section anchor** (or page + heading), never `chunk_id`. A retrieved chunk counts as a hit if the gold section appears in its `covers` field.
-- A **coverage check** verifies every gold section exists in `chunks.jsonl` (in a chunk's `covers`), so missing sections cannot silently hide inside the metrics.
-- One change at a time; re-run the eval after each; log the run in `experiments.md`.
-- Latency percentiles come from many queries in a single process, with embed and search timed separately. Single-shot CLI timings include connection setup and are not quoted.
-- Latency reported on both GPU and CPU, since a deployed version will likely run on CPU.
-
-## Environment
-
-- OS: Windows, Command Prompt
-- RAM: 16 GB
-- GPU: NVIDIA GTX 1660 Ti (6 GB), driver 610.74; torch 2.10.0+cu128
-- Qdrant: Docker, localhost:6333, image tag not yet pinned
-- Corpus: PostgreSQL 17 docs, 1127 pages crawled
-
-## Known limitations
-
-- Some chunks start mid-flow, because splitting is by token budget within a section.
-- Many short chunks on SQL command reference pages can crowd search results.
-- A merged chunk's URL points at the section it was merged into, not the small section folded in; use `covers` for provenance.
-- Table cells are flattened to plain text.
-- 33 chunks are still dropped after merging (under review).
-- The Qdrant image tag is not pinned, so runs are not yet fully reproducible.
-- Single node, no replication; not a high-availability setup.
-- No LLM has been chosen for generation yet.
+- **Small dev set.** 21 answerable questions: nothing separates the reranker from plain vector search, and the closed-book result suggests the set is too easy.
+- **Labels were widened after seeing results** (d2, d3), which favours the reranker. Dev-set relabelling is closed.
+- **Section-level matching.** A hit means a chunk of the right section was retrieved, not the exact chunk with the answer; a retriever that finds a different valid source is penalised.
+- **Citations are checked for form, not truth.** A well-formed citation can point to a chunk that does not support the sentence. For three multi-part questions the model answered from incomplete evidence without saying which part was missing.
+- **The judge is an instrument, not ground truth** (single model, not reproducible, 81-91% agreement with my reading on an enriched sample, one reader). Its correctness check is lenient: one answer was rated correct with 6 of 9 claims not grounded.
+- **Generated snippets are not always verbatim.** A deterministic check found 7 of 20 answers with a snippet that is not in the sources (one has invalid SQL syntax). Whether verbatim-only is the behaviour I want is undecided.
+- **Reranker truncation.** The reranker reads at most 512 tokens and cuts the end of long chunks; 2.5% of chunks are exposed. It caused one visible failure (the COMMENT question is refused). Diagnosed, not fixed.
+- **Vocabulary gaps** (for example "SQL dump" vs `pg_dump`) are a retrieval problem; query decomposition does not fix them.
+- **Refusal rests on the LLM.** It refused 9/9 here, with one model, one run, n=9.
+- **Hosted LLM:** free-tier rate limits; in g1 latency was 2-32 s depending on output length, and one later request took about 100 s for a similar-sized answer. Results also differ between runs at temperature 0, so each run is one sample.
+- **Anchors are per section**, not per parameter: a `work_mem` citation links to the whole "Memory" section.
+- **One worker and a lock.** Concurrent requests queue (queue wait is traced, but concurrency is not load-tested). Scaling out would need a separate retrieval service.
+- **Traces store user questions.** A public deployment needs a retention policy (not decided).
+- **Latency numbers are local**, single process, warm, on a GTX 1660 Ti; a CPU deployment will be slower, mainly in the reranker.
 
 ## Data and licensing
 
