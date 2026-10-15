@@ -1,12 +1,14 @@
-# AskPG: Qdrant + one-shot indexer + app. WRITTEN OFFLINE, NOT YET RUN.
+# AskPG: Qdrant + one-shot indexer + app. GPU reservations on indexer and app: NOT YET RUN.
 #
 #   docker compose build
 #   docker compose up
 #   open http://localhost:8000/
 #
 # Needs a .env in the repo root (LLM_BASE_URL, LLM_API_KEY, LLM_MODEL ...). It is passed at run time and never
-# copied into the image (.dockerignore excludes it). Stop your local `uvicorn` first: port 8000 must be free.
+# copied into the image (.dockerignore excludes it). Stop your local `uvicorn` first: port 8000 must be free,
+# and a local process would also hold GPU memory (6 GB card).
 # This Qdrant does not publish 6333, so it does not clash with your local `qdrant` container.
+# GPU: needs Docker Desktop with the NVIDIA GPU passthrough that already worked in the pytorch/pytorch test.
 services:
   qdrant:
     image: qdrant/qdrant:v1.19.1@sha256:12364fe851b9f17356fc88189fc06d1b521262e04659ec7345975b00c9246a10
@@ -22,6 +24,13 @@ services:
     depends_on:
       - qdrant
     restart: "no"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
   app:
     image: askpg:local
@@ -38,6 +47,13 @@ services:
         condition: service_started
       indexer:
         condition: service_completed_successfully
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
 volumes:
   qdrant_data:

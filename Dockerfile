@@ -1,6 +1,7 @@
-# AskPG app image (CPU). WRITTEN OFFLINE, NOT YET BUILT: the first `docker compose build` is its first test.
-# Needs the internet at BUILD time (base image, pip, model downloads); the running container needs none for
-# retrieval, only for the hosted LLM.
+# AskPG app image (CUDA-enabled PyTorch 2.5.1+cu124 for NVIDIA GPU inference).
+# Needs the NVIDIA container runtime on the host and a `deploy.resources.reservations.devices`
+# block (or `gpus: all`) on the compose services that run models (app, indexer).
+# Needs internet at BUILD time for packages and model downloads.
 FROM python:3.10-slim
 
 ENV PYTHONUNBUFFERED=1 \
@@ -10,13 +11,15 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 COPY requirements.txt .
-# Same torch version as the local machine (2.10.0), CPU build. UNVERIFIED that the +cpu wheel of exactly this
-# version exists on the index: if the build fails here, read the pip error before changing anything.
-RUN pip install --upgrade pip \
-&& pip install torch==2.10.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu \
-&& pip install -r requirements.txt
 
-# Bake the two models into the image so a container starts without downloading anything.
+# torch first, once, as a pinned local version (+cu124) with the PyTorch index as an EXTRA index
+# (PyPI stays available for torch's dependencies). requirements.txt excludes torch, so it sees
+# torch already satisfied and does not pull the default 2.10.0 build over it.
+RUN pip install --upgrade pip \
+    && pip install torch==2.5.1+cu124 --extra-index-url https://download.pytorch.org/whl/cu124 \
+    && pip install -r requirements.txt
+
+# Bake the two models into the image so a container starts without downloading them.
 RUN python -c "from sentence_transformers import SentenceTransformer, CrossEncoder; SentenceTransformer('BAAI/bge-small-en-v1.5'); CrossEncoder('BAAI/bge-reranker-base')"
 
 COPY src ./src
