@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#f6f8fc" id="theme-color-meta">
 <title>AskPG — PostgreSQL Knowledge Assistant</title>
+<script>
+(function () {
+  var t = null;
+  try { t = localStorage.getItem("askpg-theme"); } catch (_) {}
+  if (!t && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) t = "dark";
+  document.documentElement.dataset.theme = t === "dark" ? "dark" : "light";
+})();
+</script>
 <style>
   :root {
     color-scheme: light;
@@ -119,8 +127,6 @@
     border-radius: 10px; background: var(--blue-soft); color: var(--blue);
   }
   .suggestion-icon svg { width: 16px; height: 16px; }
-  .suggestion strong { display: block; margin: 1px 0 4px; font-size: 12px; font-weight: 750; }
-  .suggestion span:last-child { display: block; color: var(--muted); font-size: 12px; line-height: 1.5; }
   .trust-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 19px; margin-top: 26px; color: #7d899e; font-size: 11px; }
   .trust-item { display: inline-flex; align-items: center; gap: 6px; }
   .trust-item svg { width: 14px; height: 14px; color: #6e81ae; }
@@ -335,6 +341,19 @@
   .theme-toggle:hover { border-color: var(--line-strong); }
   .theme-toggle svg { width: 16px; height: 16px; }
 
+  .status-dot.off { background: var(--danger); box-shadow: 0 0 0 3px rgba(180,35,24,.14); }
+  .status-dot.wait { background: #aab3c3; box-shadow: 0 0 0 3px rgba(170,179,195,.18); }
+  .suggestion-body { display: block; min-width: 0; }
+  .suggestion-body strong { display: block; margin: 1px 0 4px; color: var(--ink); font-size: 12px; font-weight: 750; }
+  .suggestion-body .suggestion-text { display: block; color: var(--muted); font-size: 12px; line-height: 1.5; }
+  .suggestion:disabled { opacity: .6; cursor: wait; transform: none; }
+  .answer-content li > p { margin: 0 0 6px; }
+  .answer-content li > p:last-child { margin-bottom: 0; }
+  .answer-content li > ul, .answer-content li > ol { margin: 6px 0 8px; }
+  .answer-content li .code-wrap { margin: 8px 0 10px; }
+  .answer-content em { font-style: italic; }
+  .answer-note { margin: 12px 3px 0; color: var(--muted); font-size: 12px; }
+  .source-number { flex: 0 0 auto; min-width: 27px; padding: 0 7px; white-space: nowrap; }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   }
@@ -354,7 +373,7 @@
       <span id="theme-label">Dark mode</span>
     </button>
     <span class="version-pill">Documentation · v17</span>
-    <span class="status-pill"><span class="status-dot"></span> RAG assistant</span>
+    <span class="status-pill" id="status-pill"><span class="status-dot wait" id="status-dot"></span><span id="status-text">Checking…</span></span>
   </div>
 </header>
 
@@ -362,10 +381,10 @@
   <section class="hero" aria-labelledby="hero-title">
     <span class="eyebrow">
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m19 15 .9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15Z" fill="currentColor"/></svg>
-      Grounded answers · Source-backed
+      Answers cite their sources
     </span>
     <h1 id="hero-title">Your PostgreSQL docs,<br><span class="gradient-text">without the digging.</span></h1>
-    <p class="hero-copy">Ask a question in plain English. Get a focused answer grounded in the PostgreSQL 17 documentation, with sources you can verify.</p>
+    <p class="hero-copy">Ask a question in plain English. Answers are drawn from the PostgreSQL 17 documentation and cite the sections they use, so you can check them.</p>
   </section>
 
   <section class="search-card" aria-label="Ask a PostgreSQL question">
@@ -381,7 +400,7 @@
       </button>
     </form>
     <div class="search-foot">
-      <span>Answers are grounded in documentation</span>
+      <span>Answers cite the PostgreSQL 17 docs</span>
       <span>Press <span class="kbd">Enter ↵</span> to ask</span>
     </div>
   </section>
@@ -393,23 +412,23 @@
     <div class="suggestion-grid">
       <button class="suggestion" type="button" data-question="What does work_mem control in PostgreSQL?">
         <span class="suggestion-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/></svg></span>
-        <span><strong>Memory & performance</strong><span>What does work_mem control?</span></span>
+        <span class="suggestion-body"><strong>Memory &amp; performance</strong><span class="suggestion-text">What does work_mem control?</span></span>
       </button>
-      <button class="suggestion" type="button" data-question="How do PostgreSQL indexes improve query performance, and what are the trade-offs?">
+      <button class="suggestion" type="button" data-question="Which index types does PostgreSQL support?">
         <span class="suggestion-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 19V5m0 14h16M7 15l4-4 3 2 5-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <span><strong>Indexes & query plans</strong><span>How do indexes speed up queries?</span></span>
+        <span class="suggestion-body"><strong>Indexes</strong><span class="suggestion-text">Which index types are supported?</span></span>
       </button>
-      <button class="suggestion" type="button" data-question="What is the difference between VACUUM and VACUUM FULL?">
+      <button class="suggestion" type="button" data-question="What does VACUUM FULL do differently from a plain VACUUM?">
         <span class="suggestion-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v3m0 12v3M4.9 4.9 7 7m10 10 2.1 2.1M3 12h3m12 0h3M4.9 19.1 7 17m10-10 2.1-2.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/></svg></span>
-        <span><strong>Maintenance & vacuum</strong><span>VACUUM vs. VACUUM FULL</span></span>
+        <span class="suggestion-body"><strong>Maintenance</strong><span class="suggestion-text">VACUUM vs. VACUUM FULL</span></span>
       </button>
     </div>
   </section>
 
   <div class="trust-row" aria-label="Product capabilities">
-    <span class="trust-item"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Documentation-grounded</span>
-    <span class="trust-item"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 4.5 6v5.5c0 4.4 3.2 7.7 7.5 9.5 4.3-1.8 7.5-5.1 7.5-9.5V6L12 3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg> Verifiable citations</span>
-    <span class="trust-item"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.7"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg> Transparent performance</span>
+    <span class="trust-item"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Cites its sources</span>
+    <span class="trust-item"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 4.5 6v5.5c0 4.4 3.2 7.7 7.5 9.5 4.3-1.8 7.5-5.1 7.5-9.5V6L12 3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg> Links to the docs section</span>
+    <span class="trust-item"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.7"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg> Shows latency and tokens</span>
   </div>
 
 </main>
@@ -427,7 +446,6 @@ const form = document.getElementById("f");
 const input = document.getElementById("q");
 const btn = document.getElementById("b");
 const buttonLabel = document.getElementById("button-label");
-const suggestions = document.getElementById("suggestions");
 const themeToggle = document.getElementById("theme-toggle");
 const themeLabel = document.getElementById("theme-label");
 const themeIcon = document.getElementById("theme-icon");
@@ -485,91 +503,177 @@ function icon(name) {
 function renderMarkdown(text, citations) {
   const citationUrls = new Map();
   for (const c of (Array.isArray(citations) ? citations : [])) {
-    const url = safeHttpUrl(c.url);
+    const url = c ? safeHttpUrl(c.url) : null;
     if (c && c.n != null && url) citationUrls.set(String(c.n), url);
   }
-  // Escape untrusted model output before adding the small supported Markdown subset.
-  let html = esc(text);
-  html = html.replace(/```([a-zA-Z0-9_+.-]*)\n?([\s\S]*?)```/g, (_, lang, code) =>
-    '<div class="code-wrap"><pre><code>' + code.replace(/\n$/, "") + '</code></pre><button class="copy-code" type="button">Copy code</button></div>');
-  html = html.replace(/`([^`\n]+)`/g, "<code>$1</code>");
-  html = html.replace(/^### (.+)$/gm, "<h3>$1</h3>")
-             .replace(/^## (.+)$/gm, "<h2>$1</h2>")
-             .replace(/^# (.+)$/gm, "<h1>$1</h1>");
-  html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-  html = html.replace(/\[(\d+(?:\s*,\s*\d+)*)\]/g, (match, nums) =>
-    nums.split(/\s*,\s*/).map(n => {
-      const url = citationUrls.get(n);
-      return url
-        ? '<a class="citation-link" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer" aria-label="Open source ' + esc(n) + '">[' + esc(n) + ']</a>'
-        : '[' + esc(n) + ']';
-    }).join(" "));
-  // Format ordinary paragraphs and simple Markdown lists without interpreting arbitrary HTML.
-  const blocks = html.split(/\n{2,}/).map(block => {
-    const trimmed = block.trim();
-    if (!trimmed) return "";
-    if (/^(<h[1-3]>|<div class="code-wrap">|<ul>|<ol>)/.test(trimmed)) return trimmed;
-    const lines = trimmed.split("\n");
-    if (lines.every(line => /^\s*[-*]\s+/.test(line))) {
-      return "<ul>" + lines.map(line => "<li>" + line.replace(/^\s*[-*]\s+/, "") + "</li>").join("") + "</ul>";
-    }
-    if (lines.every(line => /^\s*\d+[.)]\s+/.test(line))) {
-      return "<ol>" + lines.map(line => "<li>" + line.replace(/^\s*\d+[.)]\s+/, "") + "</li>").join("") + "</ol>";
-    }
-    return "<p>" + trimmed.replace(/\n/g, "<br>") + "</p>";
+  // 1. Escape untrusted model output first; nothing below adds HTML from the model's text.
+  let src = esc(String(text ?? "").replace(/\u0000/g, ""));
+  // 2. Pull fenced code out BEFORE any other rule runs, so blank lines, "#", "*" and "[1]" inside code stay code.
+  const codes = [];
+  src = src.replace(/([ \t]*)```[a-zA-Z0-9_+.-]*[ \t]*\n?([\s\S]*?)```/g, (_, ind, code) => {
+    const lines = code.replace(/^\n+/, "").replace(/\s+$/, "").split("\n");
+    const indents = lines.filter(l => l.trim()).map(l => l.match(/^[ \t]*/)[0].length);
+    const cut = indents.length ? Math.min(...indents) : 0;
+    codes.push('<div class="code-wrap"><pre><code>' + lines.map(l => l.slice(cut)).join("\n") +
+               '</code></pre><button class="copy-code" type="button">Copy code</button></div>');
+    return "\n" + ind + "\u0000" + (codes.length - 1) + "\u0000\n";
   });
-  return blocks.join("");
+  const indentOf = line => line.match(/^[ \t]*/)[0].length;
+  const itemRe = /^([ \t]*)([-*]|\d+[.)])[ \t]+(.*)$/;
+  const isCode = line => /^\s*\u0000\d+\u0000\s*$/.test(line);
+
+  function inline(t) {
+    const spans = [];
+    let r = t.replace(/`([^`\n]+)`/g, (_, c) => { spans.push("<code>" + c + "</code>"); return "\u0001" + (spans.length - 1) + "\u0001"; });
+    r = r
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/(^|[^*\w])\*([^*\s][^*\n]*?)\*(?![*\w])/g, "$1<em>$2</em>")
+      .replace(/\[(\d+(?:\s*,\s*\d+)*)\]/g, (m, nums) =>
+        nums.split(/\s*,\s*/).map(n => {
+          const url = citationUrls.get(n);
+          return url
+            ? '<a class="citation-link" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer" aria-label="Open source ' + esc(n) + '">[' + esc(n) + ']</a>'
+            : "[" + esc(n) + "]";
+        }).join(" "));
+    return r.replace(/\u0001(\d+)\u0001/g, (_, i) => spans[Number(i)]);
+  }
+  function paragraph(lines) {
+    return "<p>" + lines.map((l, i) => {
+      const hard = / {2,}$/.test(l);
+      return inline(l.trim()) + (hard && i < lines.length - 1 ? "<br>" : (i < lines.length - 1 ? " " : ""));
+    }).join("") + "</p>";
+  }
+  function blocks(lines) {
+    const out = [];
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i];
+      if (!line.trim()) { i++; continue; }
+      if (isCode(line)) { out.push(codes[Number(line.trim().slice(1, -1))]); i++; continue; }
+      const h = line.match(/^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$/);
+      if (h) { const lv = Math.min(h[1].length, 3); out.push("<h" + lv + ">" + inline(h[2]) + "</h" + lv + ">"); i++; continue; }
+      const m = line.match(itemRe);
+      if (m) {
+        const base = m[1].replace(/\t/g, "  ").length, ordered = /\d/.test(m[2]);
+        const items = [];
+        while (i < lines.length) {
+          const mm = lines[i].match(itemRe);
+          if (!mm || indentOf(lines[i]) !== base || /\d/.test(mm[2]) !== ordered) break;
+          const body = [mm[3]];
+          i++;
+          while (i < lines.length) {
+            const l = lines[i];
+            if (!l.trim()) {  // a blank line stays inside the list only if the list goes on
+              let j = i;
+              while (j < lines.length && !lines[j].trim()) j++;
+              if (j >= lines.length) break;
+              const nx = lines[j], nm = nx.match(itemRe);
+              const sameItem = indentOf(nx) > base;
+              const nextItem = nm && indentOf(nx) === base && /\d/.test(nm[2]) === ordered;
+              if (sameItem) { body.push(""); i++; continue; }
+              if (nextItem) { i = j; }
+              break;
+            }
+            if (indentOf(l) > base) { body.push(l); i++; continue; }
+            break;
+          }
+          const rest = body.slice(1).filter(l => l.trim());
+          const cut = rest.length ? Math.min(...rest.map(indentOf)) : 0;
+          const inner = [body[0], ...body.slice(1).map(l => l.slice(Math.min(cut, indentOf(l))))];
+          const html = blocks(inner);
+          items.push("<li>" + (html.startsWith("<p>") && html.indexOf("<p>", 3) < 0 ? html.slice(3, -4) : html) + "</li>");
+        }
+        out.push((ordered ? "<ol>" : "<ul>") + items.join("") + (ordered ? "</ol>" : "</ul>"));
+        continue;
+      }
+      const para = [];
+      while (i < lines.length && lines[i].trim() && !isCode(lines[i]) && !itemRe.test(lines[i]) && !/^\s{0,3}#{1,6}\s/.test(lines[i])) {
+        para.push(lines[i]); i++;
+      }
+      out.push(paragraph(para));
+    }
+    return out.join("");
+  }
+  return blocks(src.split("\n"));
 }
 function loadingMarkup() {
   return '<div class="loading-card"><div class="loading-head"><span class="spinner" aria-hidden="true"></span><span>Searching documentation and preparing your answer…</span></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>';
 }
-function renderSources(sources) {
-  if (!Array.isArray(sources) || !sources.length) return "";
-  const cards = sources.map(source => {
-    const url = safeHttpUrl(source.url);
-    const title = esc(source.context || "PostgreSQL documentation source");
-    const number = esc(source.n ?? "•");
+function sourceGroups(data) {
+  // One card per URL, showing EVERY citation number that points to it (the API's `sources` keeps only the first).
+  const groups = new Map();
+  for (const c of (Array.isArray(data.citations) ? data.citations : [])) {
+    const key = c && c.url ? c.url : "";
+    if (!groups.has(key)) groups.set(key, { url: c.url, context: c.context, nums: [] });
+    groups.get(key).nums.push(c.n);
+  }
+  if (groups.size) return [...groups.values()];
+  return (Array.isArray(data.sources) ? data.sources : []).map(s => ({ url: s.url, context: s.context, nums: [s.n] }));
+}
+function renderSources(groups) {
+  if (!groups.length) return "";
+  const cards = groups.map(g => {
+    const url = safeHttpUrl(g.url);
+    const title = esc(g.context || "PostgreSQL documentation source");
+    const number = esc(g.nums.filter(n => n != null).join(", ") || "•");
     const domain = url ? esc(new URL(url).hostname) : "Source URL unavailable";
     const content = '<span class="source-number">[' + number + ']</span><span><span class="source-context">' + title + '</span><span class="source-domain">' + domain + '</span></span>';
     return url
       ? '<a class="source-card" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + content + '</a>'
       : '<div class="source-card">' + content + '</div>';
   }).join("");
-  return '<section class="sources-panel" aria-labelledby="sources-title"><div class="sources-head"><h2 id="sources-title">Sources & references</h2><span class="sources-count">' + sources.length + ' document' + (sources.length === 1 ? "" : "s") + '</span></div><div class="source-list">' + cards + '</div></section>';
+  return '<section class="sources-panel" aria-labelledby="sources-title"><div class="sources-head"><h2 id="sources-title">Sources & references</h2><span class="sources-count">' + groups.length + ' section' + (groups.length === 1 ? "" : "s") + ' cited</span></div><div class="source-list">' + cards + '</div></section>';
 }
+const NOT_RETRIEVAL = new Set(["llm_ms", "total_ms", "queue_wait_ms", "wall_ms"]);
 function renderMetrics(data) {
   const latency = data.latency_ms || {};
   const usage = data.usage || {};
-  const total = ms(latency.wall_ms);
-  const model = ms(latency.llm_ms);
-  const retrieval = latency.total_ms != null && latency.llm_ms != null
-    ? ms(Math.max(0, Number(latency.total_ms) - Number(latency.llm_ms))) : "—";
+  // Sum the retrieval stages themselves (embed, vector, bm25, fuse, rerank). total_ms - llm_ms would also include the LLM throttle sleep.
+  const stages = Object.entries(latency).filter(([k, v]) => !NOT_RETRIEVAL.has(k) && Number.isFinite(Number(v)));
+  const retrieval = stages.length ? ms(stages.reduce((a, [, v]) => a + Number(v), 0)) : "—";
+  const queue = Number(latency.queue_wait_ms);
   const requestId = data.request_id ? String(data.request_id) : "—";
   return '<div class="metrics">' +
-    '<div class="metric"><span class="metric-label">' + icon("clock") + ' Total latency</span><strong class="metric-value">' + esc(total) + '</strong><span class="metric-sub">End-to-end request</span></div>' +
-    '<div class="metric"><span class="metric-label">' + icon("cpu") + ' Model time</span><strong class="metric-value">' + esc(model) + '</strong><span class="metric-sub">LLM generation</span></div>' +
+    '<div class="metric"><span class="metric-label">' + icon("clock") + ' Total latency</span><strong class="metric-value">' + esc(ms(latency.wall_ms)) + '</strong><span class="metric-sub">End-to-end request</span></div>' +
+    '<div class="metric"><span class="metric-label">' + icon("cpu") + ' Model time</span><strong class="metric-value">' + esc(ms(latency.llm_ms)) + '</strong><span class="metric-sub">Hosted LLM, incl. network</span></div>' +
     '<div class="metric"><span class="metric-label">' + icon("tokens") + ' Tokens</span><strong class="metric-value">' + esc(tokenCount(usage.prompt_tokens)) + ' / ' + esc(tokenCount(usage.completion_tokens)) + '</strong><span class="metric-sub">Input / output</span></div>' +
     '<div class="metric"><span class="metric-label">' + icon("hash") + ' Request ID</span><strong class="metric-value" title="' + esc(requestId) + '">' + esc(requestId.length > 15 ? requestId.slice(0, 12) + "…" : requestId) + '</strong><span class="metric-sub">For troubleshooting</span></div>' +
-    '</div><p class="metric-sub" style="text-align:right;margin:8px 3px 0">Retrieval + reranking: ' + esc(retrieval) + ' · Model: ' + esc(data.model || "Not specified") + '</p>';
+    '</div><p class="metric-sub" style="text-align:right;margin:8px 3px 0">Retrieval + reranking: ' + esc(retrieval) +
+    (Number.isFinite(queue) && queue >= 500 ? ' · Waited in queue: ' + esc(ms(queue)) : '') +
+    ' · Model: ' + esc(data.model || "Not specified") + '</p>';
 }
 function renderResult(data) {
   if (data.status === "ok") {
-    const sources = Array.isArray(data.sources) ? data.sources : [];
-    const citations = Array.isArray(data.citations) ? data.citations : [];
-    return '<div class="result-topline"><h2 class="result-title">Answer</h2><span class="result-badge"><span class="status-dot"></span> Documentation-backed response</span></div>' +
-      '<article class="answer-card"><div class="answer-content">' + renderMarkdown(data.answer || "", citations) + '</div></article>' +
-      renderSources(sources) + renderMetrics(data);
+    const hasCode = /```/.test(data.answer || "");
+    return '<div class="result-topline"><h2 class="result-title">Answer</h2><span class="result-badge"><span class="status-dot"></span> Answer with citations</span></div>' +
+      '<article class="answer-card"><div class="answer-content">' + renderMarkdown(data.answer || "", data.citations) + '</div></article>' +
+      (hasCode ? '<p class="answer-note">Code in this answer may be adapted by the model rather than copied from the docs. Check it against the linked sections.</p>' : '') +
+      renderSources(sourceGroups(data)) + renderMetrics(data);
   }
   if (data.status === "refused") {
-    return '<div class="notice-card"><strong>Outside the documentation scope</strong><p style="margin:6px 0 0">' + esc(data.answer || "The documentation could not support an answer to this question.") + '</p></div>';
+    return '<div class="notice-card"><strong>Not found in the PostgreSQL 17 docs</strong><p style="margin:6px 0 0">' + esc(data.answer || "The documentation could not support an answer to this question.") +
+      ' If you expected an answer, try naming the command or parameter, for example <code>COMMENT</code> or <code>work_mem</code>.</p></div>' + renderMetrics(data);
   }
-  return '<div class="error-card"><strong>Could not answer this question</strong><p style="margin:6px 0 0">' + esc(data.answer || "The request failed. Please try again.") + '</p></div>';
+  const title = data.status === "citation_failed" ? "Could not produce a cited answer" : "Could not answer this question";
+  return '<div class="error-card"><strong>' + esc(title) + '</strong><p style="margin:6px 0 0">' + esc(data.answer || "The request failed. Please try again.") + '</p></div>';
 }
+function setBusy(busy) {
+  btn.disabled = busy;
+  document.querySelectorAll("[data-question]").forEach(b => { b.disabled = busy; });
+}
+fetch("/health").then(r => r.ok ? r.json() : Promise.reject(new Error("unhealthy"))).then(d => {
+  document.getElementById("status-dot").className = "status-dot";
+  document.getElementById("status-text").textContent = "Online";
+  document.getElementById("status-pill").title = [d.model, d.mode, d.chunks != null ? d.chunks + " chunks" : null].filter(Boolean).join(" · ");
+}).catch(() => {
+  document.getElementById("status-dot").className = "status-dot off";
+  document.getElementById("status-text").textContent = "Backend unavailable";
+});
 form.addEventListener("submit", async event => {
   event.preventDefault();
   const question = input.value.trim();
   if (question.length < 3 || btn.disabled) return;
-  btn.disabled = true;
+  setBusy(true);
   buttonLabel.textContent = "Working…";
   out.setAttribute("aria-busy", "true");
   out.innerHTML = loadingMarkup();
@@ -597,7 +701,7 @@ form.addEventListener("submit", async event => {
     out.innerHTML = '<div class="error-card"><strong>Could not reach AskPG</strong><p style="margin:6px 0 0">Check that the backend is running and that this page is being served by the application server.</p></div>';
     out.scrollIntoView({ behavior: "smooth", block: "start" });
   } finally {
-    btn.disabled = false;
+    setBusy(false);
     buttonLabel.textContent = "Ask question";
     out.setAttribute("aria-busy", "false");
   }

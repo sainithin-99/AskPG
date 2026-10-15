@@ -698,3 +698,32 @@ Reading:
 - LLM timeout (generate.py): decide default, whether max_retries stays 2, test with a tiny timeout, then log as a service test.
 - Smoke test re-run against the container; a hanging-Qdrant test; a 429 / timeout test.
 - Key-leak checklist boxes (section 11): tick only after verifying each step.
+
+18. Docker GPU deployment, tracing fix, failure test, key rotation (15 Oct 2026)
+
+Source tags: [FILE] = from saved output; [READING] = my interpretation; HYPOTHESIS = untested.
+
+18.1 Container ran inference on CPU (deployment finding, not a retrieval experiment)
+Symptom [FILE, /stats of the CPU container]: rerank p50 14.1 s / p95 15.9 s; LLM p95 about 99.7 s; total p50 about 23.5 s / p95 about 113 s. The number of requests in that window was not recorded.
+Diagnosis: torch.cuda.is_available() was False in the container (torch 2.10.0+cpu). A control container (pytorch/pytorch:2.5.1-cuda12.4, --gpus all) saw the GTX 1660 Ti, so GPU passthrough worked and the cause was the image.
+Fix (two parts of one change): Dockerfile installs torch==2.5.1+cu124 with --extra-index-url before requirements.txt; compose adds a deploy.resources.reservations.devices block (nvidia, count all) to indexer and app.
+Container torch check after the fix [FILE]: 2.5.1+cu124, CUDA 12.4, available True, GTX 1660 Ti.
+Indexer after recreate [FILE]: “Collection askpg_pg17 already holds 6489 points = 6489 chunks. Nothing to do.”
+Results, GPU container, window 1 (n=5, all ok) [FILE]: rerank p50 1450.6 ms / p95 14733.4 ms; embed p50 29.6 ms; vector p50 36.5 ms; llm p50 8036 ms; total p50 11599 ms / p95 37438 ms.
+Window 2 (last=5, n=5) [FILE]: rerank p50 1395.7 / p95 1450.6; total p50 6606 ms. This window OVERLAPPED window 1 (rerank p95 equals window 1’s p50, embed p50 identical, prompt tokens identical at 8249), so it is not an independent sample.
+Image size [FILE]: 2.64 GB (CPU) to 7.14 GB; layers: pip 5.74 GB, model bake 1.27 GB. Cause of the growth not isolated (HYPOTHESIS: the CUDA wheels).
+UNEXPLAINED: one rerank of about 14.7 s among the first five GPU requests. HYPOTHESIS: first-request CUDA warmup despite the startup warmup query. Clean test (restart, then /stats?last=1 for the first and second requests): FILL IN, or skipped.
+Versions: local gate baseline used torch 2.10.0+cu128; the container uses 2.5.1+cu124. The local gate remains the authority for retrieval quality; container vs local retrieval scores have not been compared.
+Container is slower than local on the same GPU (rerank about 1.4 s vs 1.18 s p50, embed 29.6 vs about 16 ms). Cause not isolated; n=5.
+Not measured: index time on GPU inside the container.
+18.2 tracing.summarize fix
+
+Records without retrieval stages were counted as 0 ms retrieval. Fixed test-first (1 failed / 28 passed, then 29 passed). Bug fix, not an experiment. Commit: FILL IN.
+
+18.3 Failure-path test (503)
+
+With Qdrant stopped after startup, /health and /ask returned 503 with a retrieval_error trace after about 4.1 s (cause of the delay not investigated); the service recovered without a restart. The 502 path (LLM error) with a real provider error is NOT yet tested; no concurrency test.
+
+18.4 Key incident
+
+The live NVIDIA key was pasted into a chat on 11 Oct (not committed to the repo). Rotation confirmed by me on 15 Oct. Checklist items still to verify by looking at the settings: old key revoked in the console, secret scanning and push protection on the repo.
