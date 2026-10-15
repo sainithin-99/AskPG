@@ -1,17 +1,8 @@
 # AskPG
-![answer with citations](docs/answer.png)
-![refusal](docs/refusal.png)
 
+A RAG system over the **PostgreSQL 17 documentation**, built in plain Python (no LangChain / LlamaIndex) and designed to be **measured**, not just demoed: hybrid retrieval, cross-encoder reranking, cited answers, an LLM-judged evaluation, a closed-book baseline, per-request tracing, a local regression gate and a Docker Compose setup with GPU inference.
 
-A RAG system over the **PostgreSQL 17 documentation**, built in plain Python (no LangChain / LlamaIndex) and designed to be **measured**, not just demoed: hybrid retrieval, cross-encoder reranking, cited answers, an LLM-judged evaluation, a closed-book baseline, per-request tracing and a local regression gate.
-
-> Status (Oct 2026): retrieval, generation, evaluation, API and frontend work and are measured. Unit tests run in CI. Docker packaging is built and starts, but CPU latency inside the container is not yet measured. The app is not hosted publicly. See [Status](#status) and [Limitations](#limitations).
-
-## What this project shows
-
-- A retrieval pipeline built and compared step by step (vector, BM25, hybrid, rerank), with every run logged with numbers in [`experiments.md`](experiments.md).
-- An evaluation I tried to break: label versions, a coverage check, a judge audited by hand, a closed-book baseline, and a regression gate I tested by breaking it on purpose.
-- Honest results, including the ones that did not go my way (hybrid is not better than vector at @5; retrieval shows no measured correctness gain over a strong closed-book model on this dataset).
+> Status (15 Oct 2026): retrieval, generation, evaluation, API, frontend and Docker packaging work and are measured. This is a portfolio project, not a production deployment. See [Status](#status) and [Limitations](#limitations).
 
 ## What the measurements say
 
@@ -19,16 +10,16 @@ All numbers come from a 30-question dev set (21 answerable, 9 unanswerable). Wit
 
 ### Retrieval (labels d3, index v3: 1127 pages, 6489 chunks)
 
-| mode | success@1 | success@5 | success@10 | MRR | p50 latency (local, GPU) |
+| mode | success@1 | success@5 | success@10 | MRR | p50 latency (local) |
 |---|---|---|---|---|---|
 | vector (bge-small) | 0.476 | 0.810 | 0.905 | 0.616 | 34 ms |
 | bm25 | 0.429 | 0.667 | 0.857 | 0.537 | 0.2 ms |
 | hybrid (RRF) | 0.476 | 0.714 | 0.952 | 0.586 | 37 ms |
 | hybrid + rerank (bge-reranker-base) | 0.619 | 0.810 | 0.905 | 0.695 | 1215 ms |
 
-- The reranker is a **precision** gain (rank-1 hits 13 vs 10, MRR 0.695 vs 0.616), not a recall gain (success@5 is 17/21 for both), at about 33x hybrid's latency.
-- Hybrid is **not** better than vector at @5 here (0.714 vs 0.810); it is better at @10. Why is untested.
-- Labels moved the metrics more than the code did. Labels were widened twice after seeing results (d2, d3); this favours the reranker and is disclosed in the log. Rows from different label versions are never compared as progress.
+- The reranker is a **precision** gain (rank-1 hits 13 vs 10, MRR 0.695 vs 0.616), not a recall gain (success@5 is 17/21 for both), at about 33x hybrid's latency. The rank-1 difference is 3 questions: close to the noise boundary.
+- Hybrid is **not** better than vector at @5 here (0.714 vs 0.810); it is better at @10.
+- Labels moved the metrics more than the code did (labels were widened twice after seeing results; this favours the reranker and is disclosed in the log).
 
 ### Generation (g1: hybrid_rerank, k=5, openai/gpt-oss-20b, temperature 0)
 
@@ -39,7 +30,9 @@ All numbers come from a 30-question dev set (21 answerable, 9 unanswerable). Wit
 | claims supported by the sources the model was shown | 89 / 109 (0.817), judged by a different model |
 | answer time p50 / p95 | 9.6 s / 26.7 s (the hosted LLM is about 85% of it) |
 
-"Supported" means grounded in the retrieved chunks, not "true". The judge is one model and is not reproducible at temperature 0. I audited 79 of its claims by hand (one reader): it agreed with my reading on 81-91% of them and misses direction and qualifier errors (for example "ancestor" vs "descendant"). Use it for relative comparison, not as an accuracy figure.
+- "Supported" means grounded in the retrieved chunks, not "true". The judge is one model, not reproducible at temperature 0. I audited 79 of its claims by hand (one reader, a sample enriched with flagged claims): it agreed with my reading on 81-91% of them and misses direction and qualifier errors (for example "ancestor" vs "descendant").
+- For three multi-part questions (multi-01, multi-04, multi-05) the needed section was not in the prompt, yet the model answered without saying what the sources did not cover.
+- A deterministic check of the prompt rule "include a snippet only if a source contains it" found a non-verbatim snippet in 7 of 20 answers (a count, not an error rate). One was materially wrong in my reading: an invented `CREATE VIEW ... SECURITY BARRIER` form.
 
 ### Closed-book baseline (cb1: same model, same questions, no retrieval)
 
@@ -48,9 +41,18 @@ All numbers come from a 30-question dev set (21 answerable, 9 unanswerable). Wit
 | correctness vs reference, 19 questions both answered | 17 correct / 2 partial | 17 correct / 2 partial |
 | unanswerable refused | 9 / 9 | 5 / 9 |
 
-The 19 exclude fact-01 (refused in g1, a retrieval failure) and fact-10 (the closed-book call did not finish within its token budget).
+**On this dataset retrieval does not buy measurable correctness over a strong closed-book model. It buys verifiability (citations, a grounding check) and safer refusal**, at roughly 8x the input tokens (a lower bound). Likely reasons, both untested: a 20B model has seen the public PostgreSQL docs, and the dev set is too easy. A harder set (PostgreSQL 17-specific details, rarely-read parameters) is the next step.
 
-**On this dataset retrieval does not buy measurable correctness over a strong closed-book model. It buys verifiability (citations, a grounding check) and safer refusal.** Likely reasons, both untested: a 20B model has seen the public PostgreSQL docs, the dev set is too easy, and the correctness judge is lenient. A harder set (PostgreSQL 17-specific details, rarely-read parameters) is the next step.
+### Deployment finding: the container ran inference on CPU
+
+The first Docker image installed CPU-only PyTorch, so the reranker ran on CPU inside the container (median about 14.1 s per request, against about 1.2 s on the GPU outside Docker). A separate `pytorch/pytorch` container with `--gpus all` showed that GPU passthrough worked, which isolated the cause to the image. The fix has two parts: CUDA PyTorch (2.5.1+cu124) in the Dockerfile and a GPU reservation in `docker-compose.yml`.
+
+| | CPU container | GPU container |
+|---|---|---|
+| reranker p50 | 14.1 s | 1.4 s |
+| image size | 2.64 GB | 7.14 GB (5.74 GB pip layer, 1.27 GB baked models) |
+
+Caveats: small samples (a handful of requests per window), and one rerank of about 14.7 s appeared among the first five GPU requests. I have not explained it (first-request warmup is a hypothesis, not tested). The retrieval baseline was produced with torch 2.10.0+cu128 outside Docker; the container uses 2.5.1+cu124, so float noise can flip a near-tie. The local gate remains the authority for retrieval quality.
 
 ## Architecture
 
@@ -87,27 +89,25 @@ flowchart LR
 | Serving | FastAPI, ONE worker, a lock around the pipeline | the models and the LLM throttle keep in-process state; queue wait is traced |
 | Gold labels | page + section heading (or anchor), never chunk id | chunk ids change whenever chunking changes |
 
-## Quickstart A: Docker (Windows, Command Prompt)
+## Quickstart with Docker Compose (needs an NVIDIA GPU)
 
-Needs Docker Desktop and a hosted or local OpenAI-compatible LLM endpoint.
-
-1. Copy `.env.example` to `.env` and set `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL`. The key stays in `.env`, which is git-ignored.
-2. Start the stack:
+Requirements: Docker Desktop with NVIDIA GPU passthrough (the container uses CUDA PyTorch), and a `.env` in the repo root with `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL` (any OpenAI-compatible endpoint; copy `.env.example`; `.env` is git-ignored and never copied into the image). Stop any local `uvicorn` first: port 8000 and the GPU memory must be free.
 
 ```
-docker compose up
+docker compose build
+docker compose up -d
 ```
 
-Three services start: `qdrant` (pinned image), `indexer` (embeds the chunks, skips the work if the index already matches `chunks.jsonl`) and `app` (port 8000). The app waits for the indexer, so **the first start takes about 15 minutes on CPU** (about 7 chunks/s). Later starts are fast. Do not run `docker compose down -v`: it deletes the index volume.
+Open http://localhost:8000/. Compose starts Qdrant (port not published), a one-shot indexer and the app. The indexer rebuilds the index only if the point count differs from `chunks.jsonl`; the app starts after it finishes. A first index on CPU ran at about 7 chunks/s (roughly 15 minutes); on GPU I expect about 80 s, as on the host, but have not measured it inside the container. `docker compose down -v` deletes the index volume: do not use it casually.
 
-Open http://localhost:8000/. Endpoints: `POST /ask`, `GET /health`, `GET /stats`.
+There is no CPU-only image. A hosted CPU deployment would need a separate build (for example a build argument selecting the torch variant) and would be slow in the reranker.
 
-## Quickstart B: local Python
+## Quickstart without Docker (Windows, Command Prompt)
 
-Tested on Windows with Python 3.10 and a GTX 1660 Ti (CPU also works).
+Tested on Windows with Python 3.10 and a GTX 1660 Ti (CPU also works, slowly). Paths use `E:\Projects\AskPG`; adjust to yours.
 
 ```
-pip install -r requirements.txt
+pip install requests beautifulsoup4 transformers sentence-transformers qdrant-client numpy bm25s openai python-dotenv fastapi uvicorn
 docker run -d --name qdrant -p 6333:6333 -v "%cd%/qdrant_storage:/qdrant/storage" qdrant/qdrant:v1.19.1
 python src/ingest.py download
 python src/ingest.py chunk
@@ -115,19 +115,20 @@ python src/embed_index.py index --recreate
 uvicorn api:app --app-dir src --port 8000
 ```
 
-`requirements.txt` excludes torch (install the build that matches your hardware).
+Endpoints: `POST /ask`, `GET /health`, `GET /stats`.
 
 ## Testing and gating
 
 ```
-python -m pytest tests -q                      # unit tests; also run by GitHub Actions on every push
+pip install pytest
+python -m pytest tests -q                      # 29 unit tests; also run by GitHub Actions
 python eval\gate_retrieval.py                  # LOCAL retrieval regression gate (needs Qdrant and the index)
 python eval\run_eval.py run --name <label> --retriever hybrid_rerank
 python eval\run_gen_eval.py --name <label>     # end-to-end generation run (calls the hosted LLM)
 python eval\judge.py <label>                   # LLM judge on a saved run
 ```
 
-The retrieval gate re-runs the eval on the current code and fails if success@5 drops by more than one question or MRR by more than 0.03 (tolerances are my choice, not measured). It aborts if the baseline is stale (chunk count or label counts changed). I broke it on purpose once (a lower `RERANK_TOP`): success@5 fell to 13/21 and the gate failed; after restoring the setting it reproduced the d3 numbers exactly. CI runs only the corpus-free unit tests; the gate needs the gitignored data, a GPU and a built index, so it stays local.
+The retrieval gate re-runs the eval on the current code and fails if success@5 drops by more than one question or MRR by more than 0.03 (tolerances are my choice, not measured). It aborts if the baseline is stale (chunk count or label counts changed). I broke the pipeline on purpose once: the gate failed at 13/21 success@5 against 17/21 in the baseline, and after restoring the code it reproduced the d3 baseline exactly. CI runs only the corpus-free unit tests; the gate needs the gitignored data, a GPU and a built index, so it stays local.
 
 ## Repo layout
 
@@ -150,32 +151,27 @@ experiments.md   every run, with numbers
 | Vector, BM25, hybrid, hybrid + rerank | done, measured |
 | Generation with citation check | done, measured (g1) |
 | LLM judge, snippet check, closed-book baseline | done, run once each |
-| API + frontend + tracing | done; the Qdrant-down path (503) and recovery tested; the LLM-error path (502) not yet tested against a real provider error |
-| Unit tests + CI | 29 unit tests; GitHub Actions workflow |
-| Docker packaging | built (image 2.64 GB, build about 490 s); CPU latency in the container not yet measured |
-| Public hosting | not done (see below) |
+| API + frontend + tracing | done; 503 path (Qdrant down) tested and recovers; 502 path (LLM error) with a real provider error not yet tested |
+| Unit tests + CI | 29 tests pass locally; GitHub Actions workflow in place |
+| Docker packaging | built; GPU inference verified in the container; CPU-only image not provided |
+| Concurrency test | not done |
 | Larger, harder dataset with a held-out test split | not started |
-
-## Running it publicly
-
-It is not hosted. Before exposing it I would need: a per-IP rate limit and daily cap (every request spends the free LLM quota), a written retention policy (traces store user questions), a shorter LLM timeout (currently 120 s), and a prebuilt Qdrant snapshot so a host does not spend 15 minutes indexing.
 
 ## Limitations
 
-- **Small dev set.** 21 answerable questions: nothing separates the reranker from plain vector search, and the closed-book result suggests the set is too easy.
+- **Small dev set.** 21 answerable questions: differences between retrieval modes are mostly within noise, and the closed-book result suggests the set is too easy.
 - **Labels were widened after seeing results** (d2, d3), which favours the reranker. Dev-set relabelling is closed.
 - **Section-level matching.** A hit means a chunk of the right section was retrieved, not the exact chunk with the answer; a retriever that finds a different valid source is penalised.
-- **Citations are checked for form, not truth.** A well-formed citation can point to a chunk that does not support the sentence. For three multi-part questions the model answered from incomplete evidence without saying which part was missing.
-- **The judge is an instrument, not ground truth** (single model, not reproducible, 81-91% agreement with my reading on an enriched sample, one reader). Its correctness check is lenient: one answer was rated correct with 6 of 9 claims not grounded.
-- **Generated snippets are not always verbatim.** A deterministic check found 7 of 20 answers with a snippet that is not in the sources (one has invalid SQL syntax). Whether verbatim-only is the behaviour I want is undecided.
+- **Citations are checked for form, not truth.** A well-formed citation can point to a chunk that does not support the sentence.
+- **The judge is an instrument, not ground truth** (single model, not reproducible, 81-91% agreement with one reader on an enriched sample). Correctness vs the reference is lenient, so report grounding and correctness together.
 - **Reranker truncation.** The reranker reads at most 512 tokens and cuts the end of long chunks; 2.5% of chunks are exposed. It caused one visible failure (the COMMENT question is refused). Diagnosed, not fixed.
 - **Vocabulary gaps** (for example "SQL dump" vs `pg_dump`) are a retrieval problem; query decomposition does not fix them.
 - **Refusal rests on the LLM.** It refused 9/9 here, with one model, one run, n=9.
-- **Hosted LLM:** free-tier rate limits; in g1 latency was 2-32 s depending on output length, and one later request took about 100 s for a similar-sized answer. Results also differ between runs at temperature 0, so each run is one sample.
+- **Hosted LLM:** free-tier rate limits, latency from 2 s to about 100 s at the tail (the timeout is still 120 s), and results that differ between runs at temperature 0.
 - **Anchors are per section**, not per parameter: a `work_mem` citation links to the whole "Memory" section.
-- **One worker and a lock.** Concurrent requests queue (queue wait is traced, but concurrency is not load-tested). Scaling out would need a separate retrieval service.
+- **One worker and a lock.** Concurrent requests queue (the wait is traced, not yet load-tested). Scaling out would need a separate retrieval service.
 - **Traces store user questions.** A public deployment needs a retention policy (not decided).
-- **Latency numbers are local**, single process, warm, on a GTX 1660 Ti; a CPU deployment will be slower, mainly in the reranker.
+- **Latency numbers:** retrieval figures are local, single process, warm, on a GTX 1660 Ti; container figures come from a few requests. Local and container runs use different torch versions.
 
 ## Data and licensing
 
