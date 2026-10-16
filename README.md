@@ -94,13 +94,13 @@ flowchart LR
 Requirements: Docker Desktop with NVIDIA GPU passthrough (the container uses CUDA PyTorch), and a `.env` in the repo root with `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL` (any OpenAI-compatible endpoint; copy `.env.example`; `.env` is git-ignored and never copied into the image). Stop any local `uvicorn` first: port 8000 and the GPU memory must be free.
 
 ```
-docker compose build
+docker compose build    
 docker compose up -d
 ```
 
 Open http://localhost:8000/. Compose starts Qdrant (port not published), a one-shot indexer and the app. The indexer rebuilds the index only if the point count differs from `chunks.jsonl`; the app starts after it finishes. A first index on CPU ran at about 7 chunks/s (roughly 15 minutes); on GPU I expect about 80 s, as on the host, but have not measured it inside the container. `docker compose down -v` deletes the index volume: do not use it casually.
 
-There is no CPU-only image. A hosted CPU deployment would need a separate build (for example a build argument selecting the torch variant) and would be slow in the reranker.
+The default image is CUDA. A CPU image can be built with docker build --build-arg TORCH_VARIANT=cpu -t askpg:cpu . (built, and torch reports 2.5.1+cpu; not run end to end). docker-compose.yml still reserves an NVIDIA GPU for the indexer and app, so docker compose up needs a GPU; a CPU compose override is not written. The reranker is slow on CPU: the earlier CPU container (torch 2.10.0+cpu) measured about 14.1 s p50, and I have not re-measured with this build.
 
 ## Quickstart without Docker (Windows, Command Prompt)
 
