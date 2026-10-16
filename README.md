@@ -167,7 +167,7 @@ experiments.md   every run, with numbers
 - **Reranker truncation.** The reranker reads at most 512 tokens and cuts the end of long chunks; 2.5% of chunks are exposed. It caused one visible failure (the COMMENT question is refused). Diagnosed, not fixed.
 - **Vocabulary gaps** (for example "SQL dump" vs `pg_dump`) are a retrieval problem; query decomposition does not fix them.
 - **Refusal rests on the LLM.** It refused 9/9 here, with one model, one run, n=9.
-- **Hosted LLM:** free-tier rate limits, latency from 2 s to about 100 s at the tail (the timeout is still 120 s), and results that differ between runs at temperature 0.
+- **Hosted LLM:** latency from about 2 s to 32 s in g1; one cb1 call took 130 s (probably a client timeout plus retry, a guess); the client timeout is 120 s with 2 retries, so a hung call can take several minutes.
 - **Anchors are per section**, not per parameter: a `work_mem` citation links to the whole "Memory" section.
 - **One worker and a lock.** Concurrent requests queue (the wait is traced, not yet load-tested). Scaling out would need a separate retrieval service.
 - **Traces store user questions.** A public deployment needs a retention policy (not decided).

@@ -1,4 +1,4 @@
-# AskPG app image (CUDA-enabled PyTorch 2.5.1+cu124 for NVIDIA GPU inference).
+# AskPG app image. Default: CUDA PyTorch 2.5.1+cu124 for NVIDIA GPU inference; build with --build-arg TORCH_VARIANT=cpu for CPU PyTorch.
 # Needs the NVIDIA container runtime on the host and a `deploy.resources.reservations.devices`
 # block (or `gpus: all`) on the compose services that run models (app, indexer).
 # Needs internet at BUILD time for packages and model downloads.
@@ -12,11 +12,12 @@ WORKDIR /app
 
 COPY requirements.txt .
 
+ARG TORCH_VARIANT=cu124
 # torch first, once, as a pinned local version (+cu124) with the PyTorch index as an EXTRA index
 # (PyPI stays available for torch's dependencies). requirements.txt excludes torch, so it sees
 # torch already satisfied and does not pull the default 2.10.0 build over it.
 RUN pip install --upgrade pip \
-    && pip install torch==2.5.1+cu124 --extra-index-url https://download.pytorch.org/whl/cu124 \
+    && pip install torch==2.5.1+${TORCH_VARIANT} --extra-index-url https://download.pytorch.org/whl/${TORCH_VARIANT} \
     && pip install -r requirements.txt
 
 # Bake the two models into the image so a container starts without downloading them.
