@@ -78,7 +78,7 @@ flowchart LR
 |---|---|---|
 | Framework | Plain Python | every step is visible and explainable |
 | Embedder | `BAAI/bge-small-en-v1.5`, fp32, query-side instruction only | small and fast; runs on a 6 GB GPU or CPU |
-| Chunk budget | counted with the embedder's own tokenizer: 400 tokens, 60 overlap | counting with a different tokenizer silently truncated 1.4% of chunks |
+| Chunk budget | counted with the embedder's own tokenizer: 400 tokens, 60 overlap | counting with a different tokenizer silently truncated 1.4% of chunks (83 of 6008, v0 index) |
 | Small sections | merged into a neighbour, not dropped | dropping them removed real content (syntax, parameters) |
 | Provenance | each chunk lists every section it covers (`covers`) | lets the eval map a gold section to the chunk that holds it |
 | Keyword search | bm25s, snake_case identifiers kept whole, no stemming | the docs are full of exact identifiers (`work_mem`) |

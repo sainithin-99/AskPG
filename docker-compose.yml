@@ -1,4 +1,4 @@
-# AskPG: Qdrant + one-shot indexer + app. GPU reservations on indexer and app: NOT YET RUN.
+# AskPG: Qdrant + one-shot indexer + app. GPU reservations on indexer and app: verified for the app (reranker p50 1.4 s, see README).
 #
 #   docker compose build
 #   docker compose up
