@@ -3,6 +3,9 @@ data/*
 !data/chunks/
 data/chunks/*
 !data/chunks/chunks.jsonl
+!data/vectors/
+data/vectors/*
+!data/vectors/vectors.npz
 qdrant_storage/
 __pycache__/
 *.pyc
