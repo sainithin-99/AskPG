@@ -1,5 +1,8 @@
 .env
-data/
+data/*
+!data/chunks/
+data/chunks/*
+!data/chunks/chunks.jsonl
 qdrant_storage/
 __pycache__/
 *.pyc
